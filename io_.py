@@ -1,5 +1,4 @@
 import os
-import sys
 import h5py
 import numpy as np
 import pandas as pd
@@ -30,20 +29,28 @@ def load_txt(fpaths, connection_type='intra'):
 
 
 def load_hdf5(fpath):
+    """
+
+    Parameters
+    ----------
+    fpath
+
+    Returns
+    -------
+
+    """
     f = h5py.File(fpath, 'r')
     data = {'Left': f['Left'][()],
             'Right': f['Right'][()]}
     return data
 
 
-def read_table(fname, sheet_name=0, index_col=0):
+def read_table(fname, **kwargs):
     """Read a table from a .xlsx or .csv file
 
     Parameters
     ----------
     fname (string):
-    sheet_name
-    index_col
 
     Returns
     -------
@@ -51,10 +58,11 @@ def read_table(fname, sheet_name=0, index_col=0):
     """
     file_format = fname.split('.')[-1]
     if file_format == 'xlsx':
-        df = pd.read_excel(fname, sheet_name=sheet_name,
-                           index_col=index_col, engine='openpyxl')
+        df = pd.read_excel(fname, engine='openpyxl', **kwargs)
     elif file_format == 'csv':
-        df = pd.read_csv(fname, index_col=index_col)
+        df = pd.read_csv(fname, **kwargs)
+    else:
+        raise ValueError('Unsupported file type %s' % file_format)
 
     return df
 
@@ -85,17 +93,17 @@ def get_fpaths(fdir, idx_list, file_format='txt'):
 
 
 def split_brain(matrix, connection_type='intra'):
-    # left_vec = []
-    # right_vec = []
-    # n_roi = matrix.shape[0]
-    # for i in range(n_roi):
-    #     if i % 2 == 1:
-    #         right_vec.append(matrix[i, :].reshape(1, -1))
-    #     else:
-    #         left_vec.append(matrix[i, :].reshape(1, -1))
-    #
-    # left_vec = left.reshape((1, -1))
-    # right_vec = right.reshape((1, -1))
+    """
+
+    Parameters
+    ----------
+    matrix
+    connection_type
+
+    Returns
+    -------
+
+    """
     n_ = matrix.shape[1] / 2
     if connection_type == 'intra':
         left = matrix[0::2, 0::2]  # even indices of rows, left brain
@@ -103,17 +111,19 @@ def split_brain(matrix, connection_type='intra'):
 
         idx = np.triu_indices(n_, k=1)
         n_feat = int(n_ * (n_ - 1) / 2)
-        left_vec = np.zeros(n_feat)
-        right_vec = np.zeros(n_feat)
+        left_vec = np.zeros((1, n_feat))
+        right_vec = np.zeros((1, n_feat))
+        left_vec[0, :] = left[idx]
+        right_vec[0, :] = right[idx]
 
-        left_vec[:] = left[idx]
-        right_vec[:] = right[idx]
     elif connection_type == 'inter':
         left = matrix[0::2, 1::2]
-        right = matrix[1::2, 2::2]
-
+        right = matrix[1::2, 0::2]
         left_vec = left.reshape((1, -1))
         right_vec = right.reshape((1, -1))
+
+    else:
+        raise ValueError('Invalid connection type %s' % connection_type)
 
     return left_vec, right_vec
 
@@ -136,3 +146,34 @@ def save_half_brain(out_dir, out_fname, data_left, data_right):
     f.create_dataset('Left', data=data_left)
     f.create_dataset('Right', data=data_right)
     f.close()
+
+
+def load_half_brain(datadir, atlas, session, run, connection_type):
+    """
+
+    Parameters
+    ----------
+    datadir
+    atlas
+    session
+    run
+    connection_type
+
+    Returns
+    -------
+
+    """
+    if connection_type == 'both':
+        data = {'Left': [], 'Right': []}
+        for type_ in ['inter', 'intra']:
+            fname = 'HCP_%s_%s_half_brain_%s_%s.hdf5' % (atlas, type_, session, run)
+            data_in = load_hdf5(os.path.join(datadir, fname))
+            data['Left'].append(data_in['Left'])
+            data['Right'].append(data_in['Right'])
+        data['Left'] = np.concatenate(data['Left'], axis=1)
+        data['Right'] = np.concatenate(data['Right'], axis=1)
+    else:
+        fname = 'HCP_%s_%s_half_brain_%s_%s.hdf5' % (atlas, connection_type, session, run)
+        data = load_hdf5(os.path.join(datadir, fname))
+
+    return data
