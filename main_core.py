@@ -6,7 +6,7 @@ import torch
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import StandardScaler, label_binarize
 # from sklearn.metrics import accuracy_score, roc_auc_score
-from _base import _pick_half
+from _base import _pick_half, _return_all
 import pandas as pd
 from pydale.estimator import CoDeLR
 from torchmetrics.functional import accuracy
@@ -37,7 +37,8 @@ def main():
     info[run_] = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
     data[run_] = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
 
-    x, y = _pick_half(data[run_], random_state=random_state)
+    # x, y = _pick_half(data[run_], random_state=random_state)
+    x, y = _return_all(data[run_])
     y = label_binarize(y, classes=[-1, 1]).reshape(-1)
 
     # scaler = StandardScaler()
@@ -47,8 +48,8 @@ def main():
     idx_male = np.where(genders == 0)[0]
     idx_female = np.where(genders == 1)[0]
 
-    x = torch.from_numpy(x)
-    x = x.float()
+    # x = torch.from_numpy(x)
+    # x = x.float()
     y = torch.from_numpy(y)
     y = y.long()
     genders = torch.from_numpy(genders.reshape((-1, 1)))
@@ -64,17 +65,24 @@ def main():
                 for train, test in spliter.split(train_idx, y[train_idx]):
                     train_ = train_idx[train]
                     test_ = train_idx[test]
+
+                    scaler = StandardScaler()
+                    scaler.fit(x[train_])
+                    x_ = scaler.transform(x)
+                    x_ = torch.from_numpy(x_)
+                    x_ = x_.float()
+
                     model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
-                    model.fit(x, y[train_], genders, train_idx=train_)
-                    y_pred_wi = model.predict(x[test_])
+                    model.fit(x_, y[train_], genders, train_idx=train_)
+                    y_pred_wi = model.predict(x_[test_])
                     acc_wi = accuracy(y[test_], y_pred_wi)
                     res['acc_within'].append(acc_wi.item())
 
-                    y_pred_wo = model.predict(x[test_idx])
+                    y_pred_wo = model.predict(x_[test_idx])
                     acc_wo = accuracy(y[test_idx], y_pred_wo)
                     res['acc_without'].append(acc_wo.item())
 
-                    out = model.forward(x)
+                    out = model.forward(x_)
                     pred_loss = model._compute_pred_loss(out[train], y[train])
                     res['pred_loss'].append(pred_loss.item())
 

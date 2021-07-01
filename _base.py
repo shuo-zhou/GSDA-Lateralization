@@ -118,3 +118,12 @@ def _pick_half(data, random_state=144):
     y[right_idx] = -1
 
     return x, y
+
+
+def _return_all(data):
+    x = np.concatenate([data['Left'], data['Right']], axis=0)
+    n_ = x.shape[0]
+    y = np.ones(n_)
+    y[int(n_ / 2):] = -1
+
+    return x, y
