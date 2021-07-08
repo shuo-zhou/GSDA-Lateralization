@@ -4,9 +4,9 @@ import io_
 import numpy as np
 import torch
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import StandardScaler, label_binarize
+from sklearn.preprocessing import label_binarize
 # from sklearn.metrics import accuracy_score, roc_auc_score
-from _base import _pick_half, _return_all
+from _base import _pick_half, _pick_half_subs
 import pandas as pd
 from pydale.estimator import CoDeLR
 from torchmetrics.functional import accuracy
@@ -22,7 +22,7 @@ def main():
     # data_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
     # out_dir = 'D:/ShareFolder/AICHA_VolFC/Result'
     session = 'REST1'  # session = 'REST1'
-    run_ = 'LR'
+    run_ = 'Fisherz'
     # runs = ['RL', 'LR']
     connection_type = 'intra'
     random_state = 144
@@ -30,26 +30,23 @@ def main():
     l2_param = 0.1
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 
-    info = dict()
-    data = dict()
+    # info = dict()
+    # data = dict()
 
     info_file = 'HCP_%s_half_brain_%s_%s.csv' % (atlas, session, run_)
-    info[run_] = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
-    data[run_] = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
+    info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
+    data = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
 
-    # x, y = _pick_half(data[run_], random_state=random_state)
-    x, y = _return_all(data[run_])
+    x, y = _pick_half(data, random_state=random_state)
+    # x, y = _pick_half_subs(data[run_])
     y = label_binarize(y, classes=[-1, 1]).reshape(-1)
 
-    # scaler = StandardScaler()
-    # x = scaler.fit_transform(x)
-
-    genders = info[run_]['gender'].values
+    genders = info['gender'].values
     idx_male = np.where(genders == 0)[0]
     idx_female = np.where(genders == 1)[0]
 
-    # x = torch.from_numpy(x)
-    # x = x.float()
+    x_ = torch.from_numpy(x)
+    x_ = x_.float()
     y = torch.from_numpy(y)
     y = y.long()
     genders = torch.from_numpy(genders.reshape((-1, 1)))
@@ -65,12 +62,6 @@ def main():
                 for train, test in spliter.split(train_idx, y[train_idx]):
                     train_ = train_idx[train]
                     test_ = train_idx[test]
-
-                    scaler = StandardScaler()
-                    scaler.fit(x[train_])
-                    x_ = scaler.transform(x)
-                    x_ = torch.from_numpy(x_)
-                    x_ = x_.float()
 
                     model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
                     model.fit(x_, y[train_], genders, train_idx=train_)

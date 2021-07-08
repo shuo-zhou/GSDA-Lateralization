@@ -120,9 +120,11 @@ def _pick_half(data, random_state=144):
     return x, y
 
 
-def _return_all(data):
-    x = np.concatenate([data['Left'], data['Right']], axis=0)
-    n_ = x.shape[0]
+def _pick_half_subs(data, random_state=144):
+    n_ = data['Left'].shape[0]
+    train_idx, hold_idx = train_test_split(range(n_), test_size=0.5,
+                                           random_state=random_state)
+    x = np.concatenate([data['Left'][train_idx], data['Right'][train_idx]], axis=0)
     y = np.ones(n_)
     y[int(n_ / 2):] = -1
 

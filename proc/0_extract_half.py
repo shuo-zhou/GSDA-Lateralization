@@ -1,17 +1,20 @@
 import os
-import pandas as pd
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import io_
 
 
 # basedir = 'D:/ShareFolder/AICHA_VolFC'  # 'D:\ShareFolder\AICHA_VolFC\REST2\LR\FC_R'
+atlas = 'BNA'
 basedir = 'D:/ShareFolder/BNA'
 sub_info_fpath = 'D:/ShareFolder/AICHA_VolFC/AtlasInfo/HCP_basic_information.xlsx'
+out_dir = 'D:/ShareFolder/BNA/Proc'
 runs = ['LR', 'RL']
 sessions = ['REST1', 'REST2']
 # sessions = ['REST2']
 # out_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
-atlas = 'BNA'
-out_dir = 'D:/ShareFolder/BNA/Proc'
 connection_type = 'intra'  # inter & intra
 # n_comps = [50, 10, 150, 200, 250]
 
