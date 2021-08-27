@@ -116,8 +116,16 @@ def _pick_half(data, random_state=144):
     y = np.zeros(n_sub)
     y[left_idx] = 1
     y[right_idx] = -1
+    
+    x1 = np.zeros(data['Left'].shape)
+    x1[left_idx] = data['Right'][left_idx]
+    x1[right_idx] = data['Left'][right_idx]
+    
+    y1 = np.zeros(n_sub)
+    y1[left_idx] = -1
+    y1[right_idx] = 1
 
-    return x, y
+    return x, y, x1, y1
 
 
 def _pick_half_subs(data, random_state=144):

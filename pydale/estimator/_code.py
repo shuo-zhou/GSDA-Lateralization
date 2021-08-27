@@ -32,11 +32,12 @@ class CoDeLR(nn.Module):
     def fit(self, x, y, c, train_idx=None):
         n_features = x.shape[1]
         n_classes = torch.unique(y).shape[0]
+        # self.model = nn.Linear(n_features, n_classes)
+        self.model = nn.Linear(n_features, 1)
         n_train = y.shape[0]
         if train_idx is None:
             train_idx = torch.arange(n_train)
-        self.model = nn.Linear(n_features, n_classes)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam)  
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam)
 
         start_time = time()
         for epoch in range(self.n_epochs):
@@ -61,19 +62,22 @@ class CoDeLR(nn.Module):
         # print('Time used: {:.4f}'.format(time_used))
 
     @staticmethod
-    def _compute_pred_loss(out, y):
-        y_pred = torch.sigmoid(out)
-        return F.cross_entropy(y_pred, y.view(-1))
+    def _compute_pred_loss(input_, y):
+        # return F.cross_entropy(F.sigmoid(input_), y.view(-1))
+        return F.binary_cross_entropy(torch.sigmoid(input_), y.view((-1, 1)).float())
 
     @staticmethod
-    def _compute_code_loss(out, c):
-        return 1 - torch.sigmoid(hsic(out, c.float()))
+    def _compute_code_loss(input_, c):
+        return 1 - torch.sigmoid(hsic(input_, c.float()))
 
     def forward(self, x):
         return self.model(x)
     
     def predict(self, x):
         output = self.forward(x)
-        _, y_pred = torch.max(output, 1)
-        
+        # _, y_pred = torch.max(output, 1)
+        y_prob = torch.sigmoid(output)
+        y_pred = torch.zeros(output.shape)
+        y_pred[torch.where(y_prob > 0.5)] = 1
+
         return y_pred

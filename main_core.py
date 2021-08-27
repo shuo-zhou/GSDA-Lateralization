@@ -21,40 +21,46 @@ def main():
     # atlas = 'AICHA'
     # data_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
     # out_dir = 'D:/ShareFolder/AICHA_VolFC/Result'
-    session = 'REST1'  # session = 'REST1'
+    # sessions = ['REST1', 'REST2']
+    session = 'REST1'
     run_ = 'Fisherz'
     # runs = ['RL', 'LR']
     connection_type = 'intra'
     random_state = 144
-    lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
+    # lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
+    lambdas = [1.0]
     l2_param = 0.1
-    test_sizes = [0.1, 0.2, 0.3, 0.4]
+    # test_sizes = [0.1, 0.2, 0.3, 0.4]
+    test_sizes = [0.5]
 
-    # info = dict()
-    # data = dict()
-
-    info_file = 'HCP_%s_half_brain_%s_%s.csv' % (atlas, session, run_)
+    # for session in sessions:
+    info_file = 'HCP_%s_half_brain_%s.csv' % (atlas, session)
     info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
     data = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
 
-    x, y = _pick_half(data, random_state=random_state)
-    # x, y = _pick_half_subs(data[run_])
+    x, y, x1, y1 = _pick_half(data, random_state=random_state)
+
     y = label_binarize(y, classes=[-1, 1]).reshape(-1)
+    y = torch.from_numpy(y)
+    y = y.long()
+    y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
+    y1 = torch.from_numpy(y1)
+    y1 = y1.long()
+
+    x = torch.from_numpy(x)
+    x = x.float()
+    x1 = torch.from_numpy(x1)
+    x1 = x1.float()
 
     genders = info['gender'].values
     idx_male = np.where(genders == 0)[0]
     idx_female = np.where(genders == 1)[0]
-
-    x_ = torch.from_numpy(x)
-    x_ = x_.float()
-    y = torch.from_numpy(y)
-    y = y.long()
     genders = torch.from_numpy(genders.reshape((-1, 1)))
     genders = genders.float()
-    res = {"acc_within": [], "acc_without": [], 'pred_loss': [], 'code_loss': [], 'lambda': [], 'test_size': [],
-           'time_used': [], 'n_iter': []}
+    res = {"acc_within_new_sub": [], "acc_within_same_sub": [], "acc_without_trained": [], "acc_without_untrained": [],
+           'pred_loss': [], 'code_loss': [], 'lambda': [], 'test_size': [], 'time_used': [], 'n_iter': []}
     for test_size in test_sizes:
-        spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
+        spliter = StratifiedShuffleSplit(n_splits=10, test_size=test_size, random_state=random_state)
 
         for lambda_ in lambdas:
             for train_idx, test_idx in [(idx_male, idx_female), (idx_female, idx_male)]:
@@ -64,23 +70,39 @@ def main():
                     test_ = train_idx[test]
 
                     model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
-                    model.fit(x_, y[train_], genders, train_idx=train_)
-                    y_pred_wi = model.predict(x_[test_])
-                    acc_wi = accuracy(y[test_], y_pred_wi)
-                    res['acc_within'].append(acc_wi.item())
+                    # x_train = torch.cat((x[train_], x[test_idx]))
+                    # genders_train = torch.cat((genders[train_], genders[test_idx]))
+                    # y_train = y[train_]
+                    # model.fit(x_train, y_train, genders_train, train_idx=np.arange(len(train_)))
+                    x_train = torch.cat((x[train_], x1[train_], x[test_idx]))
+                    genders_train = torch.cat((genders[train_], genders[train_], genders[test_idx]))
+                    y_train = torch.cat((y[train_], y[train_]))
+                    model.fit(x_train, y_train, genders_train, train_idx=np.arange(len(train_) * 2))
 
-                    y_pred_wo = model.predict(x_[test_idx])
+                    y_pred_wi = model.predict(torch.cat((x[test_], x1[test_])))
+                    acc_wi = accuracy(torch.cat((y[test_], y1[test_])), y_pred_wi)
+                    res['acc_within_new_sub'].append(acc_wi.item())
+
+                    y_pred_wi0 = model.predict(x1[train_])
+                    acc_wo = accuracy(y1[train_], y_pred_wi0)
+                    res['acc_within_same_sub'].append(acc_wo.item())
+
+                    y_pred_wo = model.predict(x[test_idx])
                     acc_wo = accuracy(y[test_idx], y_pred_wo)
-                    res['acc_without'].append(acc_wo.item())
+                    res['acc_without_trained'].append(acc_wo.item())
 
-                    out = model.forward(x_)
+                    y_pred_wo0 = model.predict(x1[test_idx])
+                    acc_wo0 = accuracy(y1[test_idx], y_pred_wo0)
+                    res['acc_without_untrained'].append(acc_wo0.item())
+
+                    out = model.forward(x)
                     pred_loss = model._compute_pred_loss(out[train], y[train])
                     res['pred_loss'].append(pred_loss.item())
 
                     code_loss = model._compute_code_loss(out, genders)
                     res['code_loss'].append(code_loss.item())
 
-                    model_path = os.path.join(out_dir, "lambda_%s_test_%s_iter_%s.pt" % (lambda_, test_size, n_iter))
+                    model_path = os.path.join(out_dir, "lambda_%s_test_%s1_iter_%s.pt" % (lambda_, test_size, n_iter))
                     torch.save(model, model_path)
                     res['n_iter'].append(n_iter)
                     n_iter += 1
