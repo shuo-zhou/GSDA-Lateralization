@@ -136,7 +136,7 @@ def main():
                         else:
                             model.fit(torch.cat((x_train[ic_is_idx], x_fix)), y_train[ic_is_idx],
                                       torch.cat((genders_train[ic_is_idx], g_fix)),
-                                      train_idx=np.arange(y_train[ic_is_idx].shape[0]))
+                                      target_idx=np.arange(y_train[ic_is_idx].shape[0]))
                             torch.save(model, model_path)
 
                         for acc_key in xy_test:

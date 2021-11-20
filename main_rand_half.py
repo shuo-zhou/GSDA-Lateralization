@@ -123,7 +123,8 @@ def main():
                         model = torch.load(model_path)
                     else:
                         model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
-                        model.fit(x_train_[train], y_train_[train][ic_is_train], g_train_[train], train_idx=ic_is_train)
+                        model.fit(x_train_[train], y_train_[train][ic_is_train], g_train_[train],
+                                  target_idx=ic_is_train)
                         torch.save(model, model_path)
 
                     for acc_key in xy_test:

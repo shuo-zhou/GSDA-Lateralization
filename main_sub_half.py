@@ -119,7 +119,7 @@ def main():
                         if os.path.exists(model_path):
                             model = torch.load(model_path)
                         else:
-                            model.fit(x_train, y_train[ic_is_idx], genders_train, train_idx=ic_is_idx)
+                            model.fit(x_train, y_train[ic_is_idx], genders_train, target_idx=ic_is_idx)
                             torch.save(model, model_path)
 
                         for acc_key in xy_test:

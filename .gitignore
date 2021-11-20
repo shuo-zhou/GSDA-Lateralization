@@ -1,0 +1,17 @@
+*.dcm
+*.iml
+*.json
+*.pdf
+*.pkl
+*.pt
+*.pyc
+*.sh
+*.xml
+*.yaml
+*.zip
+
+.idea
+.vscode/
+
+**.ipynb_checkpoints/
+nilearn_cache/

@@ -77,7 +77,7 @@ def main():
                     x_train = torch.cat((x[train_], x1[train_], x[test_idx]))
                     genders_train = torch.cat((genders[train_], genders[train_], genders[test_idx]))
                     y_train = torch.cat((y[train_], y[train_]))
-                    model.fit(x_train, y_train, genders_train, train_idx=np.arange(len(train_) * 2))
+                    model.fit(x_train, y_train, genders_train, target_idx=np.arange(len(train_) * 2))
 
                     y_pred_wi = model.predict(torch.cat((x[test_], x1[test_])))
                     acc_wi = accuracy(torch.cat((y[test_], y1[test_])), y_pred_wi)

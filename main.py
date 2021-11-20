@@ -88,8 +88,7 @@ def main():
         # Training
         x_train_pc = best_estimator['PCA'].fit_transform(x_train)
         if clf in ['SIDeRSVM', 'SIDeRLS']:
-            best_estimator['clf'].fit(x_train_pc, y[train],
-                                      co_variates=genders[train])
+            best_estimator['clf'].fit(x_train_pc, y[train], )
         else:
             best_estimator['clf'].fit(x_train_pc, y[train], )
         res['embed'].append(best_estimator['PCA'])

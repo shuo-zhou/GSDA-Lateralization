@@ -1,5 +1,4 @@
 import torch
-import torchvision
 from time import time
 import torch.nn as nn
 from torch.nn import functional as F
@@ -23,26 +22,26 @@ class CoDeLR(nn.Module):
         self.l2_hparam = l2_hparam
         self.lambda_ = lambda_
         self.n_epochs = n_epochs
-        self.model: nn.modules.Linear
-        self.optimizer: torch.optim.Adam
+        self.model = None
+        self.optimizer = None
         self.fit_time = 0
         self.losses = {'ovr': [], 'pred': [], 'code': [], 'time': []}
         # self.linear = nn.Linear(n_features, n_classes)
         
-    def fit(self, x, y, c, train_idx=None):
+    def fit(self, x, y, c, target_idx=None):
         n_features = x.shape[1]
-        n_classes = torch.unique(y).shape[0]
+        # n_classes = torch.unique(y).shape[0]
         # self.model = nn.Linear(n_features, n_classes)
         self.model = nn.Linear(n_features, 1)
         n_train = y.shape[0]
-        if train_idx is None:
-            train_idx = torch.arange(n_train)
+        if target_idx is None:
+            target_idx = torch.arange(n_train)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam)
 
         start_time = time()
         for epoch in range(self.n_epochs):
             out = self.model(x)
-            pred_loss = self._compute_pred_loss(out[train_idx], y.view(-1))
+            pred_loss = self._compute_pred_loss(out[target_idx], y.view(-1))
             code_loss = self._compute_code_loss(out, c)
             loss = pred_loss + self.lambda_ * code_loss
             self.optimizer.zero_grad()
