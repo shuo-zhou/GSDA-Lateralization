@@ -1,6 +1,7 @@
 *.dcm
 *.iml
 *.json
+*.mat
 *.pdf
 *.pkl
 *.pt
@@ -10,8 +11,9 @@
 *.yaml
 *.zip
 
-.idea
+.idea/
 .vscode/
 
+**/lightning_logs/
 **.ipynb_checkpoints/
 nilearn_cache/

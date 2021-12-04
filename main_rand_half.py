@@ -15,13 +15,12 @@ from torchmetrics.functional import accuracy
 
 def main():
     atlas = 'BNA'
-    data_dir = "/media/shuoz/MyDrive/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuoz/MyDrive/HCP/%s/Results/Rand_Half/' % atlas
-    # data_dir = 'D:/ShareFolder/BNA/Proc'
-    # out_dir = 'D:/ShareFolder/BNA/Result'
     # atlas = 'AICHA'
-    # data_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
-    # out_dir = 'D:/ShareFolder/AICHA_VolFC/Result'
+    # data_dir = "/media/shuoz/MyDrive/data/HCP/%s/Proc" % atlas
+    # out_dir = '/media/shuoz/MyDrive/data/HCP/%s/Results/Rand_Half/' % atlas
+    data_dir = 'D:/ShareFolder/%s/Proc' % atlas
+    out_dir = 'D:/ShareFolder/%s/Result' % atlas
+
     sessions = ['REST1', 'REST2']  # session = 'REST1'
     run_ = 'Fisherz'
     # runs = ['RL', 'LR']
@@ -31,14 +30,13 @@ def main():
     l2_param = 0.1
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 
-    info = dict()
     x_all = dict()
     y_all = dict()
     genders = dict()
+    info_file = 'HCP_%s_half_brain.csv' % atlas
+    info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
 
     for session in sessions:
-        info_file = 'HCP_%s_half_brain_%s.csv' % (atlas, session)
-        info[session] = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
         data = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
 
         x, y, x1, y1 = _pick_half(data, random_state=random_state)
@@ -58,7 +56,7 @@ def main():
 
         x_all[session] = torch.cat([x, x1])
         y_all[session] = torch.cat([y, y1])
-        gender = info[session]['gender'].values
+        gender = info['gender'].values
         gender = torch.from_numpy(gender.reshape((-1, 1)))
 
         genders[session] = torch.cat((gender, gender))
@@ -130,7 +128,7 @@ def main():
                     for acc_key in xy_test:
                         test_x, test_y = xy_test[acc_key]
                         y_pred_ = model.predict(test_x)
-                        acc_ = accuracy(test_y, y_pred_)
+                        acc_ = accuracy(test_y, y_pred_.view(-1).type(torch.int))
                         res[acc_key].append(acc_.item())
 
                     res['pred_loss'].append(model.losses['pred'][-1])

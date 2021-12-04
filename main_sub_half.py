@@ -4,10 +4,10 @@ import os
 import io_
 import numpy as np
 import torch
-from sklearn.model_selection import StratifiedShuffleSplit
+# from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize
 # from sklearn.metrics import accuracy_score, roc_auc_score
-from _base import _pick_half, _pick_half_subs
+from _base import _pick_half  # _pick_half_subs
 import pandas as pd
 from pydale.estimator import CoDeLR
 from torchmetrics.functional import accuracy
@@ -15,14 +15,15 @@ from torchmetrics.functional import accuracy
 
 def main():
     atlas = 'BNA'
-    run_ = 'Fisherz'
-    data_dir = "/media/shuoz/MyDrive/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuoz/MyDrive/HCP/%s/Results/Sub_Half_%s' % (atlas, run_)
-    # data_dir = 'D:/ShareFolder/BNA/Proc'
-    # out_dir = 'D:/ShareFolder/BNA/Result'
     # atlas = 'AICHA'
-    # data_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
-    # out_dir = 'D:/ShareFolder/AICHA_VolFC/Result'
+    # data_dir = "/media/shuoz/MyDrive/data/HCP/%s/Proc" % atlas
+    # out_dir = '/media/shuoz/MyDrive/data/HCP/%s/Results/Rand_Half/' % atlas
+    data_dir = 'D:/ShareFolder/%s/Proc' % atlas
+    out_dir = 'D:/ShareFolder/%s/Result' % atlas
+
+    # run_ = 'Fisherz'
+    run_ = 'gender_equal_Fisherz'
+
     sessions = ['REST1', 'REST2']  # session = 'REST1'
     # runs = ['RL', 'LR']
     connection_type = 'intra'
@@ -32,16 +33,17 @@ def main():
     l2_param = 0.1
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 
-    info = dict()
     data = dict()
-
     genders = dict()
 
+    info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
+    # info_file = 'HCP_%s_half_brain.csv' % atlas
+    info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
+
+    gender = info['gender'].values
+
     for session in sessions:
-        info_file = 'HCP_%s_half_brain_%s.csv' % (atlas, session)
-        info[session] = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
         data[session] = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
-        gender = info[session]['gender'].values
         genders[session] = {'gender': gender}
 
     # for key_ in x_all:
