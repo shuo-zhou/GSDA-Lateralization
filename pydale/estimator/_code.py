@@ -1,5 +1,8 @@
 import torch
 from time import time
+import numpy as np
+from numpy.linalg import multi_dot
+from sklearn.base import BaseEstimator, ClassifierMixin
 import torch.nn as nn
 from torch.nn import functional as F
 
@@ -37,11 +40,13 @@ class CoDeLR(nn.Module):
         if target_idx is None:
             target_idx = torch.arange(n_train)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam)
+        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
         start_time = time()
         for epoch in range(self.n_epochs):
             out = self.model(x)
             pred_loss = self._compute_pred_loss(out[target_idx], y.view(-1))
+            # l2_norm = torch.linalg.norm()
             code_loss = self._compute_code_loss(out, c)
             loss = pred_loss + self.lambda_ * code_loss
             self.optimizer.zero_grad()
@@ -80,3 +85,154 @@ class CoDeLR(nn.Module):
         y_pred[torch.where(y_prob > 0.5)] = 1
 
         return y_pred
+
+
+class CoDeLogitReg(BaseEstimator, ClassifierMixin):
+    """
+    Logistic Regression Classifier
+    Parameters
+    ----------
+    learning_rate : int or float, default=0.1
+        The tuning parameter for the optimization algorithm (here, Gradient Descent)
+        that determines the step size at each iteration while moving toward a minimum
+        of the cost function.
+    max_iter : int, default=100
+        Maximum number of iterations taken for the optimization algorithm to converge
+
+    penalty : None or 'l2', default='l2'.
+        Option to perform L2 regularization.
+    C : float, default=0.1
+        Inverse of regularization strength; must be a positive float.
+        Smaller values specify stronger regularization.
+    tolerance : float, optional, default=1e-4
+        Value indicating the weight change between epochs in which
+        gradient descent should terminated.
+    """
+
+    def __init__(self, learning_rate=0.01, max_iter=100, regularization='l2', C=0.1, tolerance=1e-4, lambda_=1.0):
+        self.learning_rate = learning_rate
+        self.max_iter = max_iter
+        self.regularization = regularization
+        self.C = C
+        self.tolerance = tolerance
+        self.theta = None
+        self.lambda_ = lambda_
+
+    def fit(self, x, y, covariates, target_idx=None):
+        """
+        Fit the model according to the given training data.
+        Parameters
+        ----------
+        x : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vector, where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        Returns
+        -------
+        self : object
+        """
+        x = np.asarray(x)
+        y = np.asarray(y)
+        covariates = np.asarray(covariates)
+        self.theta = np.random.random((x.shape[1] + 1))
+        x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
+        n_tgt = y.shape[0]
+        n_sample = x.shape[0]
+        if target_idx is None:
+            x_tgt = x[:n_tgt]
+        else:
+            x_tgt = x[target_idx]
+
+        hsic_mat = self._hsic(x, covariates)
+
+        for _ in range(self.max_iter):
+            y_hat = self.__sigmoid(x_tgt @ self.theta)
+            errors = y_hat - y
+            n_feature = x.shape[1]
+            hsic_score = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(n_sample - 1)
+            grad_hsic = (self.__sigmoid(hsic_score) - 1) * np.dot(hsic_mat, self.theta) / np.square(n_sample - 1)
+
+            if self.regularization is not None:
+                delta_grad = self.C * (x_tgt.T @ errors) / n_tgt + self.theta + self.lambda_ * grad_hsic
+            else:
+                delta_grad = x_tgt.T @ errors
+
+            self.theta -= self.learning_rate * delta_grad
+            # if not np.all(abs(delta_grad) <= self.tolerance):
+            #     self.theta -= self.learning_rate * delta_grad
+            # else:
+            #     break
+
+        return self
+
+    def predict_proba(self, x):
+        """
+        Probability estimates for samples in X.
+        Parameters
+        ----------
+        x : array-like of shape (n_samples, n_features)
+            Vector to be scored, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        Returns
+        -------
+        probs : array-like of shape (n_samples,)
+            Returns the probability of each sample.
+        """
+        return self.__sigmoid((x @ self.theta[1:]) + self.theta[0])
+
+    def predict(self, x):
+        """
+        Predict class labels for samples in X.
+        Parameters
+        ----------
+        x : array_like or sparse matrix, shape (n_samples, n_features)
+            Samples.
+        Returns
+        -------
+        labels : array, shape [n_samples]
+            Predicted class label per sample.
+        """
+        y_prob = self.predict_proba(x)
+        y_pred = np.zeros(y_prob.shape)
+        y_pred[np.where(y_prob > 0.5)] = 1
+
+        return y_pred
+
+    @staticmethod
+    def __sigmoid(z):
+        """
+        The sigmoid function.
+        Parameters
+        ------------
+        z : float
+            linear combinations of weights and sample features
+            z = w_0 + w_1*x_1 + ... + w_n*x_n
+        Returns
+        ---------
+        Value of logistic function at z
+        """
+        return 1 / (1 + np.exp(-z))
+
+    def get_params(self, **kwargs):
+        """
+        Get method for models coeffients and intercept.
+        Returns
+        -------
+        params : dict
+        """
+        try:
+            params = dict()
+            params['intercept'] = self.theta[0]
+            params['coef'] = self.theta[1:]
+            return params
+        except:
+            raise Exception('Fit the model first!')
+
+    @staticmethod
+    def _hsic(x, covariate):
+        n = x.shape[0]
+        kernel_c = np.dot(covariate, covariate.T)
+        ctr_mat = np.diag(np.ones(n)) - 1 / n
+
+        return multi_dot((x.T, ctr_mat, kernel_c, ctr_mat, x))

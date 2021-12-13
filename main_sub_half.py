@@ -5,21 +5,21 @@ import io_
 import numpy as np
 import torch
 # from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import label_binarize
-# from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.preprocessing import label_binarize, StandardScaler
+from sklearn.metrics import accuracy_score, roc_auc_score
 from _base import _pick_half  # _pick_half_subs
 import pandas as pd
-from pydale.estimator import CoDeLR
+from pydale.estimator import CoDeLR, CoDeLogitReg
 from torchmetrics.functional import accuracy
 
 
 def main():
     atlas = 'BNA'
     # atlas = 'AICHA'
-    # data_dir = "/media/shuoz/MyDrive/data/HCP/%s/Proc" % atlas
-    # out_dir = '/media/shuoz/MyDrive/data/HCP/%s/Results/Rand_Half/' % atlas
-    data_dir = 'D:/ShareFolder/%s/Proc' % atlas
-    out_dir = 'D:/ShareFolder/%s/Result' % atlas
+    data_dir = "/media/shuoz/MyDrive/data/HCP/%s/Proc" % atlas
+    out_dir = '/media/shuoz/MyDrive/data/HCP/%s/Analysis/Models/' % atlas
+    # data_dir = 'D:/ShareFolder/%s/Proc' % atlas
+    # out_dir = 'D:/ShareFolder/%s/Result' % atlas
 
     # run_ = 'Fisherz'
     run_ = 'gender_equal_Fisherz'
@@ -91,6 +91,8 @@ def main():
                 y_train = y_all[train_session][i_fold]
                 x_test_ = x_all[train_session][1 - i_fold]
                 y_test_ = y_all[train_session][1 - i_fold]
+                # scaler = StandardScaler()
+                # scaler.fit(x_train)
                 for train_gender in [0, 1]:
                     ic_is_idx = np.where(genders_train == train_gender)[0]
                     oc_is_idx = np.where(genders_train == 1 - train_gender)[0]
@@ -116,19 +118,26 @@ def main():
 
                     for lambda_ in lambdas:
                         model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
+                        # model = CoDeLogitReg(regularization=None, lambda_=lambda_, C=l2_param, max_iter=2000)
+                        # model = CoDeLogitReg(lambda_=lambda_, C=l2_param, max_iter=2000)
                         model_path = os.path.join(out_dir, "lambda_%s_%s_%s_%s_gender_%s.pt" %
                                                   (lambda_, train_session, i_split, i_fold, train_gender))
                         if os.path.exists(model_path):
                             model = torch.load(model_path)
                         else:
+                            # model.fit(scaler.transform(x_train), y_train[ic_is_idx], genders_train,
+                            #           target_idx=ic_is_idx)
                             model.fit(x_train, y_train[ic_is_idx], genders_train, target_idx=ic_is_idx)
                             torch.save(model, model_path)
 
                         for acc_key in xy_test:
                             test_x, test_y = xy_test[acc_key]
                             y_pred_ = model.predict(test_x)
+                            # y_pred_ = model.predict(scaler.transform(test_x))
                             acc_ = accuracy(test_y, y_pred_.view(-1).int())
                             res[acc_key].append(acc_.item())
+                            # acc_ = accuracy_score(test_y, y_pred_)
+                            # res[acc_key].append(acc_)
 
                         res['pred_loss'].append(model.losses['pred'][-1])
                         res['code_loss'].append(model.losses['code'][-1])
