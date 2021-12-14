@@ -117,6 +117,7 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
         self.tolerance = tolerance
         self.theta = None
         self.lambda_ = lambda_
+        self.losses = dict()
 
     def fit(self, x, y, covariates, target_idx=None):
         """
@@ -158,11 +159,14 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
             else:
                 delta_grad = x_tgt.T @ errors
 
-            self.theta -= self.learning_rate * delta_grad
-            # if not np.all(abs(delta_grad) <= self.tolerance):
-            #     self.theta -= self.learning_rate * delta_grad
-            # else:
-            #     break
+            # self.theta -= self.learning_rate * delta_grad
+            if not np.all(abs(delta_grad) <= self.tolerance):
+                self.theta -= self.learning_rate * delta_grad
+            else:
+                break
+
+        self.losses["code"] = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(n_sample - 1)
+        self.losses["pred"] = np.sum(np.abs(errors))
 
         return self
 
