@@ -22,7 +22,8 @@ def main():
     out_dir = 'D:/ShareFolder/%s/Result' % atlas
 
     sessions = ['REST1', 'REST2']  # session = 'REST1'
-    run_ = 'Fisherz'
+    # run_ = 'Fisherz'
+    run_ = 'gender_equal_Fisherz'
     # runs = ['RL', 'LR']
     connection_type = 'intra'
     random_state = 144
@@ -33,7 +34,8 @@ def main():
     x_all = dict()
     y_all = dict()
     genders = dict()
-    info_file = 'HCP_%s_half_brain.csv' % atlas
+    info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
+    # info_file = 'HCP_%s_half_brain.csv' % atlas
     info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
 
     for session in sessions:

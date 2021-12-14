@@ -29,7 +29,8 @@ def main():
     connection_type = 'intra'
     random_state = 144
     # lambdas = [0.1, 0.5]  # [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
-    lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
+    # lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
+    lambdas = [10.0]
     l2_param = 100
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 

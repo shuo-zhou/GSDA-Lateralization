@@ -155,26 +155,29 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
             n_feature = x.shape[1]
             hsic_score = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(n_sample - 1)
             hsic_proba = self.__sigmoid(hsic_score)
+            hsic_log_loss = -1 * np.log(hsic_proba)
             grad_hsic = (hsic_proba - 1) * np.dot(hsic_mat, self.theta) / np.square(n_sample - 1)
 
             if self.regularization is not None:
                 delta_grad = (x_tgt.T @ errors) / n_tgt + self.theta / self.C + self.lambda_ * grad_hsic
             else:
                 delta_grad = x_tgt.T @ errors
+            pred_log_loss = -1 * (np.dot(y, np.log(y_hat + 1e-6)) + np.dot((1 - y), np.log(1 - y_hat + 1e-6))) / n_tgt
+            if _ % 10 == 0:
+                time_used = time() - start_time
+                self.losses['ovr'].append(pred_log_loss + hsic_log_loss)
+                self.losses['pred'].append(pred_log_loss)
+                self.losses['code'].append(hsic_log_loss)
+                self.losses['time'].append(time_used)
+
+            # if _ % 100 == 0:
+            #     self.learning_rate *= 0.9
 
             # self.theta -= self.learning_rate * delta_grad
             if not np.all(abs(delta_grad) <= self.tolerance):
                 self.theta -= self.learning_rate * delta_grad
             else:
                 break
-
-            pred_loss = -1 * (np.dot(y, np.log(y_hat)) + np.dot((1 - y), np.log(1 - y_hat)))
-            if _ % 10 == 0:
-                time_used = time() - start_time
-                self.losses['ovr'].append(pred_loss + hsic_score)
-                self.losses['pred'].append(pred_loss)
-                self.losses['code'].append(hsic_score)
-                self.losses['time'].append(time_used)
 
         return self
 
