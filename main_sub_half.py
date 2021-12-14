@@ -29,7 +29,7 @@ def main():
     connection_type = 'intra'
     random_state = 144
     # lambdas = [0.1, 0.5]  # [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
-    lambdas = [1.0, 2.0, 5.0, 8.0, 10.0]
+    lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
     l2_param = 100
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 
@@ -52,7 +52,7 @@ def main():
     #         y_all[key_][i] = torch.from_numpy(y_all[key_][i])
     
     res = {"acc_ic_is": [], "acc_ic_os": [], "acc_oc_is": [], "acc_oc_os": [], 'pred_loss': [], 'code_loss': [],
-           'lambda': [], 'time_used': [], 'train_session': [], 'split': [], 'fold': [], 'train_gender': []}
+           'lambda': [], 'train_session': [], 'split': [], 'fold': [], 'train_gender': []}  #, 'time_used': []}
     # for test_size in test_sizes:
     #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
     for train_session, test_session in [('REST1', 'REST2'), ('REST2', 'REST1')]:
@@ -119,7 +119,7 @@ def main():
                     for lambda_ in lambdas:
                         # model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
                         # model = CoDeLogitReg(regularization=None, lambda_=lambda_, C=l2_param, max_iter=2000)
-                        model = CoDeLogitReg(lambda_=lambda_, C=l2_param, max_iter=2000)
+                        model = CoDeLogitReg(lambda_=lambda_, C=10, max_iter=5000)
                         model_path = os.path.join(out_dir, "lambda_%s_%s_%s_%s_gender_%s.pt" %
                                                   (lambda_, train_session, i_split, i_fold, train_gender))
                         if os.path.exists(model_path):
@@ -139,11 +139,8 @@ def main():
                             acc_ = accuracy_score(test_y, y_pred_)
                             res[acc_key].append(acc_)
 
-                        # res['pred_loss'].append(model.losses['pred'][-1])
-                        # res['code_loss'].append(model.losses['code'][-1])
-
-                        res['pred_loss'].append(model.losses['pred'])
-                        res['code_loss'].append(model.losses['code'])
+                        res['pred_loss'].append(model.losses['pred'][-1])
+                        res['code_loss'].append(model.losses['code'][-1])
 
                         # res['n_iter'].append(n_iter)
                         # n_iter += 1
@@ -154,7 +151,7 @@ def main():
 
                         res['lambda'].append(lambda_)
                         # res['test_size'].append(test_size)
-                        # res['time_used'].append(model.losses['time'][-1])
+                        res['time_used'].append(model.losses['time'][-1])
 
     res_df = pd.DataFrame.from_dict(res)
     out_file = os.path.join(out_dir, 'results_sub_half_%s.csv' % run_)

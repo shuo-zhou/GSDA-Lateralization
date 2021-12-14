@@ -117,7 +117,7 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
         self.tolerance = tolerance
         self.theta = None
         self.lambda_ = lambda_
-        self.losses = dict()
+        self.losses = {'ovr': [], 'pred': [], 'code': [], 'time': []}
 
     def fit(self, x, y, covariates, target_idx=None):
         """
@@ -129,6 +129,8 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
             n_features is the number of features.
         y : array-like of shape (n_samples,)
             Target vector relative to X.
+        covariates: array-like
+        target_idx: array-like
         Returns
         -------
         self : object
@@ -146,16 +148,17 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
             x_tgt = x[target_idx]
 
         hsic_mat = self._hsic(x, covariates)
-
+        start_time = time()
         for _ in range(self.max_iter):
             y_hat = self.__sigmoid(x_tgt @ self.theta)
             errors = y_hat - y
             n_feature = x.shape[1]
             hsic_score = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(n_sample - 1)
-            grad_hsic = (self.__sigmoid(hsic_score) - 1) * np.dot(hsic_mat, self.theta) / np.square(n_sample - 1)
+            hsic_proba = self.__sigmoid(hsic_score)
+            grad_hsic = (hsic_proba - 1) * np.dot(hsic_mat, self.theta) / np.square(n_sample - 1)
 
             if self.regularization is not None:
-                delta_grad = self.C * (x_tgt.T @ errors) / n_tgt + self.theta + self.lambda_ * grad_hsic
+                delta_grad = (x_tgt.T @ errors) / n_tgt + self.theta / self.C + self.lambda_ * grad_hsic
             else:
                 delta_grad = x_tgt.T @ errors
 
@@ -165,8 +168,13 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
             else:
                 break
 
-        self.losses["code"] = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(n_sample - 1)
-        self.losses["pred"] = np.sum(np.abs(errors))
+            pred_loss = -1 * (np.dot(y, np.log(y_hat)) + np.dot((1 - y), np.log(1 - y_hat)))
+            if _ % 10 == 0:
+                time_used = time() - start_time
+                self.losses['ovr'].append(pred_loss + hsic_score)
+                self.losses['pred'].append(pred_loss)
+                self.losses['code'].append(hsic_score)
+                self.losses['time'].append(time_used)
 
         return self
 
@@ -197,9 +205,9 @@ class CoDeLogitReg(BaseEstimator, ClassifierMixin):
         labels : array, shape [n_samples]
             Predicted class label per sample.
         """
-        y_prob = self.predict_proba(x)
-        y_pred = np.zeros(y_prob.shape)
-        y_pred[np.where(y_prob > 0.5)] = 1
+        y_proba = self.predict_proba(x)
+        y_pred = np.zeros(y_proba.shape)
+        y_pred[np.where(y_proba > 0.5)] = 1
 
         return y_pred
 
