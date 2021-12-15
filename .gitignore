@@ -4,6 +4,7 @@
 *.mat
 *.pdf
 *.pkl
+*.png
 *.pt
 *.pyc
 *.sh
