@@ -1,6 +1,6 @@
 
 from ._artl import ARSVM, ARRLS
-from ._code import CoDeLR, CoDeLogitReg, hsic
+from ._code import CoDeLR, CoDeLR_Torch, hsic
 from ._manifold_learn import LapSVM, LapRLS
 from ._sider import SIDeRSVM, SIDeRLS
 

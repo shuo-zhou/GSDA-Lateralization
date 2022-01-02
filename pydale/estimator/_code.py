@@ -17,7 +17,7 @@ def hsic(x, y):
     return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
 
 
-class CoDeLR(nn.Module):
+class CoDeLR_Torch(nn.Module):
     def __init__(self, lr=0.001, l1_hparam=0.0, l2_hparam=1.0, lambda_=1.0, n_epochs=500):
         super().__init__()
         self.lr = lr
@@ -87,7 +87,7 @@ class CoDeLR(nn.Module):
         return y_pred
 
 
-class CoDeLogitReg(BaseEstimator, ClassifierMixin):
+class CoDeLR(BaseEstimator, ClassifierMixin):
     """
     Logistic Regression Classifier
     Parameters

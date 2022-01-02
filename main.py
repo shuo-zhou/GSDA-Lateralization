@@ -106,8 +106,7 @@ def main():
 
     # out_fname = '%s_half_brain_%s_%s_%s.pickle' % \
     #             (connection_type, session, run, random_state)
-    out_fname = '%s_half_brain_%s_%s_%s.pickle' % \
-                (connection_type, clf, session, random_state)
+    out_fname = '%s_half_brain_%s_%s_%s.pickle' % (connection_type, clf, session, random_state)
     outfile = open(os.path.join(out_dir, out_fname), 'wb')
     pickle.dump(res, outfile)
     outfile.close()
