@@ -9,7 +9,7 @@ def mk_dir(dir_):
 
 py_dir = "/shared/tale2/Shared/szhou/code/Brain_LR_BNU"
 batch_dir = "/shared/tale2/Shared/szhou/qsub/Brain_LR"
-py_file = "main.py"
+py_file = "main_hpc.py"
 seeds = 2022 - np.arange(50)
 lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
