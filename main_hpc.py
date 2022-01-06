@@ -138,7 +138,7 @@ def main():
                     res['time_used'].append(model.losses['time'][-1])
 
     res_df = pd.DataFrame.from_dict(res)
-    out_file = os.path.join(out_dir, 'results_sub_half_%s_%s.csv' % (run_, random_state))
+    out_file = os.path.join(out_dir, 'results_lambda_%s_sub_half_%s_%s.csv' % (lambda_, run_, random_state))
     res_df.to_csv(out_file, index=False)
 
 
