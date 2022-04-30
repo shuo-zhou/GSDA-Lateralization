@@ -9,8 +9,8 @@ import io_
 
 def main():
     atlas = 'BNA'
-    data_dir = "/media/shuoz/MyDrive/data/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuoz/MyDrive/data/HCP/%s/Proc/fisherz' % atlas
+    data_dir = "/media/shuo/MyDrive/data/HCP/%s/Proc" % atlas
+    out_dir = '/media/shuo/MyDrive/data/HCP/%s/Proc/fisherz' % atlas
 
     sessions = ["REST1", 'REST2']
 

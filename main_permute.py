@@ -15,8 +15,8 @@ from torchmetrics.functional import accuracy
 
 def main():
     atlas = 'BNA'
-    data_dir = "/media/shuoz/MyDrive/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuoz/MyDrive/HCP/%s/Results/Rand_Half_Fisherz/' % atlas
+    data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
+    out_dir = '/media/shuo/MyDrive/HCP/%s/Results/Rand_Half_Fisherz/' % atlas
     # data_dir = 'D:/ShareFolder/BNA/Proc'
     # out_dir = 'D:/ShareFolder/BNA/Result'
     # atlas = 'AICHA'

@@ -16,6 +16,7 @@ _C = CN()
 _C.DATASET = CN()
 _C.DATASET.ROOT = "/shared/tale2/Shared/data/HCP/BNA/Proc"
 _C.DATASET.ATLAS = "BNA"
+_C.DATASET.TYPE = "structural"
 _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 5
