@@ -14,6 +14,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
+_C.DATASET.DATASET = "HCP"
 _C.DATASET.ROOT = "/shared/tale2/Shared/data/HCP/BNA/Proc"
 _C.DATASET.ATLAS = "BNA"
 _C.DATASET.TYPE = "structural"
