@@ -39,7 +39,7 @@ def main():
 
     sessions = ['REST1', 'REST2']  # session = 'REST1'
     connection_type = cfg.DATASET.CONNECTION
-    random_state = cfg.SOLVER.SEED
+    # random_state = cfg.SOLVER.SEED
     lambda_ = cfg.SOLVER.LAMBDA_
     l2_param = cfg.SOLVER.L2PARAM
     num_repeat = cfg.DATASET.NUM_REPEAT
@@ -58,88 +58,95 @@ def main():
         data[session] = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
         genders[session] = {'gender': gender}
 
-    res = {"acc_ic_is": [], "acc_ic_os": [], "acc_oc_is": [], "acc_oc_os": [], 'pred_loss': [], 'code_loss': [],
-           'lambda': [], 'train_session': [], 'split': [], 'fold': [], 'train_gender': [], 'time_used': []}
-    # for test_size in test_sizes:
-    #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
-    for train_session, test_session in [('REST1', 'REST2'), ('REST2', 'REST1')]:
-        genders_train = np.copy(genders[train_session]['gender'].reshape((-1, 1)))
-        genders_test = np.copy(genders[test_session]['gender'].reshape((-1, 1)))
+    for seed_iter in range(50):
+        random_state = cfg.SOLVER.SEED - seed_iter
 
-        for i_split in range(num_repeat):
-            x_all = dict()
-            y_all = dict()
-            for session in [train_session, test_session]:
-                x, y, x1, y1 = _pick_half(data[session], random_state=random_state * (i_split + 1))
-                # x, y = _pick_half_subs(data[run_])
-                y = label_binarize(y, classes=[-1, 1]).reshape(-1)
-                y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
+        # main loop
+        res = {"acc_ic_is": [], "acc_ic_os": [], "acc_oc_is": [], "acc_oc_os": [], 'pred_loss': [], 'code_loss': [],
+               'lambda': [], 'train_session': [], 'split': [], 'fold': [], 'train_gender': [], 'time_used': []}
+        # for test_size in test_sizes:
+        #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
+        for train_session, test_session in [('REST1', 'REST2'), ('REST2', 'REST1')]:
+            genders_train = np.copy(genders[train_session]['gender'].reshape((-1, 1)))
+            genders_test = np.copy(genders[test_session]['gender'].reshape((-1, 1)))
 
-                x_all[session] = [x, x1]
-                y_all[session] = [y, y1]
+            for i_split in range(num_repeat):
+                x_all = dict()
+                y_all = dict()
+                for session in [train_session, test_session]:
+                    x, y, x1, y1 = _pick_half(data[session], random_state=random_state * (i_split + 1))
+                    # x, y = _pick_half_subs(data[run_])
+                    y = label_binarize(y, classes=[-1, 1]).reshape(-1)
+                    y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
 
-            for i_fold in [0, 1]:
-                x_train = x_all[train_session][i_fold]
-                y_train = y_all[train_session][i_fold]
-                x_test_ = x_all[train_session][1 - i_fold]
-                y_test_ = y_all[train_session][1 - i_fold]
-                # scaler = StandardScaler()
-                # scaler.fit(x_train)
-                for train_gender in [0, 1]:
-                    ic_is_idx = np.where(genders_train == train_gender)[0]
-                    oc_is_idx = np.where(genders_train == 1 - train_gender)[0]
+                    x_all[session] = [x, x1]
+                    y_all[session] = [y, y1]
 
-                    ic_os_idx = np.where(genders_test == train_gender)[0]
-                    oc_os_idx = np.where(genders_test == 1 - train_gender)[0]
+                for i_fold in [0, 1]:
+                    x_train = x_all[train_session][i_fold]
+                    y_train = y_all[train_session][i_fold]
+                    x_test_ = x_all[train_session][1 - i_fold]
+                    y_test_ = y_all[train_session][1 - i_fold]
+                    # scaler = StandardScaler()
+                    # scaler.fit(x_train)
+                    for train_gender in [0, 1]:
+                        ic_is_idx = np.where(genders_train == train_gender)[0]
+                        oc_is_idx = np.where(genders_train == 1 - train_gender)[0]
 
-                    x_test_ic_is = x_test_[ic_is_idx]
-                    y_test_ic_is = y_test_[ic_is_idx]
-                    x_test_ic_os = np.concatenate([x_all[test_session][0][ic_os_idx],
-                                                   x_all[test_session][1][ic_os_idx]])
-                    y_test_ic_os = np.concatenate([y_all[test_session][0][ic_os_idx],
-                                                   y_all[test_session][1][ic_os_idx]])
-                    x_test_oc_is = x_test_[oc_is_idx]
-                    y_test_oc_is = y_test_[oc_is_idx]
-                    x_test_oc_os = np.concatenate([x_all[test_session][0][oc_os_idx],
-                                                   x_all[test_session][1][oc_os_idx]])
-                    y_test_oc_os = np.concatenate([y_all[test_session][0][oc_os_idx],
-                                                   y_all[test_session][1][oc_os_idx]])
+                        ic_os_idx = np.where(genders_test == train_gender)[0]
+                        oc_os_idx = np.where(genders_test == 1 - train_gender)[0]
 
-                    xy_test = {"acc_ic_is": [x_test_ic_is, y_test_ic_is], "acc_ic_os": [x_test_ic_os, y_test_ic_os],
-                               "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
+                        x_test_ic_is = x_test_[ic_is_idx]
+                        y_test_ic_is = y_test_[ic_is_idx]
+                        x_test_ic_os = np.concatenate([x_all[test_session][0][ic_os_idx],
+                                                       x_all[test_session][1][ic_os_idx]])
+                        y_test_ic_os = np.concatenate([y_all[test_session][0][ic_os_idx],
+                                                       y_all[test_session][1][ic_os_idx]])
+                        x_test_oc_is = x_test_[oc_is_idx]
+                        y_test_oc_is = y_test_[oc_is_idx]
+                        x_test_oc_os = np.concatenate([x_all[test_session][0][oc_os_idx],
+                                                       x_all[test_session][1][oc_os_idx]])
+                        y_test_oc_os = np.concatenate([y_all[test_session][0][oc_os_idx],
+                                                       y_all[test_session][1][oc_os_idx]])
 
-                    model = CoDeLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                    model_path = os.path.join(out_dir, "lambda_%s_%s_%s_%s_gender_%s_%s.pt" %
-                                              (lambda_, train_session, i_split, i_fold, train_gender, random_state))
-                    if os.path.exists(model_path):
-                        model = torch.load(model_path)
-                    else:
-                        model.fit(x_train, y_train[ic_is_idx], genders_train, target_idx=ic_is_idx)
-                        torch.save(model, model_path)
+                        xy_test = {"acc_ic_is": [x_test_ic_is, y_test_ic_is], "acc_ic_os": [x_test_ic_os, y_test_ic_os],
+                                   "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
 
-                    for acc_key in xy_test:
-                        test_x, test_y = xy_test[acc_key]
-                        y_pred_ = model.predict(test_x)
-                        acc_ = accuracy_score(test_y, y_pred_)
-                        res[acc_key].append(acc_)
+                        model = CoDeLR(lambda_=lambda_, C=l2_param, max_iter=5000)
+                        model_path = os.path.join(out_dir, "lambda%s/lambda_%s_%s_%s_%s_gender_%s_%s.pt" %
+                                                  (str(int(lambda_)), lambda_, train_session, i_split,
+                                                   i_fold, train_gender, random_state))
 
-                    res['pred_loss'].append(model.losses['pred'][-1])
-                    res['code_loss'].append(model.losses['code'][-1])
+                        if os.path.exists(model_path):
+                            model = torch.load(model_path)
+                        else:
+                            model.fit(x_train, y_train[ic_is_idx], genders_train, target_idx=ic_is_idx)
+                            torch.save(model, model_path)
 
-                    # res['n_iter'].append(n_iter)
-                    # n_iter += 1
-                    res['train_gender'].append(train_gender)
-                    res['train_session'].append(train_session)
-                    res['split'].append(i_split)
-                    res['fold'].append(i_fold)
+                        for acc_key in xy_test:
+                            test_x, test_y = xy_test[acc_key]
+                            y_pred_ = model.predict(test_x)
+                            acc_ = accuracy_score(test_y, y_pred_)
+                            res[acc_key].append(acc_)
 
-                    res['lambda'].append(lambda_)
-                    # res['test_size'].append(test_size)
-                    res['time_used'].append(model.losses['time'][-1])
+                        res['pred_loss'].append(model.losses['pred'][-1])
+                        res['code_loss'].append(model.losses['code'][-1])
 
-    res_df = pd.DataFrame.from_dict(res)
-    out_file = os.path.join(out_dir, 'results_lambda_%s_sub_half_%s_%s.csv' % (lambda_, run_, random_state))
-    res_df.to_csv(out_file, index=False)
+                        # res['n_iter'].append(n_iter)
+                        # n_iter += 1
+                        res['train_gender'].append(train_gender)
+                        res['train_session'].append(train_session)
+                        res['split'].append(i_split)
+                        res['fold'].append(i_fold)
+
+                        res['lambda'].append(lambda_)
+                        # res['test_size'].append(test_size)
+                        res['time_used'].append(model.losses['time'][-1])
+
+        res_df = pd.DataFrame.from_dict(res)
+        out_file = os.path.join(out_dir, 'lambda%s/results_lambda_%s_sub_half_%s_%s.csv' %
+                                (str(int(lambda_)), lambda_, run_, random_state))
+        res_df.to_csv(out_file, index=False)
 
 
 if __name__ == '__main__':
