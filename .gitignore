@@ -1,3 +1,4 @@
+*.csv
 *.dcm
 *.iml
 *.json
@@ -8,6 +9,7 @@
 *.pt
 *.pyc
 *.sh
+*.svg
 *.xml
 *.yaml
 *.zip
