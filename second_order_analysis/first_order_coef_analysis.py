@@ -6,7 +6,8 @@ from scipy.io import savemat
 
 def main():
     base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
-    for lambda_ in [0, 2]:
+    # for lambda_ in [0, 2]:
+    for lambda_ in [5]:
         for gender in [0, 1]:
             weight = fetch_weights(base_dir, gender, lambda_)
             w_mean = np.mean(weight, axis=0)

@@ -44,10 +44,11 @@ def fetch_weights(base_dir, task, permutation=False):
 
 def main():
     tasks = [
-        'L0G1_vs_L2G1',
-        'L2G0_vs_L2G1',
-        'L0G0_vs_L0G1',
-        'L0G0_vs_L2G0',
+        # 'L0G1_vs_L2G1',
+        # 'L2G0_vs_L2G1',
+        # 'L0G0_vs_L0G1',
+        # 'L0G0_vs_L2G0',
+        'L5G0_vs_L5G1',
     ]
     base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
 
