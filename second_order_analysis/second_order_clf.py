@@ -50,8 +50,8 @@ def fetch_weights(base_dir, gender, lambda_):
 
 
 def main():
-    model1 = {"lambda": 5, "gender": 0}
-    model2 = {"lambda": 5, "gender": 1}
+    model1 = {"lambda": 0, "gender": 0}
+    model2 = {"lambda": 5, "gender": 0}
 
     base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
 
