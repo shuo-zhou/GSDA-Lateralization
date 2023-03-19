@@ -2,7 +2,7 @@
 *.dcm
 *.iml
 *.json
-*.mat
+# *.mat
 *.pdf
 *.pkl
 *.png

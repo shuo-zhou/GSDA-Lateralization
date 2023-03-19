@@ -3,43 +3,9 @@ import copy
 import numpy as np
 from joblib import dump, load
 from scipy.io import savemat
-
-
-def get_coef(file_name, file_dir):
-    file_path = os.path.join(file_dir, file_name)
-    model = load(file_path)
-    return model.coef_
-
-
-def fetch_weights(base_dir, task, permutation=False):
-    """
-
-    Args:
-        base_dir:
-        gender:
-        lambda_:
-
-    Returns:
-
-    """
-
-    sub_dir = os.path.join(base_dir, task)
-    file_name = copy.copy(task)
-
-    if permutation:
-        sub_dir = sub_dir + "_permut"
-        file_name = file_name + "_permut"
-
-    weight = []
-    num_repeat = 1000
-
-    for i in range(num_repeat):
-
-        model_file = '%s_%s.joblib' % (file_name, i)
-        if os.path.exists(os.path.join(sub_dir, model_file)):
-            weight.append(get_coef(model_file, sub_dir).reshape((1, -1)))
-
-    return np.concatenate(weight, axis=0)
+import sys
+sys.path.append('../')
+from io_ import fetch_weights
 
 
 def main():
