@@ -36,6 +36,7 @@ def main():
     data_dir = cfg.DATASET.ROOT
     out_dir = cfg.OUTPUT.ROOT
     run_ = cfg.DATASET.RUN
+    mix_gender = cfg.DATASET.MIX_GEND
 
     sessions = ['REST1', 'REST2']  # session = 'REST1'
     connection_type = cfg.DATASET.CONNECTION
@@ -113,14 +114,18 @@ def main():
                                    "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
 
                         model = CoDeLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                        model_path = os.path.join(out_dir, "lambda%s/lambda_%s_%s_%s_%s_gender_%s_%s.pt" %
-                                                  (str(int(lambda_)), lambda_, train_session, i_split,
-                                                   i_fold, train_gender, random_state))
+                        fit_kws = {"y": y_train[ic_is_idx], "covariates": genders_train, "target_idx": ic_is_idx}
+                        model_filename = "lambda_%s_%s_%s_%s_gender_%s_%s" % (lambda_, train_session, i_split, i_fold,
+                                                                                 train_gender, random_state)
+                        if mix_gender:
+                            model_filename = model_filename + "_mix_gender"
+                            fit_kws = {"y": y_train, "covariates": genders_train, "target_idx": None}
+                        model_path = os.path.join(out_dir, "lambda%s/%s.pt" % (str(int(lambda_)), model_filename))
 
                         if os.path.exists(model_path):
                             model = torch.load(model_path)
                         else:
-                            model.fit(x_train, y_train[ic_is_idx], genders_train, target_idx=ic_is_idx)
+                            model.fit(x_train, **fit_kws)
                             torch.save(model, model_path)
 
                         for acc_key in xy_test:
