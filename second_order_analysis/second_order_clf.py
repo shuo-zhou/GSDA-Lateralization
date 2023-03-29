@@ -33,7 +33,8 @@ def fetch_weights(base_dir, gender, lambda_):
     """
 
     sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
-
+    if lambda_ == "0_mix_gender":
+        lambda_ = 0
     weight = []
     num_repeat = 5
     halfs = [0, 1]
@@ -41,8 +42,8 @@ def fetch_weights(base_dir, gender, lambda_):
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(50):
-                    model_file = 'lambda_%s.0_%s_%s_%s_gender_%s_%s.pt' % (lambda_, session_i, i_split, half_i,
-                                                                           gender, 2022 - seed)
+                    model_file = 'lambda%s_%s_%s_%s_gender_%s_%s.pt' % (lambda_, session_i, i_split, half_i,
+                                                                        gender, 2022 - seed)
                     if os.path.exists(os.path.join(sub_dir, model_file)):
                         weight.append(get_coef(model_file, sub_dir).reshape((1, -1)))
 
