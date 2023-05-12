@@ -18,6 +18,7 @@ _C.DATASET.DATASET = "HCP"
 _C.DATASET.ROOT = "/shared/tale2/Shared/data/HCP/BNA/Proc"
 _C.DATASET.ATLAS = "BNA"
 _C.DATASET.TYPE = "structural"
+_C.DATASET.SESSIONS = [None]
 _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 5
@@ -39,3 +40,4 @@ _C.OUTPUT.ROOT = "/shared/tale2/Shared/data/HCP/BNA/Results"
 
 def get_cfg_defaults():
     return _C.clone()
+

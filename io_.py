@@ -3,7 +3,7 @@ import h5py
 import copy
 import numpy as np
 import pandas as pd
-from scipy.io import loadmat
+from scipy.io import loadmat, savemat
 from joblib import dump, load
 # MRI related func
 import torch
@@ -159,7 +159,24 @@ def save_half_brain(out_dir, out_fname, data_left, data_right):
     f.close()
 
 
-def load_half_brain(data_dir, atlas, session=None, run=None, connection_type=None, data_type='functional',
+def save_half_brain_mat(out_dir, out_fname, data_left, data_right):
+    """Save two hemisphere nadarrays into an hdf5 file
+
+    Parameters
+    ----------
+    out_dir (string):
+    out_fname (string):
+    data_left (ndarray):
+    data_right (ndarray):
+
+    Returns
+    -------
+
+    """
+    savemat(os.path.join(out_dir, out_fname), {'Left': data_left, 'Right': data_right})
+
+
+def load_half_brain(data_dir, atlas, session=None, run=None, connection_type='intra', data_type='functional',
                     dataset="HCP"):
     """
 
@@ -199,9 +216,9 @@ def load_half_brain(data_dir, atlas, session=None, run=None, connection_type=Non
             data['Right'] = data_in[:, 1::2]
         else:
             raise ValueError('Invalid data type %s' % data_type)
-    elif dataset == "ABIDE":
-        data_file = loadmat(os.path.join(data_dir, 'abide_intra_half.mat'))
-        data = {"Left": data_file["Left"], "Right": data_file["Rigit"]}
+    elif dataset in ["ABIDE", "ukb", "gsp"]:
+        data_file = loadmat(os.path.join(data_dir, '%s_%s_%s_half_brain_%s.mat' % (dataset, atlas, connection_type, run)))
+        data = {"Left": data_file["Left"], "Right": data_file["Right"]}
     else:
         raise ValueError('Invalid dataset %s' % dataset)
 

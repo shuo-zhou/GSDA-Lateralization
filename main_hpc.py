@@ -60,7 +60,7 @@ def main():
     genders = dict()
 
     # info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
-    info_file = 'HCP_%s_half_brain.csv' % atlas
+    info_file = '%s_%s_half_brain.csv' % (cfg.DATASET.DATASET, atlas)
     info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
 
     gender = info['gender'].values
@@ -71,7 +71,6 @@ def main():
 
     # for seed_iter in range(50):
         # random_state = cfg.SOLVER.SEED - seed_iter
-        
 
     # main loop
     res = {"acc_ic_is": [], "acc_ic_os": [], "acc_oc_is": [], "acc_oc_os": [], 'pred_loss': [], 'code_loss': [],

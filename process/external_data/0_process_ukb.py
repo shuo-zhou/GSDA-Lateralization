@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 import pandas as pd
 from scipy.io import loadmat
 
@@ -27,10 +28,15 @@ sub_info_df = pd.DataFrame(sub_info)
 fpath_df = io_.get_fpaths(os.path.join(basedir, atlas), sub_idx)
 fpaths = fpath_df['File path']
 data_left, data_right = io_.load_txt(fpaths, connection_type=connection_type)
-out_fname = 'ukb_%s_%s_half_brain.hdf5' % (atlas, connection_type)
-io_.save_half_brain(out_dir, out_fname, data_left, data_right)
+
+data_left = np.arctanh(data_left)
+data_right = np.arctanh(data_right)
+
+out_fname = 'ukb_%s_%s_half_brain_%s.mat' % (atlas, connection_type, 'Fisherz')
+io_.save_half_brain_mat(out_dir, out_fname, data_left, data_right)
 
 info_out = {"ID": fpath_df.index.values, "File path": fpaths.values, "age": [], "gender": []}
+
 for sub_id in info_out["ID"]:
     info_out["age"].append(sub_info_df[sub_info_df[0] == sub_id][2].values[0])
     info_out["gender"].append(sub_info_df[sub_info_df[0] == sub_id][1].values[0])
