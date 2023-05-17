@@ -9,10 +9,16 @@ import io_
 
 def main():
     atlas = 'BNA'
-    data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuo/MyDrive/HCP/%s/Proc' % atlas
+    # data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
+    # out_dir = '/media/shuo/MyDrive/HCP/%s/Proc' % atlas
 
-    session = 'REST2'
+    data_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
+    out_dir = '/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc' % atlas
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    session = 'REST1'
     runs = ['LR', 'RL']
     info = dict()
     data = dict()

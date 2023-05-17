@@ -9,14 +9,17 @@ import io_
 
 def main():
     atlas = 'BNA'
-    data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuo/MyDrive/HCP/%s/Proc' % atlas
+    # data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
+    # out_dir = '/media/shuo/MyDrive/HCP/%s/Proc' % atlas
 
-    session = 'REST1'
+    data_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
+    out_dir = '/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc' % atlas
+
+    session = 'REST2'
 
     connection_type = 'intra'
 
-    data = io_.load_half_brain(data_dir, atlas, session, '', connection_type)
+    data = io_.load_half_brain(data_dir, atlas, session, 'AVG', connection_type)
 
     for half_ in ['Left', 'Right']:
         data[half_] = np.arctanh(data[half_])

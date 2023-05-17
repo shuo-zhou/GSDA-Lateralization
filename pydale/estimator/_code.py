@@ -138,6 +138,8 @@ class CoDeLR(BaseEstimator, ClassifierMixin):
         x = np.asarray(x)
         y = np.asarray(y)
         covariates = np.asarray(covariates)
+        if covariates.ndim == 1:
+            covariates = covariates.reshape((-1, 1))
         self.theta = np.random.random((x.shape[1] + 1))
         x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
         n_tgt = y.shape[0]
