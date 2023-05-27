@@ -5,7 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import accuracy_score
 from sklearn.utils import shuffle
-from joblib import dump, load
+from joblib import dump
+# from skops.io import dump
 
 
 def get_coef(file_name, file_dir):
@@ -20,7 +21,7 @@ def get_coef(file_name, file_dir):
 #     return model.model.weight.data.numpy().T
 
 
-def fetch_weights(base_dir, gender, lambda_):
+def fetch_weights(base_dir, gender, lambda_, dataset, sessions, seed_=2023):
     """
 
     Args:
@@ -38,12 +39,12 @@ def fetch_weights(base_dir, gender, lambda_):
     weight = []
     num_repeat = 5
     halfs = [0, 1]
-    for session_i in ['REST1', 'REST2']:
+    for session_i in sessions:
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(50):
-                    model_file = 'lambda%s_%s_%s_%s_gender_%s_%s.pt' % (lambda_, session_i, i_split, half_i,
-                                                                        gender, 2022 - seed)
+                    model_file = '%s_lambda%s_%s%s_%s_gender_%s_%s.pt' % (dataset, lambda_, session_i, i_split, half_i,
+                                                                          gender, seed_ - seed)
                     if os.path.exists(os.path.join(sub_dir, model_file)):
                         weight.append(get_coef(model_file, sub_dir).reshape((1, -1)))
 
@@ -51,17 +52,23 @@ def fetch_weights(base_dir, gender, lambda_):
 
 
 def main():
-    model1 = {"lambda": 0, "gender": 0}
-    model2 = {"lambda": 5, "gender": 0}
+    model1 = {"lambda": 2, "gender": 0}
+    model2 = {"lambda": 2, "gender": 1}
 
-    base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
+    # base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
+    # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models"
+    # dataset = "gsp"
+    base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/ukbio/Models"
+    dataset = "ukb"
+    sessions = [""]
+    seed_ = 2023
 
     permutation = False
     num_splits = 1000
     random_state = 2023
 
-    weights1 = fetch_weights(base_dir, model1["gender"], model1["lambda"])
-    weights2 = fetch_weights(base_dir, model2["gender"], model2["lambda"])
+    weights1 = fetch_weights(base_dir, model1["gender"], model1["lambda"], dataset, sessions=sessions, seed_=seed_)
+    weights2 = fetch_weights(base_dir, model2["gender"], model2["lambda"], dataset, sessions=sessions, seed_=seed_)
 
     weights = np.concatenate((weights1, weights2), axis=0)
     labels = np.zeros(weights.shape[0])
@@ -88,6 +95,7 @@ def main():
         res["accuracy"].append(acc)
 
         model_fname = "%s_%s.joblib" % (task, i_iter)
+        # model_fname = "%s_%s.skops" % (task, i_iter)
         i_iter += 1
         dump(clf, os.path.join(out_dir, model_fname))
 

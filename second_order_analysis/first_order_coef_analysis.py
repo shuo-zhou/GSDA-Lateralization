@@ -5,13 +5,18 @@ from scipy.io import savemat
 
 
 def main():
-    base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
+    dataset = "gsp"
+    # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/ukbio/Models"
+    base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models"
+    # sessions = ["REST1_", "REST2_"]
+    sessions = [""]
+    seed_ =2023
     # for lambda_ in [0, 2]:
-    for lambda_ in ["0_mix_gender"]:
-        for gender in ["mix"]:
-    # for lambda_ in [0, 5]:
-    #     for gender in [0, 1]:
-            weight = fetch_weights(base_dir, gender, lambda_)
+    # for lambda_ in ["0_mix_gender"]:
+    #     for gender in ["mix"]:
+    for lambda_ in [0, 2, 5]:
+        for gender in [0, 1]:
+            weight = fetch_weights(base_dir, gender, lambda_, dataset, sessions=sessions, seed_=seed_)
             w_mean = np.mean(weight, axis=0)
             w_std = np.std(weight, axis=0)
             midc = {"mean": w_mean, "std": w_std}

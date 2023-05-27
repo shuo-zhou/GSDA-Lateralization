@@ -227,7 +227,8 @@ def load_half_brain(data_dir, atlas, session=None, run=None, connection_type='in
 
 def get_2nd_order_coef(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
-    model = torch.load(file_path)
+    # model = torch.load(file_path)
+    model = load(file_path)
     return model.coef_
 
 
@@ -237,7 +238,7 @@ def get_coef(file_name, file_dir):
     return model.theta
 
 
-def fetch_weights(base_dir, task, permutation=False):
+def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
     """
 
     Args:
@@ -257,10 +258,9 @@ def fetch_weights(base_dir, task, permutation=False):
         file_name = file_name + "_permut"
 
     weight = []
-    num_repeat = 1000
 
     for i in range(num_repeat):
-
+        # model_file = '%s_%s.skops' % (file_name, i)
         model_file = '%s_%s.joblib' % (file_name, i)
         if os.path.exists(os.path.join(sub_dir, model_file)):
             weight.append(get_2nd_order_coef(model_file, sub_dir).reshape((1, -1)))
