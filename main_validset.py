@@ -108,7 +108,7 @@ def main():
                 model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, i_fold,
                                                                      train_gender, random_state)
                 if mix_gender:
-                    # model_filename = model_filename + "_mix_gender"
+                    model_filename = model_filename + "_mix_gender"
                     fit_kws = {"y": y_train, "covariates": genders, "target_idx": None}
                 model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
