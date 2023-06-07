@@ -1,12 +1,13 @@
 import argparse
 import os
+
 # import pickle
 import numpy as np
 import pandas as pd
 import torch
+from sklearn.metrics import accuracy_score, roc_auc_score
 # from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score
 
 import io_
 from _base import _pick_half  # _pick_half_subs
@@ -42,7 +43,7 @@ def main():
     l2_param = cfg.SOLVER.L2PARAM
     num_repeat = cfg.DATASET.NUM_REPEAT
     run_ = cfg.DATASET.RUN
-    
+
     mix_gender = cfg.DATASET.MIX_GEND
     if mix_gender:
         lambda_ = 0.0

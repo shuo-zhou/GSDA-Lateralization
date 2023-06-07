@@ -1,5 +1,6 @@
-import numpy as np
 import copy
+
+import numpy as np
 
 from .utils import fast_svd
 
@@ -182,8 +183,8 @@ def JIVE_RankSelect(Datatypes, alpha, Nperm, scale=True, convThresh=1e-8, MaxIte
                 r = i+1
             else:
                 break
-        ## only increase rank of joint structure (generally this results in more accurate rank estimation).  
-        r = max(r, rPrev) 
+        ## only increase rank of joint structure (generally this results in more accurate rank estimation).
+        r = max(r, rPrev)
         print('rank Individual :',  rIndiv)
         J, A = JIVE(Datatypes, r, rIndiv, scale, convThresh, MaxIter)
     return J, A, r, rIndiv

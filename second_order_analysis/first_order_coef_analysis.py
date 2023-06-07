@@ -1,7 +1,8 @@
 import os
+
 import numpy as np
-from second_order_clf import fetch_weights
 from scipy.io import savemat
+from second_order_clf import fetch_weights
 
 
 def main():

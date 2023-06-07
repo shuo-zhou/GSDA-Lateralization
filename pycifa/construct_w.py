@@ -1,11 +1,7 @@
 import numpy as np
 import scipy.sparse
 
-from .utils import EuDist2
-from .utils import sub2ind
-from .utils import vec
-from .utils import NormalizeFea
-from .utils import reshape
+from .utils import EuDist2, NormalizeFea, reshape, sub2ind, vec
 
 
 def constructW(
@@ -29,7 +25,7 @@ def constructW(
     %
     %	fea: Rows of vectors of data points. Each row is x_i
     %   options: Struct value in Matlab. The fields in options that can be set:
-    %                  
+    %
     %           NeighborMode -  Indicates how to construct the graph. Choices
     %                           are: [Default 'KNN']
     %                'KNN'            -  k = 0
@@ -42,26 +38,26 @@ def constructW(
     %                                      the options. Default k=5.
     %               'Supervised'      -  k = 0
     %                                       Put an edge between two nodes if and
-    %                                       only if they belong to same class. 
+    %                                       only if they belong to same class.
     %                                    k > 0
     %                                       Put an edge between two nodes if
     %                                       they belong to same class and they
     %                                       are among the k nearst neighbors of
-    %                                       each other. 
+    %                                       each other.
     %                                    Default: k=0
     %                                   You are required to provide the label
     %                                   information gnd in the options.
-    %                                              
+    %
     %           WeightMode   -  Indicates how to assign weights for each edge
     %                           in the graph. Choices are:
     %               'Binary'       - 0-1 weighting. Every edge receiveds weight
-    %                                of 1. 
+    %                                of 1.
     %               'HeatKernel'   - If nodes i and j are connected, put weight
-    %                                W_ij = exp(-norm(x_i - x_j)/2t^2). You are 
+    %                                W_ij = exp(-norm(x_i - x_j)/2t^2). You are
     %                                required to provide the parameter t. [Default One]
     %               'Cosine'       - If nodes i and j are connected, put weight
-    %                                cosine(x_i,x_j). 
-    %               
+    %                                cosine(x_i,x_j).
+    %
     %            k         -   The parameter needed under 'KNN' NeighborMode.
     %                          Default will be 5.
     %            gnd       -   The parameter needed under 'Supervised'
@@ -70,7 +66,7 @@ def constructW(
     %            bLDA      -   0 or 1. Only effective under 'Supervised'
     %                          NeighborMode. If 1, the graph will be constructed
     %                          to make LPP exactly same as LDA. Default will be
-    %                          0. 
+    %                          0.
     %            t         -   The parameter needed under 'HeatKernel'
     %                          WeightMode. Default will be 1
     %         bNormalized  -   0 or 1. Only effective under 'Cosine' WeightMode.
@@ -93,8 +89,8 @@ def constructW(
     %       options.WeightMode = 'HeatKernel';
     %       options.t = 1;
     %       W = constructW(fea,options);
-    %       
-    %       
+    %
+    %
     %       fea = rand(50,15);
     %       gnd = [ones(10,1);ones(15,1)*2;ones(10,1)*3;ones(15,1)*4];
     %       options = [];
@@ -103,22 +99,22 @@ def constructW(
     %       options.WeightMode = 'HeatKernel';
     %       options.t = 1;
     %       W = constructW(fea,options);
-    %       
-    %       
+    %
+    %
     %       fea = rand(50,15);
     %       gnd = [ones(10,1);ones(15,1)*2;ones(10,1)*3;ones(15,1)*4];
     %       options = [];
     %       options.NeighborMode = 'Supervised';
     %       options.gnd = gnd;
     %       options.bLDA = 1;
-    %       W = constructW(fea,options);      
-    %       
+    %       W = constructW(fea,options);
+    %
     %
     %    For more details about the different ways to construct the W, please
     %    refer:
     %       Deng Cai, Xiaofei He and Jiawei Han, "Document Clustering Using
     %       Locality Preserving Indexing" IEEE TKDE, Dec. 2005.
-    %    
+    %
     %
     %    Written by Deng Cai (dengcai2 AT cs.uiuc.edu), April/2004, Feb/2006,
     %                                             May/2007
@@ -406,7 +402,7 @@ def constructW(
             W = W.tolil()
         if bBinary:
             W[W != 0] = 1
-        
+
         if bSemiSupervised:
             tmpgnd = gnd(semiSplit)
             Label = set(tmpgnd)
@@ -454,4 +450,3 @@ def constructW(
         W = W.maximum(W.T)
         W = W.tolil()
     return W
-

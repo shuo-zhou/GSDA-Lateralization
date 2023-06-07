@@ -1,6 +1,7 @@
 import numpy as np
 import scipy
 
+
 def Hungarian(Perf):
     '''
     % [MATCHING,COST] = Hungarian_New(WEIGHTS)
@@ -113,7 +114,7 @@ def step3(M, P_size):
     else:
         stepnum = 4
     return c_cov, stepnum
-    
+
 def step4(P_cond, r_cov, c_cov, M):
     '''
     %   STEP 4: Find a noncovered zero and prime it.  If there is no starred
@@ -165,7 +166,7 @@ def step4(P_cond, r_cov, c_cov, M):
                 Z_r = row
                 Z_c = col
     return M, r_cov, c_cov, Z_r, Z_c, stepnum
-    
+
 def step5(M, Z_r, Z_c, r_cov, c_cov):
     '''
     % STEP 5: Construct a series of alternating primed and starred zeros as
@@ -229,7 +230,7 @@ def step6(P_cond, r_cov, c_cov):
     P_cond[:, ind2] -= minval
     stepnum = 4
     return P_cond, stepnum
-    
+
 def min_line_cover(Edge):
     # Step 2
     r_cov, c_cov, M, stepnum = step2(Edge)

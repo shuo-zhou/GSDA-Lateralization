@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 from cr8_cfgs import mk_dir
 
@@ -54,4 +55,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

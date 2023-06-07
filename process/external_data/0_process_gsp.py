@@ -1,5 +1,6 @@
 import os
 import sys
+
 import numpy as np
 import pandas as pd
 from scipy.io import loadmat
@@ -7,7 +8,6 @@ from scipy.io import loadmat
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import io_
-
 
 # basedir = 'D:/ShareFolder/AICHA_VolFC'  # 'D:\ShareFolder\AICHA_VolFC\REST2\LR\FC_R'
 atlas = 'BNA'

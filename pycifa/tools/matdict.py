@@ -1,8 +1,8 @@
-# loadmat(): 
+# loadmat():
 # thanks to http://stackoverflow.com/questions/7008608/scipy-io-loadmat-nested-structures-i-e-dictionaries
 
-import scipy.io as spio
 import numpy as np
+import scipy.io as spio
 
 try:
     import cPickle as pickle
@@ -33,7 +33,7 @@ def mat2txt(filename_in, filename_out=None):
     with open(filename_out, 'wb') as f:
         pickle.dump(df, f)
     return
-    
+
 def txt2mat(filename_in, filename_out=None):
     assert filename_in.endswith('.txt'), '*.txt file must be provided'
     if filename_out is None:
@@ -53,7 +53,7 @@ def savemat(df, filename):
     spio.savemat(filename, df, appendmat=addExt, format='5',
         long_field_names=False, do_compression=True, oned_as='row'
     )
-    return 
+    return
 
 def loadmat(filename):
     '''
@@ -73,7 +73,7 @@ def _check_keys(dict):
     for key in dict:
         if isinstance(dict[key], spio.matlab.mio5_params.mat_struct):
             dict[key] = _todict(dict[key])
-    return dict        
+    return dict
 
 def _todict(matobj):
     '''
@@ -92,11 +92,11 @@ def _todict(matobj):
 
 def _tolist(ndarray):
     '''
-    A recursive function which constructs lists from cellarrays 
+    A recursive function which constructs lists from cellarrays
     (which are loaded as numpy ndarrays), recursing into the elements
     if they contain matobjects.
     '''
-    elem_list = []            
+    elem_list = []
     for sub_elem in ndarray:
         if isinstance(sub_elem, spio.matlab.mio5_params.mat_struct):
             elem_list.append(_todict(sub_elem))

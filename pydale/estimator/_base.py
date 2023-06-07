@@ -1,10 +1,11 @@
 import warnings
+
 import numpy as np
-from numpy.linalg import multi_dot, inv
-import scipy.sparse as sparse
-from sklearn.base import BaseEstimator, ClassifierMixin
-from cvxopt import matrix, solvers
 import osqp
+import scipy.sparse as sparse
+from cvxopt import matrix, solvers
+from numpy.linalg import inv, multi_dot
+from sklearn.base import BaseEstimator, ClassifierMixin
 
 
 class _BaseFramework(BaseEstimator, ClassifierMixin):

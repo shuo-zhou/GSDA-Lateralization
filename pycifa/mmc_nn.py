@@ -1,13 +1,14 @@
 import numpy as np
 
+
 def mmc_nonnegative(A, Qini, iters=1000, tol=1e-8):
     # Min-Max cut with nonnegative relaxization
     # A: similarity matrix of graph, n*n matrix
     # Qini: initial cluster indicator matrix, n*c matrix
     # Q: output cluster indicator matrix, n*c matrix
-    # Ref: 
-    # Feiping Nie, Chris Ding, Dijun Luo, Heng Huang. 
-    # Improved MinMax Cut Graph Clustering with Nonnegative Relaxation.  
+    # Ref:
+    # Feiping Nie, Chris Ding, Dijun Luo, Heng Huang.
+    # Improved MinMax Cut Graph Clustering with Nonnegative Relaxation.
     # The European Conference on Machine Learning and Principles and Practice of
     # Knowledge Discovery in Databases (ECML PKDD), Barcelona, 2010.
     class_num = Qini.shape[1]
@@ -41,4 +42,3 @@ def mmc_nonnegative(A, Qini, iters=1000, tol=1e-8):
             break
         prevQ = Q.copy()
     return Q, obj, obj1, orobj
-

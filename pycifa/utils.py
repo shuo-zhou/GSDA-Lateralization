@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def reshape(x, shape):
     return np.reshape(x, shape, order='F')
 
@@ -14,17 +15,17 @@ def mldivide(a, b):
     else:
         rv = np.linalg.lstsq(a, b)[0]
     return rv
-    
+
 def sub2ind(shape, ind):
     assert len(shape) == len(ind)
     if isinstance(ind, np.ndarray):
-        assert 0 < ind.ndim < 3 
+        assert 0 < ind.ndim < 3
     else:
         tmp = [isinstance(x, int) for x in ind]
-        assert np.all(tmp) == np.any(tmp) 
+        assert np.all(tmp) == np.any(tmp)
         if not np.all(tmp):
             tmp = [isinstance(x, (tuple, list, np.ndarray))  for x in ind]
-            assert np.all(tmp) == np.any(tmp) 
+            assert np.all(tmp) == np.any(tmp)
             assert np.all([len(x) == len(ind[0]) for x in ind])
     indNP = np.array(ind)
     indNP = reshape(indNP, [-1, len(shape)])
@@ -34,12 +35,12 @@ def sub2ind(shape, ind):
     N[0] = 1
     rind = np.dot(indNP, N)
     return tuple(rind)
-    
+
 def datanormalize(x, nor=2, ori=0):
     assert (isinstance(x, np.ndarray) and (x.ndim == 2)), "2-d numpy array is expected"
     xnorm = np.linalg.norm(x, nor, axis=ori)
     return x/xnorm, xnorm
-    
+
 def EuDist2(fea_a, fea_b=None, bSqrt=True):
     '''
     %EUDIST2 Efficiently Compute the Euclidean Distance Matrix by Exploring the
@@ -64,14 +65,14 @@ def EuDist2(fea_a, fea_b=None, bSqrt=True):
         if bSqrt:
             D = np.sqrt(D)
     return D
-    
+
 def NormalizeFea(x, row=True):
     # if row == True: normalize each row of x to have unit norm
     # if row == False: normalize each column of x to have unit norm
     M, N = x.shape
     nrm = np.linalg.norm(x, axis=row, keepdims=True)
     return x / nrm
-    
+
 def imcomplement(A):
     if A.dtype == bool:
         B = not A
@@ -83,7 +84,7 @@ def imcomplement(A):
     else:
         raise ValueError
     return B
-    
+
 def addGaussianNoise(s_in, SNR=20):
     ## This function is used to add i.i.d. Gaussian noise to the rows of s when
     ## 'awgn' is unavailable.
@@ -96,7 +97,7 @@ def addGaussianNoise(s_in, SNR=20):
     p = np.power(10, -SNR/20.) * powS/powN
     sn = s + p*noi
     return sn
-    
+
 def whiten(a):
     u, s, vt = np.linalg.svd(a)
     nS = s.size
@@ -108,20 +109,20 @@ def princomp(A, wtype='full'):
      Matlab equivalet obtained via link:
      http://glowingpython.blogspot.ru/2011/07/principal-component-analysis-with-numpy.html
      and manually edited.
-     performs principal components analysis 
+     performs principal components analysis
          (PCA) on the n-by-p data matrix A
-         Rows of A correspond to observations, columns to variables. 
+         Rows of A correspond to observations, columns to variables.
 
-     Returns :  
+     Returns :
       coeff :
-        is a p-by-p matrix, each column containing coefficients 
+        is a p-by-p matrix, each column containing coefficients
         for one principal component.
-      score : 
-        the principal component scores; that is, the representation 
-        of A in the principal component space. Rows of SCORE 
+      score :
+        the principal component scores; that is, the representation
+        of A in the principal component space. Rows of SCORE
         correspond to observations, columns to components.
-      latent : 
-        a vector containing the eigenvalues 
+      latent :
+        a vector containing the eigenvalues
         of the covariance matrix of A.
     """
     n, p = A.shape
@@ -136,7 +137,7 @@ def princomp(A, wtype='full'):
         nSV = latent.size
     score = (vt[:nSV, :].T * latent[:nSV]).T
     return coeff[:, :nSV], score, latent[:nSV]**2.
-    
+
 def fast_svd(x, maxRank=None, factor=1.5):
     eps = np.spacing(1)
     nRow, nCol = x.shape
@@ -171,24 +172,3 @@ def fast_svd(x, maxRank=None, factor=1.5):
         u = u[:, :nS]
         vt = vt[:nS, :]
     return u, s, vt
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-

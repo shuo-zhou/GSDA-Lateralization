@@ -10,7 +10,7 @@ The models were trained to classify right (positive class) and left brain (negat
 
 ## Second-order models
 
-The models were trained to classify two group of models. 
+The models were trained to classify two group of models.
 
 **Example**: "L2G0_vs_L2G1.mat"
 

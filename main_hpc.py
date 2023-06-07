@@ -1,12 +1,13 @@
 import argparse
 import os
+
 # import pickle
 import numpy as np
 import pandas as pd
 import torch
+from sklearn.metrics import accuracy_score, roc_auc_score
 # from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score
 
 import io_
 from _base import _pick_half  # _pick_half_subs
@@ -41,7 +42,7 @@ def main():
     l2_param = cfg.SOLVER.L2PARAM
     num_repeat = cfg.DATASET.NUM_REPEAT
     run_ = cfg.DATASET.RUN
-    
+
     mix_gender = cfg.DATASET.MIX_GEND
     if mix_gender:
         lambda_ = 0.0
@@ -53,7 +54,7 @@ def main():
         os.makedirs(out_dir)
 
     sessions = ['REST1', 'REST2']  # session = 'REST1'
-    
+
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 
     data = dict()
@@ -101,16 +102,16 @@ def main():
                 # scaler = StandardScaler()
                 # scaler.fit(x_train)
                 for train_gender in [0, 1]:
-                    
+
                     ic_is_idx = np.where(genders_train == train_gender)[0]
                     oc_is_idx = np.where(genders_train == 1 - train_gender)[0]
 
                     ic_os_idx = np.where(genders_test == train_gender)[0]
                     oc_os_idx = np.where(genders_test == 1 - train_gender)[0]
-                    
+
                     if mix_gender:
                         train_gender = "mix"
-                        if train_gender == 1:                        
+                        if train_gender == 1:
                             continue
 
                     x_test_ic_is = x_test_[ic_is_idx]
@@ -131,7 +132,7 @@ def main():
 
                     model = CoDeLR(lambda_=lambda_, C=l2_param, max_iter=5000)
                     fit_kws = {"y": y_train[ic_is_idx], "covariates": genders_train, "target_idx": ic_is_idx}
-                    model_filename = "lambda%s_%s_%s_%s_gender_%s_%s" % (int(lambda_), train_session, i_split, i_fold, 
+                    model_filename = "lambda%s_%s_%s_%s_gender_%s_%s" % (int(lambda_), train_session, i_split, i_fold,
                                                                          train_gender, random_state)
                     if mix_gender:
                         # model_filename = model_filename + "_mix_gender"

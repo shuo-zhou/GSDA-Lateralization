@@ -1,16 +1,19 @@
 import os
 
-# import pickle
-import io_
 import numpy as np
+import pandas as pd
 import torch
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, roc_auc_score
 # from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score
-from _base import _pick_half  # _pick_half_subs
-import pandas as pd
-from pydale.estimator import CoDeLR, CoDeLogitReg
+from sklearn.utils import shuffle
+# from pydale.estimator import CoDeLR, CoDeLogitReg
 from torchmetrics.functional import accuracy
+
+# import pickle
+import io_
+from _base import _pick_half  # _pick_half_subs
 
 
 def main():
@@ -51,7 +54,7 @@ def main():
     #     for i in range(len(x_all[key_])):
     #         x_all[key_][i] = torch.from_numpy(x_all[key_][i])
     #         y_all[key_][i] = torch.from_numpy(y_all[key_][i])
-    
+
     res = {"acc_ic_is": [], "acc_ic_os": [], "acc_oc_is": [], "acc_oc_os": [], 'pred_loss': [], 'code_loss': [],
            'lambda': [], 'train_session': [], 'split': [], 'fold': [], 'train_gender': [], 'time_used': []}
     # for test_size in test_sizes:
@@ -117,9 +120,26 @@ def main():
                     xy_test = {"acc_ic_is": [x_test_ic_is, y_test_ic_is], "acc_ic_os": [x_test_ic_os, y_test_ic_os],
                                "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
 
+                    y_train_ = np.copy(y_train)
+                    y_train_[oc_is_idx] = shuffle(y_train_[oc_is_idx], random_state=random_state)
+                    clf = LogisticRegression()
+
+                    clf.fit(x_train, y_train_)
+
+                    for acc_key in xy_test:
+                        test_x, test_y = xy_test[acc_key]
+                        # y_pred_ = model.predict(test_x)
+                        # acc_ = accuracy(test_y, y_pred_.view(-1).int())
+                        # res[acc_key].append(acc_.item())
+                        # y_pred_ = model.predict(scaler.transform(test_x))
+                        y_pred_ = clf.predict(test_x)
+                        acc_ = accuracy_score(test_y, y_pred_)
+                        print(acc_key, acc_)
+
                     for lambda_ in lambdas:
                         # model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
                         # model = CoDeLogitReg(regularization=None, lambda_=lambda_, C=l2_param, max_iter=2000)
+
                         model = CoDeLogitReg(lambda_=lambda_, C=l2_param, max_iter=5000)
                         model_path = os.path.join(out_dir, "lambda_%s_%s_%s_%s_gender_%s.pt" %
                                                   (lambda_, train_session, i_split, i_fold, train_gender))

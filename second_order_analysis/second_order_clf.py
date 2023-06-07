@@ -1,11 +1,13 @@
 import os
-import torch
+
 import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.metrics import accuracy_score
-from sklearn.utils import shuffle
+import torch
 from joblib import dump
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.utils import shuffle
+
 # from skops.io import dump
 
 

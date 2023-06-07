@@ -1,5 +1,6 @@
-import numpy as np
 import copy
+
+import numpy as np
 
 from .utils import reshape
 
@@ -46,21 +47,21 @@ def preprocess_mcca(X_all):
         ## Pass the whitened data to 'group_pc_org' for M-CCA
         group_pc_org.append(data[:numPCv[i], :])
     return group_pc_org
-    
+
 def ssqcor_cca_efficient(y, numOfCV, B0=None, numMaxIter=1000, eps=1e-4):
     '''
-    %% This code implement the M-CCA algorithm based on the SSQCOR cost 
+    %% This code implement the M-CCA algorithm based on the SSQCOR cost
     %% Reference:
     %% J. R. Kettenring, Canonical analysis of several sets of variables,?
     %% Biometrika, vol. 58, pp. 433?1, 1971.
 
-    %% Input: 
+    %% Input:
     %% y: M by 1 cell array containing the *prewhitened* group datasets
     %% numOfCV: Number conanical vectors to be estimated
     %% B0: M by 1 cell array containing the initial guess of the demixing
     %% matrices for the group dataset: default is identity matrix
     %% Output:
-    %% B: M by 1 cell array containing the estimated demixing matrices 
+    %% B: M by 1 cell array containing the estimated demixing matrices
     %% theta_opt: Vector containing cost function values at the optimal
     %% solutions
 
@@ -84,12 +85,12 @@ def ssqcor_cca_efficient(y, numOfCV, B0=None, numMaxIter=1000, eps=1e-4):
         for i in xrange(M):
             B0[i] = np.eye(numOfCV, p)
     B = copy.deepcopy(B0)
-    for s in xrange(numOfCV):    
+    for s in xrange(numOfCV):
         ## Iterations to solve the s-th stage canonical vectors for 1--M
         ## datasets
         theta_old = np.zeros(M)
         theta = np.zeros(M)
-        for n in xrange(numMaxIter):     
+        for n in xrange(numMaxIter):
             if (n == 0):
                 ## Initialize B{1--M}(s,:) by B0;
                 for j in xrange(M):

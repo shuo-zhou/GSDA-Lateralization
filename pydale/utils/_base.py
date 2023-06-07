@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import multi_dot, inv
+from numpy.linalg import inv, multi_dot
 from scipy.linalg import sqrtm
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics.pairwise import pairwise_kernels

@@ -3,8 +3,10 @@
 # =============================================================================
 import numpy as np
 from scipy import linalg
+
 from ..utils import mmd_coef
 from ._base import _BaseTransformer
+
 # from sklearn.preprocessing import StandardScaler
 # =============================================================================
 # Implementation of three transfer learning methods:
@@ -16,7 +18,7 @@ from ._base import _BaseTransformer
 # Transfer Component Analysis," in IEEE Transactions on Neural Networks,
 # vol. 22, no. 2, pp. 199-210, Feb. 2011.
 # [2] Mingsheng Long, Jianmin Wang, Guiguang Ding, Jiaguang Sun, Philip S. Yu,
-# Transfer Feature Learning with Joint Distribution Adaptation, IEEE 
+# Transfer Feature Learning with Joint Distribution Adaptation, IEEE
 # International Conference on Computer Vision (ICCV), 2013.
 # [3] Wang, J., Chen, Y., Hao, S., Feng, W. and Shen, Z., 2017, November. Balanced
 # distribution adaptation for transfer learning. In Data Mining (ICDM), 2017
@@ -82,7 +84,7 @@ class JDA(_BaseTransformer):
         objective = np.dot(linalg.inv(obj_min), obj_max)
         eig_values, eig_vectors = linalg.eigh(objective)
         idx_sorted = (-1 * eig_values).argsort()
-        
+
         # ev_abs = np.array(list(map(lambda item: np.abs(item), eig_values)))
 #        idx_sorted = np.argsort(ev_abs)[:self.n_components]
 #        idx_sorted = np.argsort(ev_abs)
@@ -100,7 +102,7 @@ class JDA(_BaseTransformer):
         self.Xt = Xt
 
         return self
-    
+
     def transform(self, X):
         """
         Parameters
@@ -120,7 +122,7 @@ class JDA(_BaseTransformer):
         ker_x = self._get_kernel(X, X_fit)
 
         return np.dot(ker_x, self.eig_vectors)
-    
+
     def fit_transform(self, Xs, ys=None, Xt=None, yt=None):
         """
         Parameters

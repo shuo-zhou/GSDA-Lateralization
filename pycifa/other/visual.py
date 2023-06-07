@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-import matplotlib.pyplot as plt
 
 
 def visual(W_in, mag, cols, ysize=None, inverse=False):
@@ -12,9 +12,9 @@ def visual(W_in, mag, cols, ysize=None, inverse=False):
     % cols     number of columns (x-dimension of map)
     % ysize    [optional] height of each subimage
     %
-    ''' 
+    '''
     W = W_in.copy()
-    # Is the basis non-negative    
+    # Is the basis non-negative
     if (np.min(W) >= 0):
         # Make zeros white and positive values darker, as in earlier NMF papers
         W = -W
@@ -43,7 +43,7 @@ def visual(W_in, mag, cols, ysize=None, inverse=False):
         for j in range(cols):
             if (i*cols + j + 1) > W.shape[1]:
                 # This leaves it at background color
-                pass  
+                pass
             else:
                 # This sets the patch
                 I[i*ysizep + 2 : i*ysizep + ysize + 1,
@@ -57,11 +57,11 @@ def visual(W_in, mag, cols, ysize=None, inverse=False):
     I = scipy.ndimage.interpolation.zoom(I, mag)
 
     #colormap(gray(256));
-    #iptsetpref('ImshowBorder','tight'); 
+    #iptsetpref('ImshowBorder','tight');
     #subplot('position',[0,0,1,1]);
     if inverse:
         plt.imshow(imcomplement(I), extent=[0, 1, 0, 1], cmap=plt.cm.gray)
     else:
         plt.imshow(I, vmin=mini, vmax=maxi, cmap=plt.cm.gray)
-    #truesize;  
+    #truesize;
     plt.show()

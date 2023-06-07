@@ -2,19 +2,20 @@
 # @author: Shuo Zhou, The University of Sheffield, szhou20@sheffield.ac.uk
 # =============================================================================
 import numpy as np
-from scipy import linalg
 from numpy.linalg import multi_dot
+from scipy import linalg
 from sklearn.preprocessing import LabelBinarizer
+
+from ..utils import lap_norm, mmd_coef
 # from sklearn.utils.validation import check_is_fitted
 from ._base import _BaseTransformer
-from ..utils import lap_norm, mmd_coef
 
 
 class TCA(_BaseTransformer):
     def __init__(self, n_components, kernel='linear', lambda_=1.0, mu=1.0, gamma_=0.5, n_jobs=1.0,
                  k=3, alpha=1.0, kernel_params=None, fit_inverse_transform=False, **kwargs):
         """Transfer Component Analysis: TCA
-        
+
         Parameters
         ----------
         n_components : int
@@ -39,7 +40,7 @@ class TCA(_BaseTransformer):
         super().__init__(kernel, n_jobs, alpha, kernel_params, fit_inverse_transform)
         self.n_components = n_components
         self.kwargs = kwargs
-        self.lambda_ = lambda_ 
+        self.lambda_ = lambda_
         self.mu = mu
         self.gamma_ = gamma_
         self.k = k
@@ -91,7 +92,7 @@ class TCA(_BaseTransformer):
             obj_min += multi_dot([ker_x, (L + self.mu * lap_mat), ker_x.T])
             obj_max += multi_dot([ker_x, ctr_mat, ker_y, ctr_mat, ker_x.T])
         # obj_min = np.trace(np.dot(ker_x,L))
-        else: 
+        else:
             obj_min += multi_dot([ker_x, ctr_mat, L, ker_x.T])
 
         objective = np.dot(linalg.inv(obj_min), obj_max)

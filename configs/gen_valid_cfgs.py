@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 from cr8_cfgs import mk_dir
 
@@ -55,7 +56,7 @@ def main():
             qbatch_file.write("qsub %s/%s\n" % (batch_dir, batch_fname))
 
         qbatch_file.close()
-    
-    
+
+
 if __name__ == '__main__':
     main()

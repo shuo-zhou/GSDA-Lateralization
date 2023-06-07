@@ -1,6 +1,7 @@
 import numpy as np
-import scipy.sparse
 import scipy.optimize
+import scipy.sparse
+
 
 def accuracy(true_labels, cluster_labels):
     # ACCURACY Compute clustering accuracy using the true and cluster labels and
@@ -27,7 +28,7 @@ def accuracy(true_labels, cluster_labels):
     cost = cmat[row_ind, col_ind].sum()
     score = 100.*(-cost/n)
     return score
-    
+
 def CalcSIR(A, Aest, returnMaps=False):
     '''
     Original matlab implementation is written by Anh-Huy Phan:
@@ -42,7 +43,7 @@ def CalcSIR(A, Aest, returnMaps=False):
     # normalize
     a /= (np.linalg.norm(a, axis=0, keepdims=True) + eps)
     b /= (np.linalg.norm(b, axis=0, keepdims=True) + eps)
-    
+
     col1 = a.shape[1]
     col2 = b.shape[1]
     flag = np.zeros(col1)
@@ -62,7 +63,7 @@ def CalcSIR(A, Aest, returnMaps=False):
     if returnMaps:
         return MSE, maps
     return SIR
-    
+
 def CalcSIR_custom(a_in, b_in):
     '''
     Unfortunately, it is valid only for two signals.
@@ -86,7 +87,7 @@ def CalcSIR_custom(a_in, b_in):
     # dB scale
     sir = 10.*np.log10(sir)
     return sir
-    
+
 def MutualInfo(L1_in, L2_in):
     '''
     %   mutual information
@@ -101,7 +102,7 @@ def MutualInfo(L1_in, L2_in):
     %         pages = {1624-1637},
     %         month = {December},}
 
-    %===========    
+    %===========
     '''
     L1 = L1_in.copy()
     L2 = L2_in.copy()

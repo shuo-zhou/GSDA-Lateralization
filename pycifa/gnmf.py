@@ -1,6 +1,7 @@
+import copy
+
 import numpy as np
 import scipy.sparse
-import copy
 
 
 def GNMF(X_in, k, W_in, U_in=None, V_in=None, error=1e-5, maxIter=None, nRepeat=10, minIter=30,
@@ -9,17 +10,17 @@ meanFitRatio=0.1, alpha=100, alpha_nSmp=False, optimization='Multiplicative', we
     % Graph regularized Non-negative Matrix Factorization (GNMF)
     %
     % Notation:
-    % X ... (mFea x nSmp) data matrix 
+    % X ... (mFea x nSmp) data matrix
     %       mFea  ... number of words (vocabulary size)
     %       nSmp  ... number of documents
     % k ... number of hidden factors
-    % W ... weight matrix of the affinity graph 
+    % W ... weight matrix of the affinity graph
     %
     % options ... Structure holding all settings
-    %               options.alpha ... the regularization parameter. 
+    %               options.alpha ... the regularization parameter.
     %                                 [default: 100]
-    %                                 alpha = 0, GNMF boils down to the ordinary NMF. 
-    %                                 
+    %                                 alpha = 0, GNMF boils down to the ordinary NMF.
+    %
     %
     % You only need to provide the above four inputs.
     %
@@ -28,16 +29,16 @@ meanFitRatio=0.1, alpha=100, alpha_nSmp=False, optimization='Multiplicative', we
     % References:
     % [1] Deng Cai, Xiaofei He, Xiaoyun Wu, and Jiawei Han. "Non-negative
     % Matrix Factorization on Manifold", Proc. 2008 Int. Conf. on Data Mining
-    % (ICDM'08), Pisa, Italy, Dec. 2008. 
+    % (ICDM'08), Pisa, Italy, Dec. 2008.
     %
     % [2] Deng Cai, Xiaofei He, Jiawei Han, Thomas Huang. "Graph Regularized
     % Non-negative Matrix Factorization for Data Representation", IEEE
     % Transactions on Pattern Analysis and Machine Intelligence, , Vol. 33, No.
-    % 8, pp. 1548-1560, 2011.  
+    % 8, pp. 1548-1560, 2011.
     %
     %
-    %   version 2.0 --April/2009 
-    %   version 1.0 --April/2008 
+    %   version 2.0 --April/2009
+    %   version 1.0 --April/2008
     %
     %   Written by Deng Cai (dengcai AT gmail.com)
     '''
@@ -53,7 +54,7 @@ meanFitRatio=0.1, alpha=100, alpha_nSmp=False, optimization='Multiplicative', we
         if weight == 'NCW':
             feaSum = np.sum(X, axis=1)
             D_half = np.dot(X.T, feaSum)
-            X = np.dot(X, 
+            X = np.dot(X,
             np.array(scipy.sparse.spdiags(D_half**-0.5, 0, nSmp, nSmp).todense()))
     if (optimization.lower() == 'Multiplicative'.lower()):
         U_final, V_final, nIter_final, objhistory_final = GNMF_Multi(X, k, W, U, V,
@@ -71,11 +72,11 @@ def GNMF_Multi(X, k, W, U=None, V=None, differror=1, minIter=10, meanFitRatio=1,
     % Graph regularized Non-negative Matrix Factorization (GNMF) with
     %          multiplicative update
     % Notation:
-    % X ... (mFea x nSmp) data matrix 
+    % X ... (mFea x nSmp) data matrix
     %       mFea  ... number of words (vocabulary size)
     %       nSmp  ... number of documents
     % k ... number of hidden factors
-    % W ... weight matrix of the affinity graph 
+    % W ... weight matrix of the affinity graph
     %
     % options ... Structure holding all settings
     %
@@ -86,17 +87,17 @@ def GNMF_Multi(X, k, W, U=None, V=None, differror=1, minIter=10, meanFitRatio=1,
     % References:
     % [1] Deng Cai, Xiaofei He, Xiaoyun Wu, and Jiawei Han. "Non-negative
     % Matrix Factorization on Manifold", Proc. 2008 Int. Conf. on Data Mining
-    % (ICDM'08), Pisa, Italy, Dec. 2008. 
+    % (ICDM'08), Pisa, Italy, Dec. 2008.
     %
     % [2] Deng Cai, Xiaofei He, Jiawei Han, Thomas Huang. "Graph Regularized
     % Non-negative Matrix Factorization for Data Representation", IEEE
     % Transactions on Pattern Analysis and Machine Intelligence, , Vol. 33, No.
-    % 8, pp. 1548-1560, 2011.  
+    % 8, pp. 1548-1560, 2011.
     %
     %
-    %   version 2.1 --Dec./2011 
-    %   version 2.0 --April/2009 
-    %   version 1.0 --April/2008 
+    %   version 2.1 --Dec./2011
+    %   version 2.0 --April/2009
+    %   version 1.0 --April/2008
     %
     %   Written by Deng Cai (dengcai AT gmail.com)
     '''
@@ -157,7 +158,7 @@ def GNMF_Multi(X, k, W, U=None, V=None, differror=1, minIter=10, meanFitRatio=1,
                 DV = np.dot(D, V)
                 XU += WV
                 VUU += DV
-            VUU[VUU < 1e-10] = 1e-10        
+            VUU[VUU < 1e-10] = 1e-10
             V = V * (XU / VUU)
             # ===================== update U ========================
             XV = np.dot(X, V) # mnk or pk (p<<mn)
@@ -220,7 +221,7 @@ def GNMF_Multi(X, k, W, U=None, V=None, differror=1, minIter=10, meanFitRatio=1,
 
 def CalculateObj(X, U, V, L, deltaVU=False, dVordU=True):
     # 500M. You can modify this number based on your machine's computational power.
-    MAXARRAY = 500*1024*1024/8 
+    MAXARRAY = 500*1024*1024/8
     dV = []
     nSmp = X.shape[1]
     mn = len(X)

@@ -1,16 +1,17 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 
 def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False):
     '''
     %      TSNE Performs symmetric t-SNE on dataset X
     %
-    % The function performs symmetric t-SNE on the NxD dataset X to reduce its 
-    % dimensionality to no_dims dimensions (default = 2). The data is 
-    % preprocessed using PCA, reducing the dimensionality to initial_dims 
-    % dimensions (default = 30). Alternatively, an initial solution obtained 
-    % from an other dimensionality reduction technique may be specified in 
-    % initial_solution. The perplexity of the Gaussian kernel that is employed 
+    % The function performs symmetric t-SNE on the NxD dataset X to reduce its
+    % dimensionality to no_dims dimensions (default = 2). The data is
+    % preprocessed using PCA, reducing the dimensionality to initial_dims
+    % dimensions (default = 30). Alternatively, an initial solution obtained
+    % from an other dimensionality reduction technique may be specified in
+    % initial_solution. The perplexity of the Gaussian kernel that is employed
     % can be specified through perplexity (default = 30). The labels of the
     % data are not used by t-SNE itself, however, they are used to color
     % intermediate plots. Please provide an empty labels matrix [] if you
@@ -20,7 +21,7 @@ def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False
     % This file is part of the Matlab Toolbox for Dimensionality Reduction v0.7.2b.
     % The toolbox can be obtained from http://homepage.tudelft.nl/19j49
     % You are free to use, change, or redistribute this code in any way you
-    % want for non-commercial purposes. However, it is appreciated if you 
+    % want for non-commercial purposes. However, it is appreciated if you
     % maintain the name of the original author.
     %
     % (C) Laurens van der Maaten, 2010
@@ -38,7 +39,7 @@ def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False
         initial_solution = False
     # Normalize input data
     X -= np.min(X)
-    X /= np.max(X)    
+    X /= np.max(X)
     # Perform preprocessing using PCA
     if not initial_solution:
         if verb:
@@ -67,17 +68,17 @@ def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False
     else:
         ydata = tsne_p(P, labels, no_dims)
     return ydata
-    
+
 def d2p(D, u=15, tol=1e-4, verb=False):
     '''
-     D2P Identifies appropriate sigma's to get kk NNs up to some tolerance 
-       [P, beta] = d2p(D, kk, tol) 
+     D2P Identifies appropriate sigma's to get kk NNs up to some tolerance
+       [P, beta] = d2p(D, kk, tol)
      Identifies the required precision (= 1 / variance^2) to obtain a Gaussian
      kernel with a certain uncertainty for every datapoint. The desired
      uncertainty can be specified through the perplexity u (default = 15). The
      desired perplexity is obtained up to some tolerance that can be specified
      by tol (default = 1e-4).
-     The function returns the final Gaussian kernel in P, as well as the 
+     The function returns the final Gaussian kernel in P, as well as the
      employed precisions per instance in beta.
 
 
@@ -87,12 +88,12 @@ def d2p(D, u=15, tol=1e-4, verb=False):
      This file is part of the Matlab Toolbox for Dimensionality Reduction v0.7.2b.
      The toolbox can be obtained from http://homepage.tudelft.nl/19j49
      You are free to use, change, or redistribute this code in any way you
-     want for non-commercial purposes. However, it is appreciated if you 
+     want for non-commercial purposes. However, it is appreciated if you
      maintain the name of the original author.
 
      (C) Laurens van der Maaten, 2010
      University California, San Diego / Delft University of Technology
-    '''    
+    '''
     # Initialize some variables
     n = D.shape[0] # number of instances
     P = np.zeros([n, n]) # empty probability matrix
@@ -104,7 +105,7 @@ def d2p(D, u=15, tol=1e-4, verb=False):
             if i % 500 == 0:
                 print('Computed P-values %d of %d datapoints...' % (i, n))
         # Set minimum and maximum values for precision
-        betamin = -np.inf 
+        betamin = -np.inf
         betamax = np.inf
         # Compute the Gaussian kernel and entropy for the current precision
         tmp = np.hstack([D[i:i+1, :i], D[i:i+1, i+1:]])
@@ -122,7 +123,7 @@ def d2p(D, u=15, tol=1e-4, verb=False):
                     beta[i] = (beta[i] + betamax) / 2
             else:
                 betamax = beta[i]
-                if np.isinf(betamin): 
+                if np.isinf(betamin):
                     beta[i] /= 2
                 else:
                     beta[i] = (beta[i] + betamin) / 2
@@ -140,7 +141,7 @@ def d2p(D, u=15, tol=1e-4, verb=False):
         print('Minimum value of sigma: %.5f' % (np.min(np.sqrt(1. / beta))))
         print('Maximum value of sigma: %.5f' % (np.max(np.sqrt(1. / beta))))
     return P, beta
-    
+
 def Hbeta(D, beta):
     '''
      Function that computes the Gaussian kernel values given a vector of
@@ -153,7 +154,7 @@ def Hbeta(D, beta):
     # why not: H = np.exp(-np.sum(P[P > 1e-5]*np.log(P[P > 1e-5]))) ???
     P /= sumP
     return H, P
-    
+
 def tsne_p(P,
     labels=None,
     no_dims=2,
@@ -170,11 +171,11 @@ def tsne_p(P,
     %
     %   mappedX = tsne_p(P, labels, no_dims)
     %
-    % The function performs symmetric t-SNE on pairwise similarity matrix P 
+    % The function performs symmetric t-SNE on pairwise similarity matrix P
     % to create a low-dimensional map of no_dims dimensions (default = 2).
     % The matrix P is assumed to be symmetric, sum up to 1, and have zeros
     % on the diagonal.
-    % The labels of the data are not used by t-SNE itself, however, they 
+    % The labels of the data are not used by t-SNE itself, however, they
     % are used to color intermediate plots. Please provide an empty labels
     % matrix [] if you don't want to plot results during the optimization.
     % The low-dimensional data representation is returned in mappedX.
@@ -182,12 +183,12 @@ def tsne_p(P,
     % This file is part of the Matlab Toolbox for Dimensionality Reduction v0.7.2b.
     % The toolbox can be obtained from http://homepage.tudelft.nl/19j49
     % You are free to use, change, or redistribute this code in any way you
-    % want for non-commercial purposes. However, it is appreciated if you 
+    % want for non-commercial purposes. However, it is appreciated if you
     % maintain the name of the original author.
     %
     % (C) Laurens van der Maaten, 2010
     % University California, San Diego / Delft University of Technology
-    
+
     momentum = 0.5;                                     % initial momentum
     final_momentum = 0.8;                               % value to which momentum is changed
     mom_switch_iter = 250;                              % iteration at which momentum is changed
@@ -208,7 +209,7 @@ def tsne_p(P,
     n = P.shape[0] # number of instances
     # Make sure P-vals are set properly
     # set diagonal to zero
-    np.fill_diagonal(P, 0) 
+    np.fill_diagonal(P, 0)
     # symmetrize P-values
     P = 0.5*(P + P.T)
     # make sure P-values sum to one
@@ -233,9 +234,9 @@ def tsne_p(P,
         #bsxfun(@plus, sum_ydata', -2 * (ydata * ydata'))
         num += sum_ydata
         #bsxfun(@plus, sum_ydata, num)
-        num = 1./(1 + num) 
+        num = 1./(1 + num)
         # set diagonal to zero
-        np.fill_diagonal(num, 0) 
+        np.fill_diagonal(num, 0)
         # normalize to get probabilities
         Q = np.maximum(num/np.sum(num), realmin)
         # Compute the gradients (faster implementation)

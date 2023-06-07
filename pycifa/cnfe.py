@@ -1,4 +1,5 @@
 import numpy as np
+
 from .utils import mldivide
 
 
@@ -7,7 +8,7 @@ def cnfe(c, Q, r=None, maxiter=2000, tol=1e-6, alpha=0, ncheck=10):
 #  min \sum_n ||c*Q{n}-nc*nQ||
 #   s.t. nc>=0  nQ>=0
 # Usage: [ nc nQ ] = cnfe( c, Q,opts );
-# 
+#
     NMFALG = 'mu'
     eps = np.spacing(1)
     M, rc = c.shape

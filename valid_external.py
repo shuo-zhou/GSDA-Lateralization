@@ -1,12 +1,13 @@
 import argparse
 import os
+
 # import pickle
 import numpy as np
 import pandas as pd
 import torch
+from sklearn.metrics import accuracy_score, roc_auc_score
 # from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
-from sklearn.metrics import accuracy_score, roc_auc_score
 
 import io_
 from _base import _pick_half  # _pick_half_subs

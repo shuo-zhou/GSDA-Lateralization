@@ -12,10 +12,11 @@ import numpy as np
 from numpy.linalg import multi_dot
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import LabelBinarizer
+
+from ..utils import base_init, lap_norm
 # import cvxpy as cvx
 # from cvxpy.error import SolverError
 from ..utils.multiclass import score2pred
-from ..utils import lap_norm, base_init
 from ._base import _BaseFramework
 
 
@@ -35,16 +36,16 @@ class SIDeRSVM(_BaseFramework):
         mu : float, optional
             param for manifold regularisation, by default 0
         k_neighbour : int, optional
-            number of nearest numbers for each sample in manifold regularisation, 
+            number of nearest numbers for each sample in manifold regularisation,
             by default 3
         manifold_metric : str, optional
-            The distance metric used to calculate the k-Neighbors for each 
-            sample point. The DistanceMetric class gives a list of available 
+            The distance metric used to calculate the k-Neighbors for each
+            sample point. The DistanceMetric class gives a list of available
             metrics. By default 'cosine'.
         knn_mode : str, optional
-            {‘connectivity’, ‘distance’}, by default 'distance'. Type of 
-            returned matrix: ‘connectivity’ will return the connectivity 
-            matrix with ones and zeros, and ‘distance’ will return the 
+            {‘connectivity’, ‘distance’}, by default 'distance'. Type of
+            returned matrix: ‘connectivity’ will return the connectivity
+            matrix with ones and zeros, and ‘distance’ will return the
             distances between neighbors according to the given metric.
         solver : str, optional
             quadratic programming solver, [cvxopt, osqp], by default 'osqp'
@@ -134,11 +135,11 @@ class SIDeRSVM(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
-            decision scores, shape (n_samples,) for binary classification, 
+            decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
         ker_x = pairwise_kernels(X, self.X, metric=self.kernel,
@@ -152,7 +153,7 @@ class SIDeRSVM(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
@@ -188,8 +189,8 @@ class SIDeRSVM(_BaseFramework):
 
 
 class SIDeRLS(_BaseFramework):
-    def __init__(self, sigma_=1.0, lambda_=1.0, mu=0.0, kernel='linear', 
-                 k=3, knn_mode='distance', manifold_metric='cosine', 
+    def __init__(self, sigma_=1.0, lambda_=1.0, mu=0.0, kernel='linear',
+                 k=3, knn_mode='distance', manifold_metric='cosine',
                  class_weight=None, **kwargs):
         """Side Information Dependence Regularised Least Square
 
@@ -204,20 +205,20 @@ class SIDeRLS(_BaseFramework):
         kernel : str, optional
             [description], by default 'linear'
         k : int, optional
-            number of nearest numbers for each sample in manifold regularisation, 
+            number of nearest numbers for each sample in manifold regularisation,
             by default 3
         knn_mode : str, optional
-            {‘connectivity’, ‘distance’}, by default 'distance'. Type of 
-            returned matrix: ‘connectivity’ will return the connectivity 
-            matrix with ones and zeros, and ‘distance’ will return the 
+            {‘connectivity’, ‘distance’}, by default 'distance'. Type of
+            returned matrix: ‘connectivity’ will return the connectivity
+            matrix with ones and zeros, and ‘distance’ will return the
             distances between neighbors according to the given metric.
         manifold_metric : str, optional
-            The distance metric used to calculate the k-Neighbors for each 
-            sample point. The DistanceMetric class gives a list of available 
+            The distance metric used to calculate the k-Neighbors for each
+            sample point. The DistanceMetric class gives a list of available
             metrics. By default 'cosine'.
         class_weight : [type], optional
             [description], by default None
-        **kwargs: 
+        **kwargs:
             kernel param
         """
         self.kernel = kernel
@@ -288,14 +289,14 @@ class SIDeRLS(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
-            decision scores, shape (n_samples,) for binary classification, 
+            decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
-        
+
         ker_x = pairwise_kernels(X, self.X, metric=self.kernel,
                                  filter_params=True, **self.kwargs)
         return np.dot(ker_x, self.coef_)  # +self.intercept_
@@ -307,7 +308,7 @@ class SIDeRLS(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like

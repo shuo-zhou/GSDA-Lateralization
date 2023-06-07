@@ -1,16 +1,17 @@
 import os
 
-# import pickle
-import io_
 import numpy as np
+import pandas as pd
 import torch
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize
+from torchmetrics.functional import accuracy
+
+# import pickle
+import io_
 # from sklearn.metrics import accuracy_score, roc_auc_score
 from _base import _pick_half, _pick_half_subs
-import pandas as pd
 from pydale.estimator import CoDeLR
-from torchmetrics.functional import accuracy
 
 
 def main():

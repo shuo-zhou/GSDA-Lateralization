@@ -1,21 +1,23 @@
 import os
-# import pickle
-import io_
+
 import numpy as np
+import pandas as pd
 import torch
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize
+from torchmetrics.functional import accuracy
+
+# import pickle
+import io_
 # from sklearn.metrics import accuracy_score, roc_auc_score
 from _base import _pick_half, _pick_half_subs
-import pandas as pd
 from pydale.estimator import CoDeLR
-from torchmetrics.functional import accuracy
 
 
 def main():
     atlas = 'BNA'
-    data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
-    out_dir = '/media/shuo/MyDrive/HCP/%s/Results' % atlas
+    data_dir = "/media/shuo/MyDrive/data/HCP/%s/Proc" % atlas
+    out_dir = '/media/shuo/MyDrive/data/HCP/%s/Results' % atlas
     # data_dir = 'D:/ShareFolder/BNA/Proc'
     # out_dir = 'D:/ShareFolder/BNA/Result'
     # atlas = 'AICHA'
@@ -40,16 +42,16 @@ def main():
     x, y, x1, y1 = _pick_half(data, random_state=random_state)
 
     y = label_binarize(y, classes=[-1, 1]).reshape(-1)
-    y = torch.from_numpy(y)
-    y = y.long()
+    # y = torch.from_numpy(y)
+    # y = y.long()
     y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
-    y1 = torch.from_numpy(y1)
-    y1 = y1.long()
+    # y1 = torch.from_numpy(y1)
+    # y1 = y1.long()
 
-    x = torch.from_numpy(x)
-    x = x.float()
-    x1 = torch.from_numpy(x1)
-    x1 = x1.float()
+    # x = torch.from_numpy(x)
+    # x = x.float()
+    # x1 = torch.from_numpy(x1)
+    # x1 = x1.float()
 
     genders = info['gender'].values
     idx_male = np.where(genders == 0)[0]

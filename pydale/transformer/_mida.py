@@ -3,11 +3,12 @@
 # =============================================================================
 
 import numpy as np
+from numpy.linalg import multi_dot
 from scipy import linalg
 from scipy.sparse.linalg import eigsh
-from numpy.linalg import multi_dot
-from sklearn.utils.validation import check_is_fitted
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.utils.validation import check_is_fitted
+
 from ._base import _BaseTransformer
 
 
@@ -15,7 +16,7 @@ class MIDA(_BaseTransformer):
     def __init__(self, n_components, kernel='linear', lambda_=1.0, mu=1.0, eta=1.0, aug=True,
                  n_jobs=1.0,  alpha=1.0, kernel_params=None, fit_inverse_transform=False, **kwargs):
         """Maximum independence domain adaptation
-        
+
         Parameters
         ----------
         n_components : int
@@ -24,11 +25,11 @@ class MIDA(_BaseTransformer):
             'rbf' | 'linear' | 'poly' (default is 'linear')
         mu: total captured variance param
         lambda_: label dependence param
-            
+
         References
         ----------
-        Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace 
-        using domain features and independence maximization. IEEE transactions on 
+        Yan, K., Kou, L. and Zhang, D., 2018. Learning domain-invariant subspace
+        using domain features and independence maximization. IEEE transactions on
         cybernetics, 48(1), pp.288-299.
         """
         super().__init__(kernel, n_jobs, alpha, kernel_params, fit_inverse_transform)

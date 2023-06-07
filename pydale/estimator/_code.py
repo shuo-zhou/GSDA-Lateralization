@@ -1,19 +1,20 @@
-import torch
 from time import time
+
 import numpy as np
+import torch
+import torch.nn as nn
 from numpy.linalg import multi_dot
 from sklearn.base import BaseEstimator, ClassifierMixin
-import torch.nn as nn
 from torch.nn import functional as F
 
 
 def hsic(x, y):
     kx = torch.mm(x, x.T)
     ky = torch.mm(y, y.T)
-    
+
     n = x.shape[0]
     ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
-    
+
     return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
 
 
@@ -30,7 +31,7 @@ class CoDeLR_Torch(nn.Module):
         self.fit_time = 0
         self.losses = {'ovr': [], 'pred': [], 'code': [], 'time': []}
         # self.linear = nn.Linear(n_features, n_classes)
-        
+
     def fit(self, x, y, c, target_idx=None):
         n_features = x.shape[1]
         # n_classes = torch.unique(y).shape[0]
@@ -52,7 +53,7 @@ class CoDeLR_Torch(nn.Module):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-    
+
             if (epoch+1) % 10 == 0:
                 time_used = time() - start_time
                 self.losses['ovr'].append(loss.item())
@@ -76,7 +77,7 @@ class CoDeLR_Torch(nn.Module):
 
     def forward(self, x):
         return self.model(x)
-    
+
     def predict(self, x):
         output = self.forward(x)
         # _, y_pred = torch.max(output, 1)

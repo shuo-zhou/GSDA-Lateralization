@@ -3,10 +3,11 @@
 # =============================================================================
 
 import numpy as np
-from scipy import linalg
 from numpy.linalg import multi_dot
-from sklearn.utils.validation import check_is_fitted
+from scipy import linalg
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.utils.validation import check_is_fitted
+
 from ._base import _BaseTransformer
 
 

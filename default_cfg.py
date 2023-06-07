@@ -40,4 +40,3 @@ _C.OUTPUT.ROOT = "/shared/tale2/Shared/data/HCP/BNA/Results"
 
 def get_cfg_defaults():
     return _C.clone()
-

@@ -1,10 +1,11 @@
 import numpy as np
-from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
-from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.decomposition import PCA
+from sklearn.linear_model import LogisticRegression, RidgeClassifier
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 from sklearn.svm import LinearSVC
-from sklearn.linear_model import RidgeClassifier, LogisticRegression
-from pydale.estimator import SIDeRSVM, SIDeRLS
+
+from pydale.estimator import SIDeRLS, SIDeRSVM
 
 
 def cross_val(x, y, clf=LinearSVC(), random_state=144, co_variates=None):
@@ -116,11 +117,11 @@ def _pick_half(data, random_state=144):
     y = np.zeros(n_sub)
     y[left_idx] = 1
     y[right_idx] = -1
-    
+
     x1 = np.zeros(data['Left'].shape)
     x1[left_idx] = data['Right'][left_idx]
     x1[right_idx] = data['Left'][right_idx]
-    
+
     y1 = np.zeros(n_sub)
     y1[left_idx] = -1
     y1[right_idx] = 1

@@ -3,16 +3,18 @@
 # =============================================================================
 import numpy as np
 from numpy.linalg import multi_dot
-from sklearn.utils.validation import check_is_fitted
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import LabelBinarizer
-from ..utils.multiclass import score2pred
+from sklearn.utils.validation import check_is_fitted
+
 from ..utils import lap_norm, mmd_coef
+from ..utils.multiclass import score2pred
 from ._base import _BaseFramework
+
 # =============================================================================
 # Adaptation Regularisation Transfer Learning: ARTL
-# Ref: Long, M., Wang, J., Ding, G., Pan, S.J. and Philip, S.Y., 2013. 
-# Adaptation regularization: A general framework for transfer learning. 
+# Ref: Long, M., Wang, J., Ding, G., Pan, S.J. and Philip, S.Y., 2013.
+# Adaptation regularization: A general framework for transfer learning.
 # IEEE Transactions on Knowledge and Data Engineering, 26(5), pp.1076-1089.
 # =============================================================================
 
@@ -83,18 +85,18 @@ class ARSVM(_BaseFramework):
         gamma_ : float, optional
             manifold regulisation param, by default 0.0
         k_neighbour : int, optional
-            number of nearest numbers for each sample in manifold regularisation, 
+            number of nearest numbers for each sample in manifold regularisation,
             by default 5
         solver : str, optional
             solver to solve quadprog, osqp or cvxopt, by default 'osqp'
         manifold_metric : str, optional
-            The distance metric used to calculate the k-Neighbors for each 
-            sample point. The DistanceMetric class gives a list of available 
+            The distance metric used to calculate the k-Neighbors for each
+            sample point. The DistanceMetric class gives a list of available
             metrics. By default 'cosine'.
         knn_mode : str, optional
-            {‘connectivity’, ‘distance’}, by default 'distance'. Type of 
-            returned matrix: ‘connectivity’ will return the connectivity 
-            matrix with ones and zeros, and ‘distance’ will return the 
+            {‘connectivity’, ‘distance’}, by default 'distance'. Type of
+            returned matrix: ‘connectivity’ will return the connectivity
+            matrix with ones and zeros, and ‘distance’ will return the
             distances between neighbors according to the given metric.
         kwargs :
             kernel param
@@ -165,7 +167,7 @@ class ARSVM(_BaseFramework):
         Returns
         -------
         array-like
-            decision scores, , shape (n_samples,) for binary classification, 
+            decision scores, , shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
         check_is_fitted(self, 'X_fit')
@@ -199,7 +201,7 @@ class ARSVM(_BaseFramework):
     def fit_predict(self, Xs, ys, Xt=None, yt=None):
         """Fit the model according to the given training data and then perform
             classification on samples in Xt.
-        
+
         Parameters
         ----------
         Xs : array-like
@@ -218,8 +220,8 @@ class ARSVM(_BaseFramework):
 
 
 class ARRLS(_BaseFramework):
-    def __init__(self, kernel='linear', lambda_=1.0, gamma_=0.0, sigma_=1.0, 
-                 k_neighbour=5, manifold_metric='cosine', knn_mode='distance', 
+    def __init__(self, kernel='linear', lambda_=1.0, gamma_=0.0, sigma_=1.0,
+                 k_neighbour=5, manifold_metric='cosine', knn_mode='distance',
                  **kwargs):
         """Adaptation Regularised Least Square
 
@@ -234,18 +236,18 @@ class ARRLS(_BaseFramework):
         sigma_ : float, optional
             l2 regularisation param, by default 1.0
         k_neighbour : int, optional
-            number of nearest numbers for each sample in manifold regularisation, 
+            number of nearest numbers for each sample in manifold regularisation,
             by default 5
         manifold_metric : str, optional
-            The distance metric used to calculate the k-Neighbors for each 
-            sample point. The DistanceMetric class gives a list of available 
+            The distance metric used to calculate the k-Neighbors for each
+            sample point. The DistanceMetric class gives a list of available
             metrics. By default 'cosine'.
         knn_mode : str, optional
-            {‘connectivity’, ‘distance’}, by default 'distance'. Type of 
-            returned matrix: ‘connectivity’ will return the connectivity 
-            matrix with ones and zeros, and ‘distance’ will return the 
+            {‘connectivity’, ‘distance’}, by default 'distance'. Type of
+            returned matrix: ‘connectivity’ will return the connectivity
+            matrix with ones and zeros, and ‘distance’ will return the
             distances between neighbors according to the given metric.
-        kwargs: 
+        kwargs:
             kernel param
         """
         self.kwargs = kwargs
@@ -261,7 +263,7 @@ class ARRLS(_BaseFramework):
 
     def fit(self, Xs, ys, Xt=None, yt=None):
         """Fit the model according to the given training data.
-        
+
         Parameters
         ----------
         Xs : array-like
@@ -299,7 +301,7 @@ class ARRLS(_BaseFramework):
 
     def predict(self, X):
         """Perform classification on samples in X_fit.
-        
+
         Parameters:
         ----------
             X_fit : array-like,
@@ -322,7 +324,7 @@ class ARRLS(_BaseFramework):
 
         Parameters
         ----------
-            X : array-like, 
+            X : array-like,
                 shape (n_samples, n_features)
         Returns
         -------

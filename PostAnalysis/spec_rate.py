@@ -1,11 +1,13 @@
-import numpy as np
-import pandas as pd
 import os
 import sys
+
+import numpy as np
+import pandas as pd
+
 sys.path.append('../')
-from io_ import get_coef
 from scipy.io import savemat
 
+from io_ import get_coef
 
 # for 100206 Dice
 #subj = 100206
@@ -53,7 +55,7 @@ def subj_dice_auc(t_act, t_pred, thrs):
     # thr = 0.05
     #thr = 0.5
 
-    #thrs = np.arange(0.0001,1,0.0001) # 
+    #thrs = np.arange(0.0001,1,0.0001) #
     Dices = pd.DataFrame()
     for k, thr in enumerate(thrs):
 
@@ -123,7 +125,7 @@ def main():
 
     outfile = {"aucs": aucs}
     savemat("dice_score_%s.mat" % lambda_, outfile)
-                                    
+
 
 if __name__ == '__main__':
     main()

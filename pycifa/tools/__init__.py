@@ -1,13 +1,11 @@
 # mat-file i/o functions
-from .matdict import savemat
-from .matdict import loadmat
+from .matdict import loadmat, savemat
+# custom python utilities
+from .py_tools import addStringInFilename, pyHeadExtract
 
 # from matdict import txt2mat
 # from matdict import mat2txt
 
-# custom python utilities
-from .py_tools import addStringInFilename
-from .py_tools import pyHeadExtract
 
 
 __all__ = [savemat, loadmat, addStringInFilename, pyHeadExtract]

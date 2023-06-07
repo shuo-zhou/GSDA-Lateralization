@@ -1,17 +1,18 @@
-import os
-import h5py
 import copy
+import glob
+import os
+import sys
+
+import h5py
+import matplotlib.pyplot as plt
+import nibabel as nib
 import numpy as np
 import pandas as pd
-from scipy.io import loadmat, savemat
-from joblib import dump, load
+import seaborn as sns
 # MRI related func
 import torch
-import sys
-import glob
-import matplotlib.pyplot as plt
-import seaborn as sns
-import nibabel as nib
+from joblib import dump, load
+from scipy.io import loadmat, savemat
 from scipy.stats import pearsonr
 
 

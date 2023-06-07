@@ -1,7 +1,9 @@
-import numpy as np
 import copy
-from .utils import mldivide
+
+import numpy as np
+
 from .cnfe import cnfe
+from .utils import mldivide
 
 
 def cobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=3e-2, returnBc=True):
@@ -52,7 +54,7 @@ def cobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=3e-2, returnB
         tmp = np.dot(U[n].T, Ac)
         res[0] += 1 - (tmp*tmp).sum()
     res[0] /= float(N)
-    if (res[0] > epsilon) and (c is None):  ## c is not specified. 
+    if (res[0] > epsilon) and (c is None):  ## c is not specified.
         print('%s' % ('No common basis found.'))
         Ac = None
         Bc = copy.deepcopy(Y)
@@ -121,7 +123,7 @@ def cobec(Y_in, c=1, maxiter=200, ctol=1e-3, PCAdim=0.8, retBZ=True):
     Ac = np.zeros([Y[0].shape[0], c])
     J = np.zeros(N)
     for n in range(N):
-        U[n], _ = np.linalg.qr(Y[n])   
+        U[n], _ = np.linalg.qr(Y[n])
         J[n] = U[n].shape[1]
         assert J[n] >= c, 'Rank deficient / c is too large.'
         if J[n] > NRows:
@@ -148,7 +150,7 @@ def cobec(Y_in, c=1, maxiter=200, ctol=1e-3, PCAdim=0.8, retBZ=True):
             c2 += np.dot(U[n], x[n])
         #[u , temp, v]=svds(c2,c,'L');
         #Ac=u*v';
-        Ac, _ = np.linalg.qr(c2)   
+        Ac, _ = np.linalg.qr(c2)
         ## stop
         tmp1 = np.dot(Ac.T, c0)
         tmp1 = np.diag(tmp1)
@@ -167,7 +169,7 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
     returnBcZi=False):
     # mldivide()
     # Common orthogonal basis extraction
-    # Usage: 
+    # Usage:
     Y = copy.deepcopy(Y_in)
     Ydim = [x.shape[0] for x in Y]
     NRows = Y[0].shape[0]
@@ -183,7 +185,7 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
     for n in range(N):
         tmp = np.dot(P, Y[n])
         PY.append(tmp.copy())
-        tmp, _ = np.linalg.qr(PY[n])    
+        tmp, _ = np.linalg.qr(PY[n])
         U.append(tmp.copy())
         J[n] = U[n].shape[1]
     ## some matrices are of full-row rank.  Pre-processing by using PCA is required.
@@ -221,7 +223,7 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
         tmp = np.dot(U[n].T, Ac)
         res[0] += 1 - (tmp*tmp).sum()
     res[0] /= float(N)
-    if (res[0] > epsilon) and (c is None):  ## c is not specified. 
+    if (res[0] > epsilon) and (c is None):  ## c is not specified.
         print('%s' % ('No common basis found.'))
         Ac = None
         Bc = copy.deepcopy(Y)
@@ -336,7 +338,7 @@ def cobe_classify(testData, training, group, nc=None, subgroups=2, nn=False,
                 Ac[idx] = cnfe(tmp_out, Q)
             else:
                 Ac[idx] = tmp_out.copy()
-        else: 
+        else:
             Ac[idx] = (A.copy()).T
     ## classifying
     teT = testData.shape[0]
@@ -354,7 +356,7 @@ def cobe_classify(testData, training, group, nc=None, subgroups=2, nn=False,
             Ac[idx], _ = np.linalg.qr(Ac[idx])
             proj = np.dot(Ac[idx].T, testData)
             dis[idx, :] = np.sum(proj**2., axis=0)**0.5
-        labels = np.argmax(dis, axis=0)  ########################### 
+        labels = np.argmax(dis, axis=0)  ###########################
         labels = np.array(glabs)[labels]
     else:
         raise NotImplementedError('Unsupported distance.')

@@ -1,5 +1,6 @@
 import copy
 
+
 def addStringInFilename(filename, string, prefix=True):
     # three independent options:
     # 1) is "string" prefix or postfix;
@@ -47,49 +48,4 @@ def pyHeadExtract(pyFname):
     headFname = addStringInFilename(pyFname, 'header_', prefix=True)
     with open(headFname, 'w+') as f:
         f.writelines(funLines)
-    return 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    return

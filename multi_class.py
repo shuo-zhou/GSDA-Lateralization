@@ -1,7 +1,9 @@
 import os
-import io_
+
 import numpy as np
-from _base import cross_val, _pick_half
+
+import io_
+from _base import _pick_half, cross_val
 
 
 def main():

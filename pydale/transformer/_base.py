@@ -1,5 +1,5 @@
-from scipy import linalg
 import numpy as np
+from scipy import linalg
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 

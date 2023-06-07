@@ -1,14 +1,17 @@
-import numpy as np
 import time
+
+import numpy as np
+
 try:
     import mkl
+
     # global
     _MAX_NUM_OF_THREADS = mkl.get_max_threads()
     mkl.set_num_treads(_MAX_NUM_OF_THREADS)
 except:
     pass
-from .utils import mldivide
-from .utils import fast_svd
+from .utils import fast_svd, mldivide
+
 
 def sobi(Y, p=4):#, maxEncore=1000):
     '''
@@ -58,7 +61,7 @@ def sobi(Y, p=4):#, maxEncore=1000):
     m, N = X.shape
     if isinstance(p, int):
         p = np.arange(p)
-        
+
     pm = len(p)*m # for convenience
     X = X - np.mean(X, axis=1, keepdims=True)
     # prewhitening
@@ -128,7 +131,7 @@ def PMFsobi(Y, c=None, p=4):
       m: source number
       p: number of correlation matrices to be diagonalized by default p=4.
       X: X=S*A, where the columns of S are the sources, A is the mixing matrix.
-      
+
       Based on the version developed by A. Belouchrani and A. Cichocki.
     '''
     # the devil is in the details
@@ -158,7 +161,7 @@ def pca_psc(x, n):
         z = np.dot(x.T, x)
         v, d, _ = np.linalg.svd(z)
         lenD = d.size
-        u = np.dot(x, v[:, :lenD] / (d**0.5)) 
+        u = np.dot(x, v[:, :lenD] / (d**0.5))
     else:
         z = np.dot(x, x.T)
         u, d, _ = np.linalg.svd(z)

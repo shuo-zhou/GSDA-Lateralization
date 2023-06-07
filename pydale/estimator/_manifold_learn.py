@@ -1,18 +1,19 @@
 """
 @author: Shuo Zhou, The University of Sheffield, szhou@sheffield.ac.uk
 
-Ref: Belkin, M., Niyogi, P., & Sindhwani, V. (2006). Manifold regularization: 
-A geometric framework for learning from labeled and unlabeled examples. 
+Ref: Belkin, M., Niyogi, P., & Sindhwani, V. (2006). Manifold regularization:
+A geometric framework for learning from labeled and unlabeled examples.
 Journal of machine learning research, 7(Nov), 2399-2434.
 """
 
 import numpy as np
-from sklearn.utils.validation import check_is_fitted
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.utils.validation import check_is_fitted
+
 # import cvxpy as cvx
 # from cvxpy.error import SolverError
-from ..utils import lap_norm, base_init
+from ..utils import base_init, lap_norm
 from ..utils.multiclass import score2pred
 from ._base import _BaseFramework
 
@@ -21,7 +22,7 @@ class LapSVM(_BaseFramework):
     def __init__(self, C=1.0, kernel='linear', gamma_=1.0, solver='osqp', k_neighbour=3,
                  manifold_metric='cosine', knn_mode='distance', **kwargs):
         """Laplacian Regularized Support Vector Machine
-        
+
         Parameters
         ----------
         C : float, optional
@@ -33,18 +34,18 @@ class LapSVM(_BaseFramework):
         solver : str, optional
             quadratic programming solver, [cvxopt, osqp], by default 'osqp'
         k_neighbour : int, optional
-            number of nearest numbers for each sample in manifold regularisation, 
+            number of nearest numbers for each sample in manifold regularisation,
             by default 3
         manifold_metric : str, optional
-            The distance metric used to calculate the k-Neighbors for each 
-            sample point. The DistanceMetric class gives a list of available 
+            The distance metric used to calculate the k-Neighbors for each
+            sample point. The DistanceMetric class gives a list of available
             metrics. By default 'cosine'.
         knn_mode : str, optional
-            {‘connectivity’, ‘distance’}, by default 'distance'. Type of 
-            returned matrix: ‘connectivity’ will return the connectivity 
-            matrix with ones and zeros, and ‘distance’ will return the 
+            {‘connectivity’, ‘distance’}, by default 'distance'. Type of
+            returned matrix: ‘connectivity’ will return the connectivity
+            matrix with ones and zeros, and ‘distance’ will return the
             distances between neighbors according to the given metric.
-        **kwargs: 
+        **kwargs:
             kernel param
         """
         self.C = C
@@ -66,7 +67,7 @@ class LapSVM(_BaseFramework):
             Input data, shape (n_samples, n_features)
         y : array-like
             Label,, shape (nl_samples, ) where nl_samples <= n_samples
-            
+
         Returns
         -------
         self
@@ -103,11 +104,11 @@ class LapSVM(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
-            decision scores, shape (n_samples,) for binary classification, 
+            decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
         check_is_fitted(self, 'X_fit')
@@ -125,7 +126,7 @@ class LapSVM(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
@@ -149,7 +150,7 @@ class LapSVM(_BaseFramework):
             Input data, shape (n_samples, n_features)
         y : array-like
             Label,, shape (nl_samples, ) where nl_samples <= n_samples
-        
+
         Returns
         -------
         array-like
@@ -173,18 +174,18 @@ class LapRLS(_BaseFramework):
         sigma_ : float, optional
             l2 regularisation param, by default 1.0
         k_neighbour : int, optional
-            number of nearest numbers for each sample in manifold regularisation, 
+            number of nearest numbers for each sample in manifold regularisation,
             by default 5
         manifold_metric : str, optional
-            The distance metric used to calculate the k-Neighbors for each 
-            sample point. The DistanceMetric class gives a list of available 
+            The distance metric used to calculate the k-Neighbors for each
+            sample point. The DistanceMetric class gives a list of available
             metrics. By default 'cosine'.
         knn_mode : str, optional
-            {‘connectivity’, ‘distance’}, by default 'distance'. Type of 
-            returned matrix: ‘connectivity’ will return the connectivity 
-            matrix with ones and zeros, and ‘distance’ will return the 
+            {‘connectivity’, ‘distance’}, by default 'distance'. Type of
+            returned matrix: ‘connectivity’ will return the connectivity
+            matrix with ones and zeros, and ‘distance’ will return the
             distances between neighbors according to the given metric.
-        kwargs: 
+        kwargs:
             kernel params
         """
         self.kwargs = kwargs
@@ -206,7 +207,7 @@ class LapRLS(_BaseFramework):
             Input data, shape (n_samples, n_features)
         y : array-like
             Label,, shape (nl_samples, ) where nl_samples <= n_samples
-        
+
         Returns
         -------
         self
@@ -240,7 +241,7 @@ class LapRLS(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
@@ -261,11 +262,11 @@ class LapRLS(_BaseFramework):
         ----------
         X : array-like
             Input data, shape (n_samples, n_features)
-            
+
         Returns
         -------
         array-like
-            decision scores, shape (n_samples,) for binary classification, 
+            decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
         ker_x = pairwise_kernels(X, self.X, metric=self.kernel, filter_params=True, **self.kwargs)
@@ -281,7 +282,7 @@ class LapRLS(_BaseFramework):
             Input data, shape (n_samples, n_features)
         y : array-like
             Label,, shape (nl_samples, ) where nl_samples <= n_samples
-        
+
         Returns
         -------
         array-like
