@@ -32,7 +32,7 @@ def fetch_weights(base_dir, gender, lambda_, dataset, sessions, seed_=2023):
         lambda_:
 
     Returns:
-
+        a matrix of weights, shape (n_models, n_features)
     """
 
     sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
