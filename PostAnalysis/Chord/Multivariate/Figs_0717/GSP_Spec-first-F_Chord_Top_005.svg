@@ -6,7 +6,7 @@
    version="1.1"
    id="svg2051"
    sodipodi:docname="GSP_Spec-first-F_Chord_Top_005.svg"
-   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09, custom)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -25,15 +25,16 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="pt"
-     inkscape:zoom="0.74839744"
-     inkscape:cx="624"
-     inkscape:cy="624"
-     inkscape:window-width="1920"
-     inkscape:window-height="1172"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="axes_1" />
+     inkscape:zoom="1.0583938"
+     inkscape:cx="283.44837"
+     inkscape:cy="627.36573"
+     inkscape:window-width="1692"
+     inkscape:window-height="1403"
+     inkscape:window-x="1692"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="axes_1"
+     showgrid="false" />
   <metadata
      id="metadata1">
     <rdf:RDF>
@@ -1232,6 +1233,72 @@
          id="matplotlib.axis_1" />
       <g
          id="matplotlib.axis_2" />
+      <text
+         xml:space="preserve"
+         style="font-size:14px;line-height:1.25;font-family:sans-serif;fill:#8cc0db;fill-opacity:1;stroke-width:0.75"
+         x="492.39355"
+         y="403.96573"
+         id="text51082"><tspan
+           sodipodi:role="line"
+           id="tspan51080"
+           style="fill:#8cc0db;fill-opacity:1;stroke-width:0.75"
+           x="492.39355"
+           y="403.96573">-0.0772</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14px;line-height:1.25;font-family:sans-serif;stroke-width:0.75;fill:#f67a49;fill-opacity:1"
+         x="278.21017"
+         y="369.69537"
+         id="text51715"><tspan
+           sodipodi:role="line"
+           id="tspan51713"
+           style="stroke-width:0.75;fill:#f67a49;fill-opacity:1"
+           x="278.21017"
+           y="369.69537">0.0839</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14px;line-height:1.25;font-family:sans-serif;fill:#f57547;fill-opacity:1;stroke-width:0.75"
+         x="495.2348"
+         y="382.70743"
+         id="text52624"><tspan
+           sodipodi:role="line"
+           id="tspan52622"
+           style="fill:#f57547;fill-opacity:1;stroke-width:0.75"
+           x="495.2348"
+           y="382.70743">0.0865</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14px;line-height:1.25;font-family:sans-serif;fill:#f57245;fill-opacity:0.866667;stroke-width:0.75"
+         x="256.04312"
+         y="496.57358"
+         id="text53119"><tspan
+           sodipodi:role="line"
+           id="tspan53117"
+           style="fill:#f57245;fill-opacity:0.866667;stroke-width:0.75"
+           x="256.04312"
+           y="496.57358">0.0868</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14px;line-height:1.25;font-family:sans-serif;fill:#f46d43;fill-opacity:1;stroke-width:0.75"
+         x="388.83093"
+         y="346.8244"
+         id="text53399"><tspan
+           sodipodi:role="line"
+           id="tspan53397"
+           style="fill:#f46d43;fill-opacity:1;stroke-width:0.75"
+           x="388.83093"
+           y="346.8244">0.0898</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14px;line-height:1.25;font-family:sans-serif;fill:#e75337;fill-opacity:1;stroke-width:0.75"
+         x="276.15765"
+         y="540.75323"
+         id="text53403"><tspan
+           sodipodi:role="line"
+           id="tspan53401"
+           style="fill:#e75337;fill-opacity:1;stroke-width:0.75"
+           x="276.15765"
+           y="540.75323">0.1029</tspan></text>
     </g>
     <g
        id="axes_2">
