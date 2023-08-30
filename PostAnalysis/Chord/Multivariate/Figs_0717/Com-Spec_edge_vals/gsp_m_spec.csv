@@ -1,0 +1,5 @@
+node1_name,node2_name,edge_name,edge_value
+Frontal_PrG-28,Parietal_PoG-77,Frontal_PrG-28-Parietal_PoG-77,-0.09410601652189174
+Frontal_MFG-11,Temporal_MTG-40,Frontal_MFG-11-Temporal_MTG-40,-0.07876745665236747
+Frontal_SFG-1,Limbic_CG-93,Frontal_SFG-1-Limbic_CG-93,-0.07777188037090306
+Frontal_IFG-16,Temporal_STG-38,Frontal_IFG-16-Temporal_STG-38,0.0911392399765995

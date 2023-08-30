@@ -1,0 +1,7 @@
+node1_name,node2_name,edge_name,edge_value
+Frontal_MFG-7,Frontal_OrG-20,Frontal_MFG-7-Frontal_OrG-20,-0.07724529511137966
+Temporal_MTG-41,Temporal_ITG-47,Temporal_MTG-41-Temporal_ITG-47,0.0838821091575571
+Frontal_MFG-12,Frontal_IFG-15,Frontal_MFG-12-Frontal_IFG-15,0.0865062511247085
+Parietal_Pcun-73,Parietal_Pcun-75,Parietal_Pcun-73-Parietal_Pcun-75,0.08680009609861587
+Frontal_PrG-28,Frontal_PCL-33,Frontal_PrG-28-Frontal_PCL-33,0.08976242953394671
+Parietal_Pcun-75,Parietal_Pcun-76,Parietal_Pcun-75-Parietal_Pcun-76,0.10291574821010113
