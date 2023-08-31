@@ -10,7 +10,7 @@
 *.pt
 *.pyc
 *.sh
-*.svg
+# *.svg
 *.xml
 configs/*.yaml
 *.zip
