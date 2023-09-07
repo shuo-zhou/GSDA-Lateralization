@@ -25,6 +25,7 @@ _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 5
 _C.DATASET.MIX_GEND = False
+_C.DATASET.CV_TEST = "sub_half"
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

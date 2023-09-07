@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 # from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
 from sklearn.utils import shuffle
-# from pydale.estimator import CoDeLR, CoDeLogitReg
+# from pydale.estimator import GSLR, CoDeLogitReg
 from torchmetrics.functional import accuracy
 
 # import pickle

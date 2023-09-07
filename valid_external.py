@@ -12,7 +12,7 @@ from sklearn.preprocessing import label_binarize, StandardScaler
 import io_
 from _base import _pick_half  # _pick_half_subs
 from default_cfg import get_cfg_defaults
-from pydale.estimator import CoDeLR
+from pydale.estimator import GSLR
 
 
 def arg_parse():

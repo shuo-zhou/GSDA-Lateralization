@@ -1,9 +1,11 @@
 *.csv
 *.dcm
+# *.edge
 *.iml
 *.json
 *.log
 # *.mat
+*.npy
 *.pdf
 *.pkl
 *.png

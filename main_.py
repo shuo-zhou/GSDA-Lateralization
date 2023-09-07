@@ -11,7 +11,7 @@ from torchmetrics.functional import accuracy
 import io_
 # from sklearn.metrics import accuracy_score, roc_auc_score
 from _base import _pick_half, _pick_half_subs
-from pydale.estimator import CoDeLR
+from pydale.estimator import GSLR
 
 
 def main():
@@ -69,7 +69,7 @@ def main():
             if os.path.exists(model_path):
                 model = torch.load(model_path)
             else:
-                model = CoDeLR(lambda_=2.0, l2_hparam=l2_param)
+                model = GSLR(lambda_=2.0, l2_hparam=l2_param)
                 model.fit(x_all[sessions[i]], y_all[sessions[i]][tgt_idx], genders[sessions[i]], target_idx=tgt_idx)
                 torch.save(model, model_path)
 

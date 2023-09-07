@@ -11,7 +11,7 @@ from torchmetrics.functional import accuracy
 import io_
 # from sklearn.metrics import accuracy_score, roc_auc_score
 from _base import _pick_half, _pick_half_subs
-from pydale.estimator import CoDeLR
+from pydale.estimator import GSLR
 
 
 def main():
@@ -129,7 +129,7 @@ def main():
                                "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
 
                     for lambda_ in lambdas:
-                        model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
+                        model = GSLR(lambda_=lambda_, l2_hparam=l2_param)
                         model_path = os.path.join(out_dir, "lambda_%s_%s_%s_%s_gender_%s.pt" %
                                                   (lambda_, train_session, i_split, i_fold, train_gender))
                         if os.path.exists(model_path):

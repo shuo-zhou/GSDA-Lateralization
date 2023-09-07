@@ -88,7 +88,7 @@ class CoDeLR_Torch(nn.Module):
         return y_pred
 
 
-class CoDeLR(BaseEstimator, ClassifierMixin):
+class GSLR(BaseEstimator, ClassifierMixin):
     """
     Logistic Regression Classifier
     Parameters

@@ -12,7 +12,7 @@ from sklearn.preprocessing import label_binarize, StandardScaler
 import io_
 from _base import _pick_half  # _pick_half_subs
 from default_cfg import get_cfg_defaults
-from pydale.estimator import CoDeLR
+from pydale.estimator import GSLR
 
 
 def arg_parse():
@@ -104,7 +104,7 @@ def main():
 
                 xy_test = {"acc_ic": [x_test_ic, y_test_ic], "acc_oc": [x_test_oc, y_test_oc]}
 
-                model = CoDeLR(lambda_=lambda_, C=l2_param, max_iter=5000)
+                model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
                 fit_kws = {"y": y_train[ic_idx], "covariates": genders, "target_idx": ic_idx}
                 model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, i_fold,
                                                                      train_gender, random_state)

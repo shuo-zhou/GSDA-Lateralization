@@ -11,7 +11,7 @@ from torchmetrics.functional import accuracy
 import io_
 # from sklearn.metrics import accuracy_score, roc_auc_score
 from _base import _pick_half, _pick_half_subs
-from pydale.estimator import CoDeLR
+from pydale.estimator import GSLR
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
                     train_ = train_idx[train]
                     test_ = train_idx[test]
 
-                    model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
+                    model = GSLR(lambda_=lambda_, l2_hparam=l2_param)
                     # x_train = torch.cat((x[train_], x[test_idx]))
                     # genders_train = torch.cat((genders[train_], genders[test_idx]))
                     # y_train = y[train_]

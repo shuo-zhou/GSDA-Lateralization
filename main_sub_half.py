@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score
 # from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
 from sklearn.utils import shuffle
-# from pydale.estimator import CoDeLR, CoDeLogitReg
+# from pydale.estimator import GSLR, CoDeLogitReg
 from torchmetrics.functional import accuracy
 
 # import pickle
@@ -137,7 +137,7 @@ def main():
                         print(acc_key, acc_)
 
                     for lambda_ in lambdas:
-                        # model = CoDeLR(lambda_=lambda_, l2_hparam=l2_param)
+                        # model = GSLR(lambda_=lambda_, l2_hparam=l2_param)
                         # model = CoDeLogitReg(regularization=None, lambda_=lambda_, C=l2_param, max_iter=2000)
 
                         model = CoDeLogitReg(lambda_=lambda_, C=l2_param, max_iter=5000)

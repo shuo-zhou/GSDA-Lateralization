@@ -12,7 +12,7 @@ from sklearn.preprocessing import label_binarize, StandardScaler
 import io_
 from _base import _pick_half  # _pick_half_subs
 from default_cfg import get_cfg_defaults
-from pydale.estimator import CoDeLR
+from pydale.estimator import GSLR
 
 
 def arg_parse():
@@ -98,7 +98,7 @@ def main():
 
                 xy_test = {"acc_ic": [x_test_ic, y_test_ic], "acc_oc": [x_test_oc, y_test_oc]}
 
-                model = CoDeLR(lambda_=lambda_, C=l2_param, max_iter=5000)
+                model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
                 model_path = os.path.join(out_dir, "abide_lambda_%s_%s_%s_gender_%s_%s.pt" %
                                           (lambda_, i_split, i_fold, train_covariate, random_state))
                 if os.path.exists(model_path):
