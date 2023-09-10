@@ -18,14 +18,13 @@ _C.DATASET.DATASET = "HCP"
 _C.DATASET.ROOT = "/shared/tale2/Shared/data/HCP/BNA/Proc"
 _C.DATASET.ATLAS = "BNA"
 _C.DATASET.FEATURE = "correlation"
-_C.DATASET.TEST_SIZE = 300
+_C.DATASET.TEST_SIZE = 0.2
 _C.DATASET.TYPE = "structural"
 _C.DATASET.SESSIONS = [None]
 _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 5
 _C.DATASET.MIX_GEND = False
-_C.DATASET.CV_TEST = "sub_half"
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 from sklearn.metrics import accuracy_score, roc_auc_score
-# from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.preprocessing import label_binarize, StandardScaler
 
 import io_
@@ -43,7 +43,7 @@ def main():
     l2_param = cfg.SOLVER.L2PARAM
     num_repeat = cfg.DATASET.NUM_REPEAT
     run_ = cfg.DATASET.RUN
-
+    test_size = cfg.DATASET.TEST_SIZE
     mix_gender = cfg.DATASET.MIX_GEND
     if mix_gender:
         lambda_ = 0.0
@@ -62,23 +62,30 @@ def main():
 
     data = io_.load_half_brain(data_dir, atlas, session=None, run=run_,
                                connection_type=connection_type, dataset=dataset)
-    genders = info['gender'].values
+    groups = info['gender'].values
 
     # main loop
     res = {"acc_ic": [], "acc_oc": [], 'pred_loss': [], 'code_loss': [], 'lambda': [],
            'split': [], 'fold': [], 'train_gender': [], 'time_used': []}
+    if 0 < test_size < 1:
+        res['acc_ic_test_sub'] = []
+        res['acc_oc_test_sub'] = []
+
     # for test_size in test_sizes:
     #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
 
     for i_split in range(num_repeat):
 
         x, y, x1, y1 = _pick_half(data, random_state=random_state * (i_split + 1))
-        # x, y = _pick_half_subs(data[run_])
         y = label_binarize(y, classes=[-1, 1]).reshape(-1)
         y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
 
         x_all = [x, x1]
         y_all = [y, y1]
+
+        if 0 < test_size < 1:
+            sss = StratifiedShuffleSplit(n_splits=1, test_size=test_size, random_state=random_state * (i_split + 1))
+            train_sub, test_sub = sss.split(x, groups)
 
         for i_fold in [0, 1]:
             x_train = x_all[i_fold]
@@ -87,13 +94,13 @@ def main():
             y_test_ = y_all[1 - i_fold]
             # scaler = StandardScaler()
             # scaler.fit(x_train)
-            for train_gender in [0, 1]:
-                ic_idx = np.where(genders == train_gender)[0]
-                oc_idx = np.where(genders == 1 - train_gender)[0]
+            for train_group in [0, 1]:
+                ic_idx = np.where(groups == train_group)[0]
+                oc_idx = np.where(groups == 1 - train_group)[0]
 
                 if mix_gender:
-                    train_gender = "mix"
-                    if train_gender == 1:
+                    train_group = "mix"
+                    if train_group == 1:
                         continue
 
                 x_test_ic = x_test_[ic_idx]
@@ -105,12 +112,12 @@ def main():
                 xy_test = {"acc_ic": [x_test_ic, y_test_ic], "acc_oc": [x_test_oc, y_test_oc]}
 
                 model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                fit_kws = {"y": y_train[ic_idx], "covariates": genders, "target_idx": ic_idx}
+                fit_kws = {"y": y_train[ic_idx], "covariates": groups, "target_idx": ic_idx}
                 model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, i_fold,
-                                                                     train_gender, random_state)
+                                                                     train_group, random_state)
                 if mix_gender:
                     model_filename = model_filename + "_mix_gender"
-                    fit_kws = {"y": y_train, "covariates": genders, "target_idx": None}
+                    fit_kws = {"y": y_train, "covariates": groups, "target_idx": None}
                 model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
                 if os.path.exists(model_path):
@@ -130,7 +137,7 @@ def main():
 
                 # res['n_iter'].append(n_iter)
                 # n_iter += 1
-                res['train_gender'].append(train_gender)
+                res['train_gender'].append(train_group)
                 res['split'].append(i_split)
                 res['fold'].append(i_fold)
 

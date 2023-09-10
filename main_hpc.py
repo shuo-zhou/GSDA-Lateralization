@@ -58,7 +58,7 @@ def main():
     test_sizes = [0.1, 0.2, 0.3, 0.4]
 
     data = dict()
-    genders = dict()
+    groups = dict()
 
     # info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
     info_file = '%s_%s_half_brain.csv' % (cfg.DATASET.DATASET, atlas)
@@ -68,7 +68,7 @@ def main():
 
     for session in sessions:
         data[session] = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
-        genders[session] = {'gender': gender}
+        groups[session] = {'gender': gender}
 
     # for seed_iter in range(50):
         # random_state = cfg.SOLVER.SEED - seed_iter
@@ -79,8 +79,8 @@ def main():
     # for test_size in test_sizes:
     #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
     for train_session, test_session in [('REST1', 'REST2'), ('REST2', 'REST1')]:
-        genders_train = np.copy(genders[train_session]['gender'].reshape((-1, 1)))
-        genders_test = np.copy(genders[test_session]['gender'].reshape((-1, 1)))
+        groups_train = np.copy(groups[train_session]['gender'].reshape((-1, 1)))
+        groups_test = np.copy(groups[test_session]['gender'].reshape((-1, 1)))
 
         for i_split in range(num_repeat):
             x_all = dict()
@@ -103,11 +103,11 @@ def main():
                 # scaler.fit(x_train)
                 for train_gender in [0, 1]:
 
-                    ic_is_idx = np.where(genders_train == train_gender)[0]
-                    oc_is_idx = np.where(genders_train == 1 - train_gender)[0]
+                    ic_is_idx = np.where(groups_train == train_gender)[0]
+                    oc_is_idx = np.where(groups_train == 1 - train_gender)[0]
 
-                    ic_os_idx = np.where(genders_test == train_gender)[0]
-                    oc_os_idx = np.where(genders_test == 1 - train_gender)[0]
+                    ic_os_idx = np.where(groups_test == train_gender)[0]
+                    oc_os_idx = np.where(groups_test == 1 - train_gender)[0]
 
                     if mix_gender:
                         train_gender = "mix"
@@ -131,12 +131,12 @@ def main():
                                 "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
 
                     model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                    fit_kws = {"y": y_train[ic_is_idx], "covariates": genders_train, "target_idx": ic_is_idx}
+                    fit_kws = {"y": y_train[ic_is_idx], "covariates": groups_train, "target_idx": ic_is_idx}
                     model_filename = "lambda%s_%s_%s_%s_gender_%s_%s" % (int(lambda_), train_session, i_split, i_fold,
                                                                          train_gender, random_state)
                     if mix_gender:
                         # model_filename = model_filename + "_mix_gender"
-                        fit_kws = {"y": y_train, "covariates": genders_train, "target_idx": None}
+                        fit_kws = {"y": y_train, "covariates": groups_train, "target_idx": None}
                     model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
                     if os.path.exists(model_path):

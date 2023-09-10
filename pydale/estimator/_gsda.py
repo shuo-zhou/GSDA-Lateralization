@@ -120,7 +120,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         self.lambda_ = lambda_
         self.losses = {'ovr': [], 'pred': [], 'code': [], 'time': []}
 
-    def fit(self, x, y, covariates, target_idx=None):
+    def fit(self, x, y, groups, target_idx=None):
         """
         Fit the model according to the given training data.
         Parameters
@@ -130,7 +130,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
             n_features is the number of features.
         y : array-like of shape (n_samples,)
             Target vector relative to X.
-        covariates: array-like
+        groups: array-like
         target_idx: array-like
         Returns
         -------
@@ -138,9 +138,9 @@ class GSLR(BaseEstimator, ClassifierMixin):
         """
         x = np.asarray(x)
         y = np.asarray(y)
-        covariates = np.asarray(covariates)
-        if covariates.ndim == 1:
-            covariates = covariates.reshape((-1, 1))
+        groups = np.asarray(groups)
+        if groups.ndim == 1:
+            groups = groups.reshape((-1, 1))
         self.theta = np.random.random((x.shape[1] + 1))
         x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
         n_tgt = y.shape[0]
@@ -150,7 +150,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         else:
             x_tgt = x[target_idx]
 
-        hsic_mat = self._hsic(x, covariates)
+        hsic_mat = self._hsic(x, groups)
         start_time = time()
         for _ in range(self.max_iter):
             y_hat = self.__sigmoid(x_tgt @ self.theta)
