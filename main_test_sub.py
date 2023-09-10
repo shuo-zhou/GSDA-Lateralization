@@ -82,13 +82,12 @@ def main():
 
     sss = StratifiedShuffleSplit(n_splits=num_repeat, test_size=test_size, random_state=random_state)
     for i_split, (train_sub, test_sub) in enumerate(sss.split(x, groups)):
-        for train_half in [0, 1]:
-            x_train_half = x_all[train_half]
-            y_train = y_all[train_half]
-            x_test_half = x_all[1 - train_half]
-            y_test_half = y_all[1 - train_half]
-            # scaler = StandardScaler()
-            # scaler.fit(x_train)
+        for train_fold in [0, 1]:
+            x_train_fold = x_all[train_fold]
+            y_train_fold = y_all[train_fold]
+            x_test_fold = x_all[1 - train_fold]
+            y_test_fold = y_all[1 - train_fold]
+
             for target_group in [0, 1]:
                 train_sub_tgt_idx = np.where(groups[train_sub] == target_group)[0]
                 train_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[0]
@@ -100,42 +99,42 @@ def main():
                     if target_group == 1:
                         continue
 
-                x_train_test_half_tgt = x_test_half[train_sub_tgt_idx]
-                y_train_test_half_tgt = y_test_half[train_sub_tgt_idx]
-                x_train_test_half_nt = x_test_half[train_sub_nt_idx]
-                y_train_test_half_nt = y_test_half[train_sub_nt_idx]
+                x_train_fold_test_tgt = x_test_fold[train_sub][train_sub_tgt_idx]
+                y_train_fold_test_tgt = y_test_fold[train_sub][train_sub_tgt_idx]
+                x_train_fold_test_nt = x_test_fold[train_sub][train_sub_nt_idx]
+                y_train_fold_test_nt = y_test_fold[train_sub][train_sub_nt_idx]
 
                 model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                fit_kws = {"y": y_train[train_sub_tgt_idx], "groups": groups, "target_idx": train_sub_tgt_idx}
-                model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, train_half,
+                fit_kws = {"y": y_train_fold[train_sub_tgt_idx], "groups": groups, "target_idx": train_sub_tgt_idx}
+                model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, train_fold,
                                                                      target_group, random_state)
                 if 0 < test_size < 1:
-                    x_train = x_train_half[train_sub]
-                    xy_test = {"acc_ic": [x_train_test_half_tgt, y_train_test_half_tgt],
-                               "acc_oc": [x_train_test_half_nt, y_train_test_half_nt],
-                               "acc_tgt_test_sub": [np.concatenate((x_train_half[test_sub_tgt_idx],
-                                                                   x_test_half[test_sub_tgt_idx])),
-                                                   np.concatenate((y_train[test_sub_tgt_idx],
-                                                                   y_test_half[test_sub_tgt_idx]))],
-                               "acc_nt_test_sub": [np.concatenate((x_train_half[test_sub_nt_idx],
-                                                                   x_test_half[test_sub_nt_idx])),
-                                                   np.concatenate((y_train[test_sub_nt_idx],
-                                                                   y_test_half[test_sub_nt_idx]))]}
+                    x_train = x_train_fold[train_sub]
+                    xy_test = {"acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
+                               "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
+                               "acc_tgt_test_sub": [np.concatenate((x_train_fold[test_sub_tgt_idx],
+                                                                    x_test_fold[test_sub_tgt_idx])),
+                                                    np.concatenate((y_train_fold[test_sub_tgt_idx],
+                                                                    y_test_fold[test_sub_tgt_idx]))],
+                               "acc_nt_test_sub": [np.concatenate((x_train_fold[test_sub_nt_idx],
+                                                                   x_test_fold[test_sub_nt_idx])),
+                                                   np.concatenate((y_train_fold[test_sub_nt_idx],
+                                                                   y_test_fold[test_sub_nt_idx]))]}
                     model_filename = model_filename + "_test_sub_0%s" % str(int(test_size * 10))
                     # target_idx = np.where(groups[train_sub] == target_group)
-                    fit_kws = {"y": y_train[train_sub_tgt_idx], "groups": groups[train_sub],
+                    fit_kws = {"y": y_train_fold[train_sub][train_sub_tgt_idx], "groups": groups[train_sub],
                                "target_idx": train_sub_tgt_idx}
                 else:
-                    x_train = x_train_half
-                    xy_test = {"acc_ic": [x_train_test_half_tgt, y_train_test_half_tgt],
-                               "acc_oc": [x_train_test_half_nt, y_train_test_half_nt]}
+                    x_train = x_train_fold
+                    xy_test = {"acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
+                               "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt]}
 
                 if mix_gender:
                     model_filename = model_filename + "_mix_gender"
                     if 0 < test_size < 1:
-                        fit_kws = {"y": y_train[train_sub], "group": groups[train_sub], "target_idx": None}
+                        fit_kws = {"y": y_train_fold[train_sub], "group": groups[train_sub], "target_idx": None}
                     else:
-                        fit_kws = {"y": y_train, "group": groups, "target_idx": None}
+                        fit_kws = {"y": y_train_fold, "group": groups, "target_idx": None}
 
                 model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
@@ -158,7 +157,7 @@ def main():
                 # n_iter += 1
                 res['train_gender'].append(target_group)
                 res['split'].append(i_split)
-                res['fold'].append(train_half)
+                res['fold'].append(train_fold)
 
                 res['lambda'].append(lambda_)
                 # res['test_size'].append(test_size)
