@@ -17,7 +17,7 @@ from pydale.estimator import GSLR
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Multi-source domain adaptation")
+    parser = argparse.ArgumentParser(description="Hold-out part of subjects for testing")
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument("--gpus", default=None, help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
@@ -56,7 +56,6 @@ def main():
 
     # test_sizes = [0.1, 0.2, 0.3, 0.4]
 
-    # info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
     info_file = '%s_%s_half_brain.csv' % (cfg.DATASET.DATASET, atlas)
     info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
 
@@ -71,8 +70,6 @@ def main():
         res['acc_tgt_test_sub'] = []
         res['acc_nt_test_sub'] = []
 
-    # for test_size in test_sizes:
-    #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
     x, y, x1, y1 = _pick_half(data, random_state=random_state)
     y = label_binarize(y, classes=[-1, 1]).reshape(-1)
     y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
@@ -121,7 +118,6 @@ def main():
                                                    np.concatenate((y_train_fold[test_sub][test_sub_nt_idx],
                                                                    y_test_fold[test_sub][test_sub_nt_idx]))]}
                     model_filename = model_filename + "_test_sub_0%s" % str(int(test_size * 10))
-                    # target_idx = np.where(groups[train_sub] == target_group)
                     fit_kws = {"y": y_train_fold[train_sub][train_sub_tgt_idx], "groups": groups[train_sub],
                                "target_idx": train_sub_tgt_idx}
                 else:
@@ -153,14 +149,12 @@ def main():
                 res['pred_loss'].append(model.losses['pred'][-1])
                 res['code_loss'].append(model.losses['code'][-1])
 
-                # res['n_iter'].append(n_iter)
-                # n_iter += 1
                 res['train_gender'].append(target_group)
                 res['split'].append(i_split)
                 res['fold'].append(train_fold)
 
                 res['lambda'].append(lambda_)
-                # res['test_size'].append(test_size)
+                res['test_size'].append(test_size)
                 res['time_used'].append(model.losses['time'][-1])
 
     res_df = pd.DataFrame.from_dict(res)
