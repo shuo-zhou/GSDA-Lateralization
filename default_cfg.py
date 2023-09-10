@@ -24,7 +24,7 @@ _C.DATASET.SESSIONS = [None]
 _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 5
-_C.DATASET.MIX_GEND = False
+_C.DATASET.MIX_GROUP = False
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

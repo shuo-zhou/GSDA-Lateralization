@@ -44,8 +44,8 @@ def main():
     num_repeat = cfg.DATASET.NUM_REPEAT
     run_ = cfg.DATASET.RUN
     test_size = cfg.DATASET.TEST_SIZE
-    mix_gender = cfg.DATASET.MIX_GEND
-    if mix_gender:
+    mix_group = cfg.DATASET.MIX_GROUP
+    if mix_group:
         lambda_ = 0.0
         out_folder = "lambda0_mix_gender"
     else:
@@ -92,9 +92,9 @@ def main():
                 train_sub_tgt_idx = np.where(groups[train_sub] == target_group)[0]
                 train_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[0]
                 test_sub_tgt_idx = np.where(groups[test_sub] == target_group)[0]
-                test_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[0]
+                test_sub_nt_idx = np.where(groups[test_sub] == 1 - target_group)[0]
 
-                if mix_gender:
+                if mix_group:
                     target_group = "mix"
                     if target_group == 1:
                         continue
@@ -112,14 +112,14 @@ def main():
                     x_train = x_train_fold[train_sub]
                     xy_test = {"acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
                                "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
-                               "acc_tgt_test_sub": [np.concatenate((x_train_fold[test_sub_tgt_idx],
-                                                                    x_test_fold[test_sub_tgt_idx])),
-                                                    np.concatenate((y_train_fold[test_sub_tgt_idx],
-                                                                    y_test_fold[test_sub_tgt_idx]))],
-                               "acc_nt_test_sub": [np.concatenate((x_train_fold[test_sub_nt_idx],
-                                                                   x_test_fold[test_sub_nt_idx])),
-                                                   np.concatenate((y_train_fold[test_sub_nt_idx],
-                                                                   y_test_fold[test_sub_nt_idx]))]}
+                               "acc_tgt_test_sub": [np.concatenate((x_train_fold[test_sub][test_sub_tgt_idx],
+                                                                    x_test_fold[test_sub][test_sub_tgt_idx])),
+                                                    np.concatenate((y_train_fold[test_sub][test_sub_tgt_idx],
+                                                                    y_test_fold[test_sub][test_sub_tgt_idx]))],
+                               "acc_nt_test_sub": [np.concatenate((x_train_fold[test_sub][test_sub_nt_idx],
+                                                                   x_test_fold[test_sub][test_sub_nt_idx])),
+                                                   np.concatenate((y_train_fold[test_sub][test_sub_nt_idx],
+                                                                   y_test_fold[test_sub][test_sub_nt_idx]))]}
                     model_filename = model_filename + "_test_sub_0%s" % str(int(test_size * 10))
                     # target_idx = np.where(groups[train_sub] == target_group)
                     fit_kws = {"y": y_train_fold[train_sub][train_sub_tgt_idx], "groups": groups[train_sub],
@@ -129,7 +129,7 @@ def main():
                     xy_test = {"acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
                                "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt]}
 
-                if mix_gender:
+                if mix_group:
                     model_filename = model_filename + "_mix_gender"
                     if 0 < test_size < 1:
                         fit_kws = {"y": y_train_fold[train_sub], "group": groups[train_sub], "target_idx": None}
@@ -163,18 +163,18 @@ def main():
                 # res['test_size'].append(test_size)
                 res['time_used'].append(model.losses['time'][-1])
 
-        res_df = pd.DataFrame.from_dict(res)
+    res_df = pd.DataFrame.from_dict(res)
 
-        if 0 < test_size < 1:
-            out_filename = 'results_%s_lambda%s_test_sub_0%s_%s_%s' % (dataset, int(lambda_), str(int(test_size * 10)),
-                                                                       run_, random_state)
-        else:
-            out_filename = 'results_%s_lambda%s_sub_half_%s_%s' % (dataset, int(lambda_), run_, random_state)
+    if 0 < test_size < 1:
+        out_filename = 'results_%s_lambda%s_test_sub_0%s_%s_%s' % (dataset, int(lambda_), str(int(test_size * 10)),
+                                                                   run_, random_state)
+    else:
+        out_filename = 'results_%s_lambda%s_sub_half_%s_%s' % (dataset, int(lambda_), run_, random_state)
 
-        if mix_gender:
-            out_filename = out_filename + '_mix_gender'
-        out_file = os.path.join(out_dir, '%s.csv' % out_filename)
-        res_df.to_csv(out_file, index=False)
+    if mix_group:
+        out_filename = out_filename + '_mix_gender'
+    out_file = os.path.join(out_dir, '%s.csv' % out_filename)
+    res_df.to_csv(out_file, index=False)
 
 
 if __name__ == '__main__':
