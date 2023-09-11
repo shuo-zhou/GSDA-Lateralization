@@ -7,12 +7,14 @@ from cr8_cfgs import mk_dir
 def main():
     # dataset = "ukb"
     dataset = "gsp"
-    hpc_node = "tale"
-    # hpc_node = "rse"
+    # hpc_node = "tale"
+    hpc_node = "rse"
     hold_out_sub = True
+    # lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
+    lambdas = [5.0, 8.0, 10.0]
+    memory = 2    
     test_size = 0.2
     
-    memory = 2
     batch_dir = os.path.join("/shared/tale2/Shared/szhou/qsub/Brain_LR", dataset)
     cfg_dir = os.path.join(batch_dir, "configs")
     data_dir = "/shared/tale2/Shared/data/brain/%s/proc" % dataset
@@ -27,15 +29,14 @@ def main():
         py_file = "main_validset.py"
     
     seeds = 2023 - np.arange(50)
-    lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
     for lambda_ in lambdas:
-        qbatch_fname = "q_%s_no_sub_hold.sh" % lambda_
+        qbatch_fname = "q_L%s_no_sub_hold.sh" % lambda_
         if hold_out_sub:
-            qbatch_fname = "q_%s_hold_sub.sh" % lambda_
+            qbatch_fname = "q_L%s_hold_sub.sh" % lambda_
         qbatch_file = open(os.path.join(batch_dir, qbatch_fname), "w")
         for seed in seeds:
-            base_script_fname = "%s_lambda%s_%s" % (dataset, lambda_, seed)
+            base_script_fname = "%s_L%s_%s" % (dataset, lambda_, seed)
             if hold_out_sub:
                 base_script_fname += "_sub_hold"
             else:
