@@ -12,9 +12,9 @@ def main():
     hold_out_sub = True
     # lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
     lambdas = [5.0, 8.0, 10.0]
-    memory = 2    
+    memory = 2
     test_size = 0.2
-    
+
     batch_dir = os.path.join("/shared/tale2/Shared/szhou/qsub/Brain_LR", dataset)
     cfg_dir = os.path.join(batch_dir, "configs")
     data_dir = "/shared/tale2/Shared/data/brain/%s/proc" % dataset
@@ -22,12 +22,12 @@ def main():
     for _dir in [batch_dir, cfg_dir]:
         mk_dir(_dir)
     py_dir = "/shared/tale2/Shared/szhou/code/Brain_LR_BNU"
-    
+
     if hold_out_sub:
         py_file = "main_test_sub.py"
     else:
         py_file = "main_validset.py"
-    
+
     seeds = 2023 - np.arange(50)
 
     for lambda_ in lambdas:
@@ -42,8 +42,8 @@ def main():
             else:
                 base_script_fname += "_no_sub_hold"
             cfg_fname = "%s.yaml" % (base_script_fname)
-            batch_fname = "%s.sh" % (base_script_fname)     
-                
+            batch_fname = "%s.sh" % (base_script_fname)
+
             cfg_file = open(os.path.join(cfg_dir, cfg_fname), "w")
             cfg_file.write("DATASET:\n")
             cfg_file.write("  DATASET: %s\n" % dataset)
@@ -56,7 +56,7 @@ def main():
             cfg_file.write("OUTPUT:\n")
             cfg_file.write("  ROOT: %s\n" % output_dir)
             cfg_file.close()
-            
+
             batch_file = open(os.path.join(batch_dir, batch_fname), "w")
             batch_file.write("#!/bin/bash\n")
             batch_file.write("#$ -P %s\n" % hpc_node)
