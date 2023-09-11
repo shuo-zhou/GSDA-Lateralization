@@ -64,8 +64,8 @@ def main():
     groups = info['gender'].values
 
     # main loop
-    res = {"acc_ic": [], "acc_oc": [], 'pred_loss': [], 'code_loss': [], 'lambda': [],
-           'split': [], 'fold': [], 'train_gender': [], 'time_used': []}
+    res = {"acc_ic": [], "acc_oc": [], 'pred_loss': [], 'hsic_loss': [], 'lambda': [],
+           'split': [], 'fold': [], 'train_gender': [], 'time_used': [], 'test_size': []}
     if 0 < test_size < 1:
         res['acc_tgt_test_sub'] = []
         res['acc_nt_test_sub'] = []
@@ -147,7 +147,7 @@ def main():
                     res[acc_key].append(acc_)
 
                 res['pred_loss'].append(model.losses['pred'][-1])
-                res['code_loss'].append(model.losses['code'][-1])
+                res['hsic_loss'].append(model.losses['hsic'][-1])
 
                 res['train_gender'].append(target_group)
                 res['split'].append(i_split)

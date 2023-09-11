@@ -118,7 +118,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         self.tolerance = tolerance
         self.theta = None
         self.lambda_ = lambda_
-        self.losses = {'ovr': [], 'pred': [], 'code': [], 'time': []}
+        self.losses = {'ovr': [], 'pred': [], 'hsic': [], 'time': []}
 
     def fit(self, x, y, groups, target_idx=None):
         """
@@ -170,7 +170,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
                 time_used = time() - start_time
                 self.losses['ovr'].append(pred_log_loss + hsic_log_loss)
                 self.losses['pred'].append(pred_log_loss)
-                self.losses['code'].append(hsic_log_loss)
+                self.losses['hsic'].append(hsic_log_loss)
                 self.losses['time'].append(time_used)
 
             # if _ % 100 == 0:
