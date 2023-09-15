@@ -14,7 +14,7 @@ def main():
     cfg_dir = os.path.join(batch_dir, "configs")
     for _dir in [batch_dir, cfg_dir]:
         mk_dir(_dir)
-    # py_file = "main_hpc.py"
+    # py_file = "main.py"
     py_file = "main_validset.py"
     seeds = 2023 - np.arange(50)
 

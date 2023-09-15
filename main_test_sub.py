@@ -159,12 +159,8 @@ def main():
 
     res_df = pd.DataFrame.from_dict(res)
 
-    if 0 < test_size < 1:
-        out_filename = 'results_%s_lambda%s_test_sub_0%s_%s_%s' % (dataset, int(lambda_), str(int(test_size * 10)),
-                                                                   run_, random_state)
-    else:
-        out_filename = 'results_%s_lambda%s_sub_half_%s_%s' % (dataset, int(lambda_), run_, random_state)
-
+    out_filename = 'results_%s_lambda%s_test_sub_0%s_%s_%s' % (dataset, int(lambda_), str(int(test_size * 10)), run_,
+                                                               random_state)
     if mix_group:
         out_filename = out_filename + '_mix_gender'
     out_file = os.path.join(out_dir, '%s.csv' % out_filename)

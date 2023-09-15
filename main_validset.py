@@ -112,12 +112,12 @@ def main():
                 xy_test = {"acc_ic": [x_test_ic, y_test_ic], "acc_oc": [x_test_oc, y_test_oc]}
 
                 model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                fit_kws = {"y": y_train[ic_idx], "covariates": groups, "target_idx": ic_idx}
+                fit_kws = {"y": y_train[ic_idx], "groups": groups, "target_idx": ic_idx}
                 model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, i_fold,
                                                                      train_group, random_state)
                 if mix_gender:
                     model_filename = model_filename + "_mix_gender"
-                    fit_kws = {"y": y_train, "covariates": groups, "target_idx": None}
+                    fit_kws = {"y": y_train, "groups": groups, "target_idx": None}
                 model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
                 if os.path.exists(model_path):

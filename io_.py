@@ -269,6 +269,15 @@ def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
     return np.concatenate(weight, axis=0)
 
 
+def save_results(res_dict, output_dir):
+        res_df = pd.DataFrame.from_dict(res_dict)
+
+
+        if mix_group:
+            out_filename = out_filename + '_mix_gender'
+        out_file = os.path.join(output_dir, '%s.csv' % out_filename)
+        res_df.to_csv(out_file, index=False)
+
 # read: nib.load()
 # write: nib.save()
 #### ******************************* file split ********************************** ####
