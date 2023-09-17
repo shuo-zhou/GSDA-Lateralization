@@ -12,8 +12,20 @@ from ._base import _BaseTransformer
 
 
 class TCA(_BaseTransformer):
-    def __init__(self, n_components, kernel='linear', lambda_=1.0, mu=1.0, gamma_=0.5, n_jobs=1.0,
-                 k=3, alpha=1.0, kernel_params=None, fit_inverse_transform=False, **kwargs):
+    def __init__(
+        self,
+        n_components,
+        kernel="linear",
+        lambda_=1.0,
+        mu=1.0,
+        gamma_=0.5,
+        n_jobs=1.0,
+        k=3,
+        alpha=1.0,
+        kernel_params=None,
+        fit_inverse_transform=False,
+        **kwargs
+    ):
         """Transfer Component Analysis: TCA
 
         Parameters
@@ -66,7 +78,7 @@ class TCA(_BaseTransformer):
             X = np.vstack((Xs, Xt))
             ns = Xs.shape[0]
             nt = Xt.shape[0]
-            L = mmd_coef(ns, nt, kind='marginal', mu=0)
+            L = mmd_coef(ns, nt, kind="marginal", mu=0)
             L[np.isnan(L)] = 0
         else:
             X = Xs
@@ -83,12 +95,12 @@ class TCA(_BaseTransformer):
             ys_mat = self._lb.fit_transform(ys)
             n_class = ys_mat.shape[1]
             y = np.zeros((n_samples, n_class))
-            y[:ys_mat.shape[0], :] = ys_mat[:]
+            y[: ys_mat.shape[0], :] = ys_mat[:]
             if yt is not None:
                 yt_mat = self._lb.transform(yt)
-                y[ys_mat.shape[0]:yt_mat.shape[0], :] = yt_mat[:]
+                y[ys_mat.shape[0] : yt_mat.shape[0], :] = yt_mat[:]
             ker_y = self.gamma_ * np.dot(y, y.T) + (1 - self.gamma_) * unit_mat
-            lap_mat = lap_norm(X, n_neighbour=self.k, mode='connectivity')
+            lap_mat = lap_norm(X, n_neighbour=self.k, mode="connectivity")
             obj_min += multi_dot([ker_x, (L + self.mu * lap_mat), ker_x.T])
             obj_max += multi_dot([ker_x, ctr_mat, ker_y, ctr_mat, ker_x.T])
         # obj_min = np.trace(np.dot(ker_x,L))
@@ -99,9 +111,9 @@ class TCA(_BaseTransformer):
         eig_values, eig_vectors = linalg.eigh(objective)
         idx_sorted = (-1 * eig_values).argsort()
 
-        self.eig_vectors = eig_vectors[:, idx_sorted][:, :self.n_components]
+        self.eig_vectors = eig_vectors[:, idx_sorted][:, : self.n_components]
         self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.float)
-        self.eig_values = eig_values[idx_sorted][:self.n_components]
+        self.eig_values = eig_values[idx_sorted][: self.n_components]
 
         if self.fit_inverse_transform:
             scaled_eig_vec = self.eig_vectors / np.sqrt(self.eig_values)

@@ -13,7 +13,7 @@ class _BaseFramework(BaseEstimator, ClassifierMixin):
     """
 
     @classmethod
-    def _solve_semi_dual(cls, K, y, Q_, C, solver='osqp'):
+    def _solve_semi_dual(cls, K, y, Q_, C, solver="osqp"):
         """[summary]
 
         Parameters
@@ -50,7 +50,7 @@ class _BaseFramework(BaseEstimator, ClassifierMixin):
         return coef_, support_
 
     @classmethod
-    def _semi_binary_dual(cls, K, y_, Q_, C, solver='osqp'):
+    def _semi_binary_dual(cls, K, y_, Q_, C, solver="osqp"):
         """solve min_x x^TPx + q^Tx, s.t. Gx<=h, Ax=b
 
         Parameters
@@ -78,14 +78,14 @@ class _BaseFramework(BaseEstimator, ClassifierMixin):
         Q_inv = inv(Q_)
         Y = np.diag(y_.reshape(-1))
         Q = multi_dot([Y, J, K, Q_inv, J.T, Y])
-        Q = Q.astype('float32')
+        Q = Q.astype("float32")
         alpha = cls._quadprog(Q, y_, C, solver)
         coef_ = multi_dot([Q_inv, J.T, Y, alpha])
         support_ = np.where((alpha > 0) & (alpha < C))
         return coef_, support_
 
     @classmethod
-    def _quadprog(cls, Q, y, C, solver='osqp'):
+    def _quadprog(cls, Q, y, C, solver="osqp"):
         """solve min_x x^TPx + q^Tx, s.t. Gx<=h, Ax=b
 
         Parameters
@@ -108,7 +108,7 @@ class _BaseFramework(BaseEstimator, ClassifierMixin):
         nl = y.shape[0]
         q = -1 * np.ones((nl, 1))
 
-        if solver == 'cvxopt':
+        if solver == "cvxopt":
             G = np.zeros((2 * nl, nl))
             G[:nl, :] = -1 * np.eye(nl)
             G[nl:, :] = np.eye(nl)
@@ -120,16 +120,16 @@ class _BaseFramework(BaseEstimator, ClassifierMixin):
             q = matrix(q)
             G = matrix(G)
             h = matrix(h)
-            A = matrix(y.reshape(1, -1).astype('float64'))
-            b = matrix(np.zeros(1).astype('float64'))
+            A = matrix(y.reshape(1, -1).astype("float64"))
+            b = matrix(np.zeros(1).astype("float64"))
 
-            solvers.options['show_progress'] = False
+            solvers.options["show_progress"] = False
             sol = solvers.qp(P, q, G, h, A, b)
 
-            alpha = np.array(sol['x']).reshape(nl)
+            alpha = np.array(sol["x"]).reshape(nl)
 
-        elif solver == 'osqp':
-            warnings.simplefilter('ignore', sparse.SparseEfficiencyWarning)
+        elif solver == "osqp":
+            warnings.simplefilter("ignore", sparse.SparseEfficiencyWarning)
             P = sparse.csc_matrix((nl, nl))
             P[:nl, :nl] = Q[:nl, :nl]
             G = sparse.vstack([sparse.eye(nl), y.reshape(1, -1)]).tocsc()
@@ -143,7 +143,7 @@ class _BaseFramework(BaseEstimator, ClassifierMixin):
             alpha = res.x
 
         else:
-            raise ValueError('Invalid QP solver')
+            raise ValueError("Invalid QP solver")
 
         return alpha
 

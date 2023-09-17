@@ -21,8 +21,18 @@ from ._base import _BaseFramework
 
 
 class SIDeRSVM(_BaseFramework):
-    def __init__(self, C=1.0, kernel='linear', lambda_=1.0, mu=0.0, k_neighbour=3,
-                 manifold_metric='cosine', knn_mode='distance', solver='osqp', **kwargs):
+    def __init__(
+        self,
+        C=1.0,
+        kernel="linear",
+        lambda_=1.0,
+        mu=0.0,
+        k_neighbour=3,
+        manifold_metric="cosine",
+        knn_mode="distance",
+        solver="osqp",
+        **kwargs
+    ):
         """Side Information Dependence Regularised Support Vector Machine
 
         Parameters
@@ -91,15 +101,27 @@ class SIDeRSVM(_BaseFramework):
 
         Q_ = unit_mat.copy()
         if self.mu != 0:
-            lap_mat = lap_norm(X, n_neighbour=self.k_neighbour,
-                               metric=self.manifold_metric, mode=self.knn_mode)
-            Q_ += np.dot(self.lambda_ / np.square(n - 1) *
-                         multi_dot([ctr_mat, ker_c, ctr_mat])
-                         + self.mu / np.square(n) * lap_mat, ker_x)
+            lap_mat = lap_norm(
+                X,
+                n_neighbour=self.k_neighbour,
+                metric=self.manifold_metric,
+                mode=self.knn_mode,
+            )
+            Q_ += np.dot(
+                self.lambda_ / np.square(n - 1) * multi_dot([ctr_mat, ker_c, ctr_mat])
+                + self.mu / np.square(n) * lap_mat,
+                ker_x,
+            )
         else:
-            Q_ += self.lambda_ * multi_dot([ctr_mat, ker_c, ctr_mat, ker_x]) / np.square(n - 1)
+            Q_ += (
+                self.lambda_
+                * multi_dot([ctr_mat, ker_c, ctr_mat, ker_x])
+                / np.square(n - 1)
+            )
 
-        self.coef_, self.support_ = self._solve_semi_dual(ker_x, y_, Q_, self.C, self.solver)
+        self.coef_, self.support_ = self._solve_semi_dual(
+            ker_x, y_, Q_, self.C, self.solver
+        )
 
         # if self._lb.y_type_ == 'binary':
         #     self.coef_, self.support_ = self._semi_binary_dual(K, y_, Q_,
@@ -142,8 +164,9 @@ class SIDeRSVM(_BaseFramework):
             decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
-        ker_x = pairwise_kernels(X, self.X, metric=self.kernel,
-                                 filter_params=True, **self.kwargs)
+        ker_x = pairwise_kernels(
+            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+        )
         return np.dot(ker_x, self.coef_)  # +self.intercept_
 
     def predict(self, X):
@@ -160,7 +183,7 @@ class SIDeRSVM(_BaseFramework):
             predicted labels, shape (n_samples,)
         """
         dec = self.decision_function(X)
-        if self._lb.y_type_ == 'binary':
+        if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
             y_pred_ = score2pred(dec)
@@ -189,9 +212,18 @@ class SIDeRSVM(_BaseFramework):
 
 
 class SIDeRLS(_BaseFramework):
-    def __init__(self, sigma_=1.0, lambda_=1.0, mu=0.0, kernel='linear',
-                 k=3, knn_mode='distance', manifold_metric='cosine',
-                 class_weight=None, **kwargs):
+    def __init__(
+        self,
+        sigma_=1.0,
+        lambda_=1.0,
+        mu=0.0,
+        kernel="linear",
+        k=3,
+        knn_mode="distance",
+        manifold_metric="cosine",
+        class_weight=None,
+        **kwargs
+    ):
         """Side Information Dependence Regularised Least Square
 
         Parameters
@@ -265,14 +297,23 @@ class SIDeRLS(_BaseFramework):
         J[:nl, :nl] = np.eye(nl)
 
         if self.mu != 0:
-            lap_mat = lap_norm(X, n_neighbour=self.k, mode=self.knn_mode,
-                               metric=self.manifold_metric)
-            Q_ = self.sigma_ * unit_mat + np.dot(J + self.lambda_ / np.square(n - 1)
-                                                 * multi_dot([ctr_mat, ker_c, ctr_mat])
-                                                 + self.mu / np.square(n) * lap_mat, ker_x)
+            lap_mat = lap_norm(
+                X, n_neighbour=self.k, mode=self.knn_mode, metric=self.manifold_metric
+            )
+            Q_ = self.sigma_ * unit_mat + np.dot(
+                J
+                + self.lambda_ / np.square(n - 1) * multi_dot([ctr_mat, ker_c, ctr_mat])
+                + self.mu / np.square(n) * lap_mat,
+                ker_x,
+            )
         else:
-            Q_ = self.sigma_ * unit_mat + np.dot(J + self.lambda_ / np.square(n - 1)
-                                                 * multi_dot([ctr_mat, ker_c, ctr_mat]), ker_x)
+            Q_ = self.sigma_ * unit_mat + np.dot(
+                J
+                + self.lambda_
+                / np.square(n - 1)
+                * multi_dot([ctr_mat, ker_c, ctr_mat]),
+                ker_x,
+            )
 
         y_ = self._lb.fit_transform(y)
         self.coef_ = self._solve_semi_ls(Q_, y_)
@@ -297,8 +338,9 @@ class SIDeRLS(_BaseFramework):
             (n_samples, n_class) for multi-class cases
         """
 
-        ker_x = pairwise_kernels(X, self.X, metric=self.kernel,
-                                 filter_params=True, **self.kwargs)
+        ker_x = pairwise_kernels(
+            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+        )
         return np.dot(ker_x, self.coef_)  # +self.intercept_
 
     def predict(self, X):
@@ -315,7 +357,7 @@ class SIDeRLS(_BaseFramework):
             predicted labels, shape (n_samples,)
         """
         dec = self.decision_function(X)
-        if self._lb.y_type_ == 'binary':
+        if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
             y_pred_ = score2pred(dec)

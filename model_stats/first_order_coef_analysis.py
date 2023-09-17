@@ -22,12 +22,14 @@ def main():
     sessions = ["REST1_", "REST2_"]
 
     for lambda_ in [0, 1, 2, 5, 8, 10]:
-    # for lambda_ in [1, 8, 10]:
-    # for lambda_ in ["0_mix_gender"]:
-    #     for gender in ["mix"]:
-    # for lambda_ in [0, 2, 5]:
+        # for lambda_ in [1, 8, 10]:
+        # for lambda_ in ["0_mix_gender"]:
+        #     for gender in ["mix"]:
+        # for lambda_ in [0, 2, 5]:
         for gender in [0, 1]:
-            weight = fetch_weights(base_dir, gender, lambda_, dataset, sessions=sessions, seed_=seed_)
+            weight = fetch_weights(
+                base_dir, gender, lambda_, dataset, sessions=sessions, seed_=seed_
+            )
             w_mean = np.mean(weight, axis=0)
             w_std = np.std(weight, axis=0)
             midc = {"mean": w_mean, "std": w_std}
@@ -35,5 +37,5 @@ def main():
             savemat(os.path.join(output_dir, fname + ".mat"), midc)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

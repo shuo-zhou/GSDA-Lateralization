@@ -27,8 +27,18 @@ from ._base import _BaseTransformer
 
 
 class JDA(_BaseTransformer):
-    def __init__(self, n_components, kernel='linear', lambda_=1.0, mu=1.0, n_jobs=1.0,
-                 alpha=1.0, kernel_params=None, fit_inverse_transform=False, **kwargs):
+    def __init__(
+        self,
+        n_components,
+        kernel="linear",
+        lambda_=1.0,
+        mu=1.0,
+        n_jobs=1.0,
+        alpha=1.0,
+        kernel_params=None,
+        fit_inverse_transform=False,
+        **kwargs
+    ):
         """
         Parameters
             n_components: n_components after (n_components <= min(d, n))
@@ -65,9 +75,9 @@ class JDA(_BaseTransformer):
             nt = Xt.shape[0]
 
             if ys is not None and yt is not None:
-                L = mmd_coef(ns, nt, ys, yt, kind='joint', mu=self.mu)
+                L = mmd_coef(ns, nt, ys, yt, kind="joint", mu=self.mu)
             else:
-                L = mmd_coef(ns, nt, kind='marginal', mu=0)
+                L = mmd_coef(ns, nt, kind="marginal", mu=0)
         else:
             X = Xs
             L = np.zeros((X.shape[0], X.shape[0]))
@@ -86,12 +96,12 @@ class JDA(_BaseTransformer):
         idx_sorted = (-1 * eig_values).argsort()
 
         # ev_abs = np.array(list(map(lambda item: np.abs(item), eig_values)))
-#        idx_sorted = np.argsort(ev_abs)[:self.n_components]
-#        idx_sorted = np.argsort(ev_abs)
+        #        idx_sorted = np.argsort(ev_abs)[:self.n_components]
+        #        idx_sorted = np.argsort(ev_abs)
 
-        self.eig_vectors = eig_vectors[:, idx_sorted][:, :self.n_components]
+        self.eig_vectors = eig_vectors[:, idx_sorted][:, : self.n_components]
         self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.float)
-        self.eig_values = eig_values[idx_sorted][:self.n_components]
+        self.eig_values = eig_values[idx_sorted][: self.n_components]
 
         if self.fit_inverse_transform:
             scaled_eig_vec = self.eig_vectors / np.sqrt(self.eig_values)

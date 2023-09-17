@@ -60,15 +60,21 @@ def main():
     genders = []
 
     # info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
-    info_file = '%s_%s_half_brain.csv' % (dataset, atlas)
-    info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
+    info_file = "%s_%s_half_brain.csv" % (dataset, atlas)
+    info = io_.read_table(os.path.join(data_dir, info_file), index_col="ID")
 
-    gender = info['gender'].values
+    gender = info["gender"].values
 
     for session in sessions:
-        data = io_.load_half_brain(data_dir, atlas, session, run_, connection_type, dataset=dataset)
-        x.append(np.concatenate((data["Left"], data['Right'])))
-        y.append(np.concatenate((np.zeros(data["Left"].shape[0]), (np.ones(data["Right"].shape[0])))))
+        data = io_.load_half_brain(
+            data_dir, atlas, session, run_, connection_type, dataset=dataset
+        )
+        x.append(np.concatenate((data["Left"], data["Right"])))
+        y.append(
+            np.concatenate(
+                (np.zeros(data["Left"].shape[0]), (np.ones(data["Right"].shape[0])))
+            )
+        )
         genders.append(np.concatenate((gender, gender)))
 
     x = np.concatenate(x)
@@ -88,5 +94,5 @@ def main():
         acc_f = accuracy_score(y[female_idx], y_pred[female_idx])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

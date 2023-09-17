@@ -52,7 +52,7 @@ def _init_artl(Xs, ys, Xt=None, yt=None, **kwargs):
         X = np.concatenate([Xs, Xt], axis=0)
         ns = Xs.shape[0]
         nt = Xt.shape[0]
-        M = mmd_coef(ns, nt, ys, yt, kind='joint')
+        M = mmd_coef(ns, nt, ys, yt, kind="joint")
     else:
         X = Xs.copy()
         M = np.zeros((X.shape[0], X.shape[0]))
@@ -70,8 +70,18 @@ def _init_artl(Xs, ys, Xt=None, yt=None, **kwargs):
 
 
 class ARSVM(_BaseFramework):
-    def __init__(self, C=1.0, kernel='linear', lambda_=1.0, gamma_=0.0, k_neighbour=5,
-                 solver='osqp', manifold_metric='cosine', knn_mode='distance', **kwargs):
+    def __init__(
+        self,
+        C=1.0,
+        kernel="linear",
+        lambda_=1.0,
+        gamma_=0.0,
+        k_neighbour=5,
+        solver="osqp",
+        manifold_metric="cosine",
+        knn_mode="distance",
+        **kwargs
+    ):
         """Adaptation Regularised Support Vector Machine
 
         Parameters
@@ -129,18 +139,23 @@ class ARSVM(_BaseFramework):
         yt : array-like, optional
             Target label, shape (ntl_samples, ), by default None
         """
-        X, y, ker_x, M, unit_mat = _init_artl(Xs, ys, Xt, yt, metric=self.kernel,
-                                              filter_params=True, **self.kwargs)
+        X, y, ker_x, M, unit_mat = _init_artl(
+            Xs, ys, Xt, yt, metric=self.kernel, filter_params=True, **self.kwargs
+        )
 
         y_ = self._lb.fit_transform(y)
 
         if self.gamma_ != 0:
             lap_mat = lap_norm(X, n_neighbour=self.k_neighbour, mode=self.knn_mode)
-            Q_ = unit_mat + multi_dot([(self.lambda_ * M + self.gamma_ * lap_mat), ker_x])
+            Q_ = unit_mat + multi_dot(
+                [(self.lambda_ * M + self.gamma_ * lap_mat), ker_x]
+            )
         else:
             Q_ = unit_mat + multi_dot([(self.lambda_ * M), ker_x])
 
-        self.coef_, self.support_ = self._solve_semi_dual(ker_x, y_, Q_, self.C, self.solver)
+        self.coef_, self.support_ = self._solve_semi_dual(
+            ker_x, y_, Q_, self.C, self.solver
+        )
         # if self._lb.y_type_ == 'binary':
         #     self.support_vectors_ = X_fit[:nl, :][self.support_]
         #     self.n_support_ = self.support_vectors_.shape[0]
@@ -170,10 +185,12 @@ class ARSVM(_BaseFramework):
             decision scores, , shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
-        check_is_fitted(self, 'X_fit')
-        check_is_fitted(self, 'y')
+        check_is_fitted(self, "X_fit")
+        check_is_fitted(self, "y")
         # X_fit = self.X_fit
-        ker_x = pairwise_kernels(X, self.X, metric=self.kernel, filter_params=True, **self.kwargs)
+        ker_x = pairwise_kernels(
+            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+        )
 
         return np.dot(ker_x, self.coef_)  # +self.intercept_
 
@@ -191,7 +208,7 @@ class ARSVM(_BaseFramework):
             predicted labels, , shape (n_samples, )
         """
         dec = self.decision_function(X)
-        if self._lb.y_type_ == 'binary':
+        if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
             y_pred_ = score2pred(dec)
@@ -220,9 +237,17 @@ class ARSVM(_BaseFramework):
 
 
 class ARRLS(_BaseFramework):
-    def __init__(self, kernel='linear', lambda_=1.0, gamma_=0.0, sigma_=1.0,
-                 k_neighbour=5, manifold_metric='cosine', knn_mode='distance',
-                 **kwargs):
+    def __init__(
+        self,
+        kernel="linear",
+        lambda_=1.0,
+        gamma_=0.0,
+        sigma_=1.0,
+        k_neighbour=5,
+        manifold_metric="cosine",
+        knn_mode="distance",
+        **kwargs
+    ):
         """Adaptation Regularised Least Square
 
         Parameters
@@ -276,18 +301,25 @@ class ARRLS(_BaseFramework):
         yt : array-like, optional
             Target label, shape (ntl_samples, ), by default None
         """
-        X, y, ker_x, M, unit_mat = _init_artl(Xs, ys, Xt, yt, metric=self.kernel,
-                                              filter_params=True, **self.kwargs)
+        X, y, ker_x, M, unit_mat = _init_artl(
+            Xs, ys, Xt, yt, metric=self.kernel, filter_params=True, **self.kwargs
+        )
         n = ker_x.shap[0]
         nl = y.shape[0]
         J = np.zeros((n, n))
         J[:nl, :nl] = np.eye(nl)
 
         if self.gamma_ != 0:
-            lap_mat = lap_norm(X, n_neighbour=self.k_neighbour,
-                               metric=self.manifold_metric, mode=self.knn_mode)
-            Q_ = np.dot((J + self.lambda_ * M + self.gamma_ * lap_mat),
-                        ker_x) + self.sigma_ * unit_mat
+            lap_mat = lap_norm(
+                X,
+                n_neighbour=self.k_neighbour,
+                metric=self.manifold_metric,
+                mode=self.knn_mode,
+            )
+            Q_ = (
+                np.dot((J + self.lambda_ * M + self.gamma_ * lap_mat), ker_x)
+                + self.sigma_ * unit_mat
+            )
         else:
             Q_ = np.dot((J + self.lambda_ * M), ker_x) + self.sigma_ * unit_mat
 
@@ -312,7 +344,7 @@ class ARRLS(_BaseFramework):
             predicted labels, shape (n_samples)
         """
         dec = self.decision_function(X)
-        if self._lb.y_type_ == 'binary':
+        if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
             y_pred_ = score2pred(dec)
@@ -331,8 +363,9 @@ class ARRLS(_BaseFramework):
         array-like
             prediction scores, shape (n_samples)
         """
-        ker_x = pairwise_kernels(X, self.X, metric=self.kernel,
-                                 filter_params=True, **self.kwargs)
+        ker_x = pairwise_kernels(
+            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+        )
         return np.dot(ker_x, self.coef_)
 
     def fit_predict(self, Xs, ys, Xt=None, yt=None):

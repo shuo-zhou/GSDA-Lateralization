@@ -12,9 +12,9 @@ def cobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=3e-2, returnB
     Ydim = [x.shape[0] for x in Y]
     NRows = Y[0].shape[0]
     N = len(Ydim)
-    assert np.all(np.array(Ydim) == NRows), 'Y must have the same number of rows.'
+    assert np.all(np.array(Ydim) == NRows), "Y must have the same number of rows."
     U = []
-    J = np.zeros(N, dtype='i')
+    J = np.zeros(N, dtype="i")
     for n in range(N):
         tmp, _ = np.linalg.qr(Y[n])
         U.append(tmp)
@@ -46,27 +46,27 @@ def cobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=3e-2, returnB
             x[n][:, :1] = tmp
             c1 += np.dot(U[n], x[n][:, :1])
         Ac = c1 / np.linalg.norm(c1)
-        if np.abs((c0*Ac).sum()) > 1-tol:
+        if np.abs((c0 * Ac).sum()) > 1 - tol:
             break
     res = []
     res.append(0)
     for n in range(N):
         tmp = np.dot(U[n].T, Ac)
-        res[0] += 1 - (tmp*tmp).sum()
+        res[0] += 1 - (tmp * tmp).sum()
     res[0] /= float(N)
     if (res[0] > epsilon) and (c is None):  ## c is not specified.
-        print('%s' % ('No common basis found.'))
+        print("%s" % ("No common basis found."))
         Ac = None
         Bc = copy.deepcopy(Y)
         # Zi = copy.deepcopy(Y)
         return Ac, Bc, res
     if c is not None:
         c = int(np.min([c, J.min()]))
-        res = res + [np.inf]*(c-1)
-        Ac = np.hstack([Ac, np.zeros([NRows, c-1])])
+        res = res + [np.inf] * (c - 1)
+        Ac = np.hstack([Ac, np.zeros([NRows, c - 1])])
     else:
-        res = res + [np.inf]*(minJn-1)
-        Ac = np.hstack([Ac, np.zeros([NRows, minJn-1])])
+        res = res + [np.inf] * (minJn - 1)
+        Ac = np.hstack([Ac, np.zeros([NRows, minJn - 1])])
     ## seeking the residual common basis
     for j in range(1, minJn):
         ## ## stopping criteria -- 1 where c is given
@@ -74,24 +74,24 @@ def cobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=3e-2, returnB
             break
         ## update U;
         for n in range(N):
-            tmp = np.dot(U[n], x[n][:, j-1:j]) ## j-1?
-            U[n] -= np.dot(tmp, x[n][:, j-1:j].T)
-        Ac[:, j:j+1] = np.dot(U[0], np.random.randn(U[0].shape[1], 1))
-        Ac[:, j:j+1] /= np.linalg.norm(Ac[:, j:j+1])
+            tmp = np.dot(U[n], x[n][:, j - 1 : j])  ## j-1?
+            U[n] -= np.dot(tmp, x[n][:, j - 1 : j].T)
+        Ac[:, j : j + 1] = np.dot(U[0], np.random.randn(U[0].shape[1], 1))
+        Ac[:, j : j + 1] /= np.linalg.norm(Ac[:, j : j + 1])
         ## get another column
         for it in range(maxiter):
-            c0 = Ac[:, j:j+1].copy()
+            c0 = Ac[:, j : j + 1].copy()
             c1 = np.zeros([NRows, 1])
             for n in range(N):
-                x[n][:, j:j+1] = np.dot(U[n].T, Ac[:, j:j+1])
-                c1 += np.dot(U[n], x[n][:, j:j+1])
-            Ac[:, j:j+1] = c1 / np.linalg.norm(c1)
-            if abs((c0*Ac[:, j:j+1]).sum()) > 1-tol:
+                x[n][:, j : j + 1] = np.dot(U[n].T, Ac[:, j : j + 1])
+                c1 += np.dot(U[n], x[n][:, j : j + 1])
+            Ac[:, j : j + 1] = c1 / np.linalg.norm(c1)
+            if abs((c0 * Ac[:, j : j + 1]).sum()) > 1 - tol:
                 break
         res[j] = 0
         for n in range(N):
-            tmp = np.dot(U[n].T, Ac[:, j:j+1])
-            res[j] += 1 - (tmp*tmp).sum()
+            tmp = np.dot(U[n].T, Ac[:, j : j + 1])
+            res[j] += 1 - (tmp * tmp).sum()
         res[j] /= N
         ## stopping criteria -- 2
         if (res[j] > epsilon) and (c is None):
@@ -108,29 +108,30 @@ def cobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=3e-2, returnB
         return Ac, Bc, res
     return Ac, None, res
 
+
 def cobec(Y_in, c=1, maxiter=200, ctol=1e-3, PCAdim=0.8, retBZ=True):
-    '''
+    """
     %COMSSPACE Summary of this function goes here
     %   Detailed explanation goes here
-    '''
+    """
     Y = copy.deepcopy(Y_in)
     Ydim = [x.shape[0] for x in Y]
     NRows = Y[0].shape[0]
     N = len(Ydim)
-    assert np.all(np.array(Ydim) == NRows), 'Wrong dimension of Y.'
-    U = [None]*N
-    x = [None]*N
+    assert np.all(np.array(Ydim) == NRows), "Wrong dimension of Y."
+    U = [None] * N
+    x = [None] * N
     Ac = np.zeros([Y[0].shape[0], c])
     J = np.zeros(N)
     for n in range(N):
         U[n], _ = np.linalg.qr(Y[n])
         J[n] = U[n].shape[1]
-        assert J[n] >= c, 'Rank deficient / c is too large.'
+        assert J[n] >= c, "Rank deficient / c is too large."
         if J[n] > NRows:
             if PCAdim < 1:
-                J[n] = max(int(np.floor(NRows*PCAdim)), 2)
+                J[n] = max(int(np.floor(NRows * PCAdim)), 2)
             else:
-                J[n] = min(NRows-1, int(np.floor(PCAdim)))
+                J[n] = min(NRows - 1, int(np.floor(PCAdim)))
             U[n], d, vt = np.linalg.svd(Y[n])
             nSV = min(d.size, J[n])
             U[n] = U[n][:, :nSV].copy()
@@ -141,32 +142,41 @@ def cobec(Y_in, c=1, maxiter=200, ctol=1e-3, PCAdim=0.8, retBZ=True):
         u, temp, vt = np.linalg.svd(Ac)
         Ac = np.dot(u[:, :c], vt[:c, :])
     ## iterations
-    x = [None]*N
+    x = [None] * N
     for it in range(maxiter):
         c0 = Ac.copy()
         c2 = np.zeros([NRows, c])
         for n in range(N):
             x[n] = np.dot(U[n].T, Ac)
             c2 += np.dot(U[n], x[n])
-        #[u , temp, v]=svds(c2,c,'L');
-        #Ac=u*v';
+        # [u , temp, v]=svds(c2,c,'L');
+        # Ac=u*v';
         Ac, _ = np.linalg.qr(c2)
         ## stop
         tmp1 = np.dot(Ac.T, c0)
         tmp1 = np.diag(tmp1)
-        if (it > 20) and (np.mean(np.abs(tmp1)) > 1-ctol):
+        if (it > 20) and (np.mean(np.abs(tmp1)) > 1 - ctol):
             break
     if retBZ:
-        Bc = [None]*N
-        Zi = [None]*N
+        Bc = [None] * N
+        Zi = [None] * N
         for n in range(N):
             Bc[n] = np.dot(Ac.T, Y[n])
             Zi[n] = mldivide(Y[n], Ac)
         return Ac, Bc, Zi
     return Ac
 
-def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=None,
-    returnBcZi=False):
+
+def pcobe(
+    Y_in,
+    c=None,
+    maxiter=2000,
+    PCAdim=0.8,
+    tol=1e-6,
+    epsilon=0.03,
+    pdim=None,
+    returnBcZi=False,
+):
     # mldivide()
     # Common orthogonal basis extraction
     # Usage:
@@ -174,13 +184,13 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
     Ydim = [x.shape[0] for x in Y]
     NRows = Y[0].shape[0]
     N = len(Ydim)
-    assert np.all(np.array(Ydim) == NRows), 'Y must have the same number of rows.'
+    assert np.all(np.array(Ydim) == NRows), "Y must have the same number of rows."
     if pdim is None:
-        pdim = max([x.shape[1] for x in A]) # what is "A"?
+        pdim = max([x.shape[1] for x in A])  # what is "A"?
         pdim = min(NRows, pdim)
     P = np.random.randn(pdim, NRows)
     U = []
-    J = np.zeros(N, dtype='i')
+    J = np.zeros(N, dtype="i")
     PY = []
     for n in range(N):
         tmp = np.dot(P, Y[n])
@@ -215,16 +225,16 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
             x[n][:, :1] = tmp
             c1 += np.dot(U[n], x[n][:, :1])
         Ac = c1 / np.linalg.norm(c1)
-        if np.abs((c0*Ac).sum()) > 1-tol:
+        if np.abs((c0 * Ac).sum()) > 1 - tol:
             break
     res = []
     res.append(0)
     for n in range(N):
         tmp = np.dot(U[n].T, Ac)
-        res[0] += 1 - (tmp*tmp).sum()
+        res[0] += 1 - (tmp * tmp).sum()
     res[0] /= float(N)
     if (res[0] > epsilon) and (c is None):  ## c is not specified.
-        print('%s' % ('No common basis found.'))
+        print("%s" % ("No common basis found."))
         Ac = None
         Bc = copy.deepcopy(Y)
         # Yi = copy.deepcopy(Y)
@@ -232,11 +242,11 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
 
     if c is not None:
         c = int(np.min([c, J.min()]))
-        res = res + [np.inf]*(c-1)
-        Ac = np.hstack([Ac, np.zeros([pdim, c-1])])
+        res = res + [np.inf] * (c - 1)
+        Ac = np.hstack([Ac, np.zeros([pdim, c - 1])])
     else:
-        res = res + [np.inf]*(minJn-1)
-        Ac = np.hstack([Ac, np.zeros([pdim, minJn-1])])
+        res = res + [np.inf] * (minJn - 1)
+        Ac = np.hstack([Ac, np.zeros([pdim, minJn - 1])])
     ## seeking the residual common basis
     for j in range(1, minJn):
         ## ## stopping criteria -- 1 where c is given
@@ -244,24 +254,24 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
             break
         ## update U
         for n in range(N):
-            tmp = np.dot(U[n], x[n][:, j-1:j]) ## j-1?
-            U[n] -= np.dot(tmp, x[n][:, j-1:j].T)
-        Ac[:, j:j+1] = np.dot(U[0], np.random.randn(U[0].shape[1], 1))
-        Ac[:, j:j+1] /= np.linalg.norm(Ac[:, j:j+1])
+            tmp = np.dot(U[n], x[n][:, j - 1 : j])  ## j-1?
+            U[n] -= np.dot(tmp, x[n][:, j - 1 : j].T)
+        Ac[:, j : j + 1] = np.dot(U[0], np.random.randn(U[0].shape[1], 1))
+        Ac[:, j : j + 1] /= np.linalg.norm(Ac[:, j : j + 1])
         ## get another column
         for it in range(maxiter):
-            c0 = Ac[:, j:j+1].copy()
+            c0 = Ac[:, j : j + 1].copy()
             c1 = np.zeros([pdim, 1])
             for n in range(N):
-                x[n][:, j:j+1] = np.dot(U[n].T, Ac[:, j:j+1])
-                c1 += np.dot(U[n], x[n][:, j:j+1])
-            Ac[:, j:j+1] = c1 / np.linalg.norm(c1)
-            if abs((c0*Ac[:, j:j+1]).sum()) > 1-tol:
+                x[n][:, j : j + 1] = np.dot(U[n].T, Ac[:, j : j + 1])
+                c1 += np.dot(U[n], x[n][:, j : j + 1])
+            Ac[:, j : j + 1] = c1 / np.linalg.norm(c1)
+            if abs((c0 * Ac[:, j : j + 1]).sum()) > 1 - tol:
                 break
         res[j] = 0
         for n in range(N):
-            tmp = np.dot(U[n].T, Ac[:, j:j+1])
-            res[j] += 1 - (tmp*tmp).sum()
+            tmp = np.dot(U[n].T, Ac[:, j : j + 1])
+            res[j] += 1 - (tmp * tmp).sum()
         res[j] /= N
         ## stopping criteria -- 2
         if (res[j] > epsilon) and (c is None):
@@ -283,23 +293,33 @@ def pcobe(Y_in, c=None, maxiter=2000, PCAdim=0.8, tol=1e-6, epsilon=0.03, pdim=N
             Bc.append(np.dot(Ac.T, Y[n]))
             Zi.append(mldivide(Y[n], Ac))
         return Ac, Bc, res, Zi
-    Bc=None
+    Bc = None
     return Ac, Bc, res
 
-def cobe_classify(testData, training, group, nc=None, subgroups=2, nn=False,
-                  dist='correlation', cobeAlg='pcobe', pdim=None):
-    '''
+
+def cobe_classify(
+    testData,
+    training,
+    group,
+    nc=None,
+    subgroups=2,
+    nn=False,
+    dist="correlation",
+    cobeAlg="pcobe",
+    pdim=None,
+):
+    """
     %COBE_CLASSIFY Summary of this function goes here
     %   Detailed explanation goes here
     %dist: correlation|Euclid
     %cobe: cobe|cobec|pcobe
-    '''
+    """
     eps = np.spacing(1)
     glabs = set(group)
     glabs = list(glabs)
     nfea = training.shape[1]
     ## extract feature
-    Ac = [None]*len(glabs)
+    Ac = [None] * len(glabs)
     for idx in range(len(glabs)):
         flag = np.array(group) == glabs[idx]
         A = training[flag, :]
@@ -308,32 +328,34 @@ def cobe_classify(testData, training, group, nc=None, subgroups=2, nn=False,
             trT = np.sum(flag)
             nCol = int(np.floor(trT / subgroups))
             n0 = int(np.floor(trT / nCol))
-            if (trT - n0*nCol) < nCol:
+            if (trT - n0 * nCol) < nCol:
                 n0 -= 1
-            split = [nCol]*n0 + [trT - n0*nCol]
+            split = [nCol] * n0 + [trT - n0 * nCol]
             split = np.cumsum(split)
             split = split[split < A.shape[0]]
-            #if min(split) > A.shape[0]:
-                #raise ValueError('Error specification of the number of subgroups.')
+            # if min(split) > A.shape[0]:
+            # raise ValueError('Error specification of the number of subgroups.')
             if nc is None:
-                cobe_opts_c = np.floor(min(split)*0.8)
+                cobe_opts_c = np.floor(min(split) * 0.8)
             else:
                 cobe_opts_c = c
             cobealg = cobeAlg.lower()
             tmp_in = np.split(A[:, :nfea].T, split, axis=1)
-            if cobealg == 'pcobe':
+            if cobealg == "pcobe":
                 if pdim is None:
                     pdim = np.ceil(A.shape[1] * 0.5)
                 else:
                     pdim = min(pdim, A.shape[1])
-                cobe_opts_pdim = 1000 # why is not pdim? why 1000?
-                tmp_out, Q, _ = pcobe(tmp_in, c=cobe_opts_c, pdim=cobe_opts_pdim) ########3
-            elif cobealg == 'cobec':
+                cobe_opts_pdim = 1000  # why is not pdim? why 1000?
+                tmp_out, Q, _ = pcobe(
+                    tmp_in, c=cobe_opts_c, pdim=cobe_opts_pdim
+                )  ########3
+            elif cobealg == "cobec":
                 tmp_out, Q, _ = cobec(tmp_in, c=cobe_opts_c, retBZ=True)
-            elif cobealg == 'cobe':
+            elif cobealg == "cobe":
                 tmp_out, Q, _ = cobe(tmp_in, c=cobe_opts_c)
             else:
-                raise NotImplementedError('Unsupported algorithm.')
+                raise NotImplementedError("Unsupported algorithm.")
             if nn:
                 Ac[idx] = cnfe(tmp_out, Q)
             else:
@@ -343,11 +365,13 @@ def cobe_classify(testData, training, group, nc=None, subgroups=2, nn=False,
     ## classifying
     teT = testData.shape[0]
     labels = np.zeros(teT)
-    if dist == 'correlation':
+    if dist == "correlation":
         dis = np.zeros([len(glabs), teT])
         ## testdata normalization
         testData = testData.T
-        testData = testData - np.mean(testData, axis=0, keepdims=True) # cast same_rule restriction
+        testData = testData - np.mean(
+            testData, axis=0, keepdims=True
+        )  # cast same_rule restriction
         tmp = max(np.linalg.norm(testData), eps)
         testData /= tmp
         ## template normalization
@@ -355,9 +379,9 @@ def cobe_classify(testData, training, group, nc=None, subgroups=2, nn=False,
             Ac[idx] -= np.mean(Ac[idx], axis=0, keepdims=True)
             Ac[idx], _ = np.linalg.qr(Ac[idx])
             proj = np.dot(Ac[idx].T, testData)
-            dis[idx, :] = np.sum(proj**2., axis=0)**0.5
+            dis[idx, :] = np.sum(proj ** 2.0, axis=0) ** 0.5
         labels = np.argmax(dis, axis=0)  ###########################
         labels = np.array(glabs)[labels]
     else:
-        raise NotImplementedError('Unsupported distance.')
+        raise NotImplementedError("Unsupported distance.")
     return labels

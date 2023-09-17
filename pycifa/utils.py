@@ -2,10 +2,12 @@ import numpy as np
 
 
 def reshape(x, shape):
-    return np.reshape(x, shape, order='F')
+    return np.reshape(x, shape, order="F")
+
 
 def vec(x):
-    return x.flatten(order = 'F')
+    return x.flatten(order="F")
+
 
 def mldivide(a, b):
     assert a.ndim == b.ndim == 2
@@ -16,6 +18,7 @@ def mldivide(a, b):
         rv = np.linalg.lstsq(a, b)[0]
     return rv
 
+
 def sub2ind(shape, ind):
     assert len(shape) == len(ind)
     if isinstance(ind, np.ndarray):
@@ -24,7 +27,7 @@ def sub2ind(shape, ind):
         tmp = [isinstance(x, int) for x in ind]
         assert np.all(tmp) == np.any(tmp)
         if not np.all(tmp):
-            tmp = [isinstance(x, (tuple, list, np.ndarray))  for x in ind]
+            tmp = [isinstance(x, (tuple, list, np.ndarray)) for x in ind]
             assert np.all(tmp) == np.any(tmp)
             assert np.all([len(x) == len(ind[0]) for x in ind])
     indNP = np.array(ind)
@@ -36,35 +39,38 @@ def sub2ind(shape, ind):
     rind = np.dot(indNP, N)
     return tuple(rind)
 
+
 def datanormalize(x, nor=2, ori=0):
-    assert (isinstance(x, np.ndarray) and (x.ndim == 2)), "2-d numpy array is expected"
+    assert isinstance(x, np.ndarray) and (x.ndim == 2), "2-d numpy array is expected"
     xnorm = np.linalg.norm(x, nor, axis=ori)
-    return x/xnorm, xnorm
+    return x / xnorm, xnorm
+
 
 def EuDist2(fea_a, fea_b=None, bSqrt=True):
-    '''
+    """
     %EUDIST2 Efficiently Compute the Euclidean Distance Matrix by Exploring the
     %Matlab matrix operations.
     %   Written by Deng Cai (dengcai AT gmail.com)
     Python port
-    '''
+    """
     if fea_b is None:
-        aa = np.sum(fea_a*fea_a, axis=1, keepdims=True)
+        aa = np.sum(fea_a * fea_a, axis=1, keepdims=True)
         ab = np.dot(fea_a, fea_a.T)
-        D = aa + aa.T - 2*ab
+        D = aa + aa.T - 2 * ab
         D[D < 0] = 0
         if bSqrt:
             D = np.sqrt(D)
         D = np.maximum(D, D.T)
     else:
-        aa = np.sum(fea_a*fea_a, axis=1, keepdims=True)
-        bb = np.sum(fea_b*fea_b, axis=1, keepdims=True)
+        aa = np.sum(fea_a * fea_a, axis=1, keepdims=True)
+        bb = np.sum(fea_b * fea_b, axis=1, keepdims=True)
         ab = np.dot(fea_a, fea_b.T)
-        D = aa + bb.T - 2*ab
+        D = aa + bb.T - 2 * ab
         D[D < 0] = 0
         if bSqrt:
             D = np.sqrt(D)
     return D
+
 
 def NormalizeFea(x, row=True):
     # if row == True: normalize each row of x to have unit norm
@@ -73,17 +79,19 @@ def NormalizeFea(x, row=True):
     nrm = np.linalg.norm(x, axis=row, keepdims=True)
     return x / nrm
 
+
 def imcomplement(A):
     if A.dtype == bool:
         B = not A
     elif issubclass(A.dtype.type, np.floating):
-        B = 1. - A
+        B = 1.0 - A
     elif issubclass(A.dtype.type, np.integer):
-        #if issubclass(A.dtype.type, np.signedinteger):
+        # if issubclass(A.dtype.type, np.signedinteger):
         B = ~A
     else:
         raise ValueError
     return B
+
 
 def addGaussianNoise(s_in, SNR=20):
     ## This function is used to add i.i.d. Gaussian noise to the rows of s when
@@ -94,17 +102,19 @@ def addGaussianNoise(s_in, SNR=20):
     powS = np.linalg.norm(s, axis=1, keepdims=True)
     noi = np.random.randn(R, T)
     powN = np.linalg.norm(noi, axis=1, keepdims=True)
-    p = np.power(10, -SNR/20.) * powS/powN
-    sn = s + p*noi
+    p = np.power(10, -SNR / 20.0) * powS / powN
+    sn = s + p * noi
     return sn
+
 
 def whiten(a):
     u, s, vt = np.linalg.svd(a)
     nS = s.size
-    b = np.dot(u[:,:nS], vt[:nS, :])
+    b = np.dot(u[:, :nS], vt[:nS, :])
     return b
 
-def princomp(A, wtype='full'):
+
+def princomp(A, wtype="full"):
     """
      Matlab equivalet obtained via link:
      http://glowingpython.blogspot.ru/2011/07/principal-component-analysis-with-numpy.html
@@ -127,16 +137,17 @@ def princomp(A, wtype='full'):
     """
     n, p = A.shape
     M = (A - np.mean(A, axis=0, keepdims=True)).T
-    fmf = wtype == 'econ'
+    fmf = wtype == "econ"
     coeff, latent, vt = np.linalg.svd(M, full_matrices=fmf)
     if fmf:
         nSV = np.sum(latent != 0)
         if n <= p:
-            nSV = min(nSV, n-1)
+            nSV = min(nSV, n - 1)
     else:
         nSV = latent.size
     score = (vt[:nSV, :].T * latent[:nSV]).T
-    return coeff[:, :nSV], score, latent[:nSV]**2.
+    return coeff[:, :nSV], score, latent[:nSV] ** 2.0
+
 
 def fast_svd(x, maxRank=None, factor=1.5):
     eps = np.spacing(1)
@@ -144,8 +155,8 @@ def fast_svd(x, maxRank=None, factor=1.5):
     if float(nRow) / nCol > factor:
         z = np.dot(x.T, x)
         _, s, vt = np.linalg.svd(z)
-        s = s**0.5
-        nS = s[s>0].size
+        s = s ** 0.5
+        nS = s[s > 0].size
         s = s[:nS]
         if maxRank is not None:
             nS = min(nS, maxRank)
@@ -155,7 +166,7 @@ def fast_svd(x, maxRank=None, factor=1.5):
     elif float(nCol) / nRow > factor:
         z = np.dot(x, x.T)
         u, s, _ = np.linalg.svd(z)
-        nS = s[s>0].size
+        nS = s[s > 0].size
         s = s[:nS]
         if maxRank is not None:
             nS = min(nS, maxRank)
@@ -164,7 +175,7 @@ def fast_svd(x, maxRank=None, factor=1.5):
         vt = (np.dot(u.T, x).T / s).T
     else:
         u, s, vt = np.linalg.svd(x)
-        nS = s[s>0].size
+        nS = s[s > 0].size
         s = s[:nS]
         if maxRank is not None:
             nS = min(nS, maxRank)

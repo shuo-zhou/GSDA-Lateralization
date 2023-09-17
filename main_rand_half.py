@@ -15,18 +15,18 @@ from pydale.estimator import GSLR
 
 
 def main():
-    atlas = 'BNA'
+    atlas = "BNA"
     # atlas = 'AICHA'
     # data_dir = "/media/shuo/MyDrive/data/HCP/%s/Proc" % atlas
     # out_dir = '/media/shuo/MyDrive/data/HCP/%s/Results/Rand_Half/' % atlas
-    data_dir = 'D:/ShareFolder/%s/Proc' % atlas
-    out_dir = 'D:/ShareFolder/%s/Result' % atlas
+    data_dir = "D:/ShareFolder/%s/Proc" % atlas
+    out_dir = "D:/ShareFolder/%s/Result" % atlas
 
-    sessions = ['REST1', 'REST2']  # session = 'REST1'
+    sessions = ["REST1", "REST2"]  # session = 'REST1'
     # run_ = 'Fisherz'
-    run_ = 'gender_equal_Fisherz'
+    run_ = "gender_equal_Fisherz"
     # runs = ['RL', 'LR']
-    connection_type = 'intra'
+    connection_type = "intra"
     random_state = 144
     lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
     l2_param = 0.1
@@ -35,9 +35,9 @@ def main():
     x_all = dict()
     y_all = dict()
     genders = dict()
-    info_file = 'HCP_%s_half_brain_gender_equal.csv' % atlas
+    info_file = "HCP_%s_half_brain_gender_equal.csv" % atlas
     # info_file = 'HCP_%s_half_brain.csv' % atlas
-    info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
+    info = io_.read_table(os.path.join(data_dir, info_file), index_col="ID")
 
     for session in sessions:
         data = io_.load_half_brain(data_dir, atlas, session, run_, connection_type)
@@ -59,7 +59,7 @@ def main():
 
         x_all[session] = torch.cat([x, x1])
         y_all[session] = torch.cat([y, y1])
-        gender = info['gender'].values
+        gender = info["gender"].values
         gender = torch.from_numpy(gender.reshape((-1, 1)))
 
         genders[session] = torch.cat((gender, gender))
@@ -71,11 +71,22 @@ def main():
     #         x_all[key_][i] = torch.from_numpy(x_all[key_][i])
     #         y_all[key_][i] = torch.from_numpy(y_all[key_][i])
 
-    res = {"acc_ic_is": [], "acc_ic_os": [], "acc_oc_is": [], "acc_oc_os": [], 'pred_loss': [],
-           'code_loss': [], 'lambda': [], 'time_used': [], 'train_session': [], 'split': [], 'train_gender': []}
+    res = {
+        "acc_ic_is": [],
+        "acc_ic_os": [],
+        "acc_oc_is": [],
+        "acc_oc_os": [],
+        "pred_loss": [],
+        "code_loss": [],
+        "lambda": [],
+        "time_used": [],
+        "train_session": [],
+        "split": [],
+        "train_gender": [],
+    }
     # for test_size in test_sizes:
     #     spliter = StratifiedShuffleSplit(n_splits=5, test_size=test_size, random_state=random_state)
-    for train_session, test_session in [('REST1', 'REST2'), ('REST2', 'REST1')]:
+    for train_session, test_session in [("REST1", "REST2"), ("REST2", "REST1")]:
         # genders_train = np.copy(genders[train_session]['gender'])
         # genders_test = np.copy(genders[test_session]['gender'])
         # genders_train = torch.from_numpy(genders_train.reshape((-1, 1)))
@@ -89,7 +100,9 @@ def main():
         y_test_ = y_all[test_session]
         g_test_ = genders[test_session]
 
-        spliter = StratifiedShuffleSplit(n_splits=5, test_size=0.5, random_state=random_state)
+        spliter = StratifiedShuffleSplit(
+            n_splits=5, test_size=0.5, random_state=random_state
+        )
 
         i_split = 0
 
@@ -114,18 +127,29 @@ def main():
                 x_test_oc_os = x_test_[oc_os_idx]
                 y_test_oc_os = y_test_[oc_os_idx]
 
-                xy_test = {"acc_ic_is": [x_test_ic_is, y_test_ic_is], "acc_ic_os": [x_test_ic_os, y_test_ic_os],
-                           "acc_oc_is": [x_test_oc_is, y_test_oc_is], "acc_oc_os": [x_test_oc_os, y_test_oc_os]}
+                xy_test = {
+                    "acc_ic_is": [x_test_ic_is, y_test_ic_is],
+                    "acc_ic_os": [x_test_ic_os, y_test_ic_os],
+                    "acc_oc_is": [x_test_oc_is, y_test_oc_is],
+                    "acc_oc_os": [x_test_oc_os, y_test_oc_os],
+                }
 
                 for lambda_ in lambdas:
-                    model_path = os.path.join(out_dir, "rand_half_lambda_%s_%s_%s_gender_%s.pt" %
-                                              (lambda_, train_session, i_split, train_gender))
+                    model_path = os.path.join(
+                        out_dir,
+                        "rand_half_lambda_%s_%s_%s_gender_%s.pt"
+                        % (lambda_, train_session, i_split, train_gender),
+                    )
                     if os.path.exists(model_path):
                         model = torch.load(model_path)
                     else:
                         model = GSLR(lambda_=lambda_, l2_hparam=l2_param)
-                        model.fit(x_train_[train], y_train_[train][ic_is_train], g_train_[train],
-                                  target_idx=ic_is_train)
+                        model.fit(
+                            x_train_[train],
+                            y_train_[train][ic_is_train],
+                            g_train_[train],
+                            target_idx=ic_is_train,
+                        )
                         torch.save(model, model_path)
 
                     for acc_key in xy_test:
@@ -134,28 +158,28 @@ def main():
                         acc_ = accuracy(test_y, y_pred_.view(-1).type(torch.int))
                         res[acc_key].append(acc_.item())
 
-                    res['pred_loss'].append(model.losses['pred'][-1])
-                    res['code_loss'].append(model.losses['code'][-1])
+                    res["pred_loss"].append(model.losses["pred"][-1])
+                    res["code_loss"].append(model.losses["code"][-1])
 
                     # model_path = os.path.join(out_dir, "rand_half_lambda_%s_test_%s_gender_%s.pt" %
                     #                           (lambda_, i_split, train_gender))
 
                     # res['n_iter'].append(n_iter)
                     # n_iter += 1
-                    res['train_gender'].append(train_gender)
-                    res['train_session'].append(train_session)
-                    res['split'].append(i_split)
+                    res["train_gender"].append(train_gender)
+                    res["train_session"].append(train_session)
+                    res["split"].append(i_split)
 
-                    res['lambda'].append(lambda_)
+                    res["lambda"].append(lambda_)
                     # res['test_size'].append(test_size)
-                    res['time_used'].append(model.losses['time'][-1])
+                    res["time_used"].append(model.losses["time"][-1])
 
             i_split += 1
 
     res_df = pd.DataFrame.from_dict(res)
-    out_file = os.path.join(out_dir, 'results_random_half_split.csv')
+    out_file = os.path.join(out_dir, "results_random_half_split.csv")
     res_df.to_csv(out_file, index=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

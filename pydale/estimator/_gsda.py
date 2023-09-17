@@ -15,11 +15,15 @@ def hsic(x, y):
     n = x.shape[0]
     ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
 
-    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (n ** 2)
+    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (
+        n ** 2
+    )
 
 
 class CoDeLR_Torch(nn.Module):
-    def __init__(self, lr=0.001, l1_hparam=0.0, l2_hparam=1.0, lambda_=1.0, n_epochs=500):
+    def __init__(
+        self, lr=0.001, l1_hparam=0.0, l2_hparam=1.0, lambda_=1.0, n_epochs=500
+    ):
         super().__init__()
         self.lr = lr
         self.l1_hparam = l1_hparam
@@ -29,7 +33,7 @@ class CoDeLR_Torch(nn.Module):
         self.model = None
         self.optimizer = None
         self.fit_time = 0
-        self.losses = {'ovr': [], 'pred': [], 'code': [], 'time': []}
+        self.losses = {"ovr": [], "pred": [], "code": [], "time": []}
         # self.linear = nn.Linear(n_features, n_classes)
 
     def fit(self, x, y, c, target_idx=None):
@@ -40,7 +44,9 @@ class CoDeLR_Torch(nn.Module):
         n_train = y.shape[0]
         if target_idx is None:
             target_idx = torch.arange(n_train)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam)
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam
+        )
         # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
         start_time = time()
@@ -54,12 +60,12 @@ class CoDeLR_Torch(nn.Module):
             loss.backward()
             self.optimizer.step()
 
-            if (epoch+1) % 10 == 0:
+            if (epoch + 1) % 10 == 0:
                 time_used = time() - start_time
-                self.losses['ovr'].append(loss.item())
-                self.losses['pred'].append(pred_loss.item())
-                self.losses['code'].append(code_loss.item())
-                self.losses['time'].append(time_used)
+                self.losses["ovr"].append(loss.item())
+                self.losses["pred"].append(pred_loss.item())
+                self.losses["code"].append(code_loss.item())
+                self.losses["time"].append(time_used)
                 # print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, self.n_epochs, loss.item()))
                 # print('Pred Loss: {:.4f}'.format(pred_loss.item()))
                 # print('CoDe Loss: {:.4f}'.format(code_loss.item()))
@@ -110,7 +116,15 @@ class GSLR(BaseEstimator, ClassifierMixin):
         gradient descent should terminated.
     """
 
-    def __init__(self, learning_rate=0.01, max_iter=100, regularization='l2', C=0.1, tolerance=1e-4, lambda_=1.0):
+    def __init__(
+        self,
+        learning_rate=0.01,
+        max_iter=100,
+        regularization="l2",
+        C=0.1,
+        tolerance=1e-4,
+        lambda_=1.0,
+    ):
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.regularization = regularization
@@ -118,7 +132,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         self.tolerance = tolerance
         self.theta = None
         self.lambda_ = lambda_
-        self.losses = {'ovr': [], 'pred': [], 'hsic': [], 'time': []}
+        self.losses = {"ovr": [], "pred": [], "hsic": [], "time": []}
 
     def fit(self, x, y, groups, target_idx=None):
         """
@@ -156,22 +170,39 @@ class GSLR(BaseEstimator, ClassifierMixin):
             y_hat = self.__sigmoid(x_tgt @ self.theta)
             errors = y_hat - y
             n_feature = x.shape[1]
-            hsic_score = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(n_sample - 1)
+            hsic_score = multi_dot((self.theta, hsic_mat, self.theta)) / np.square(
+                n_sample - 1
+            )
             hsic_proba = self.__sigmoid(hsic_score)
             hsic_log_loss = -1 * np.log(hsic_proba)
-            grad_hsic = (hsic_proba - 1) * np.dot(hsic_mat, self.theta) / np.square(n_sample - 1)
+            grad_hsic = (
+                (hsic_proba - 1)
+                * np.dot(hsic_mat, self.theta)
+                / np.square(n_sample - 1)
+            )
 
             if self.regularization is not None:
-                delta_grad = (x_tgt.T @ errors) / n_tgt + self.theta / self.C + self.lambda_ * grad_hsic
+                delta_grad = (
+                    (x_tgt.T @ errors) / n_tgt
+                    + self.theta / self.C
+                    + self.lambda_ * grad_hsic
+                )
             else:
                 delta_grad = x_tgt.T @ errors
-            pred_log_loss = -1 * (np.dot(y, np.log(y_hat + 1e-6)) + np.dot((1 - y), np.log(1 - y_hat + 1e-6))) / n_tgt
+            pred_log_loss = (
+                -1
+                * (
+                    np.dot(y, np.log(y_hat + 1e-6))
+                    + np.dot((1 - y), np.log(1 - y_hat + 1e-6))
+                )
+                / n_tgt
+            )
             if _ % 10 == 0:
                 time_used = time() - start_time
-                self.losses['ovr'].append(pred_log_loss + hsic_log_loss)
-                self.losses['pred'].append(pred_log_loss)
-                self.losses['hsic'].append(hsic_log_loss)
-                self.losses['time'].append(time_used)
+                self.losses["ovr"].append(pred_log_loss + hsic_log_loss)
+                self.losses["pred"].append(pred_log_loss)
+                self.losses["hsic"].append(hsic_log_loss)
+                self.losses["time"].append(time_used)
 
             # if _ % 100 == 0:
             #     self.learning_rate *= 0.9
@@ -241,11 +272,11 @@ class GSLR(BaseEstimator, ClassifierMixin):
         """
         try:
             params = dict()
-            params['intercept'] = self.theta[0]
-            params['coef'] = self.theta[1:]
+            params["intercept"] = self.theta[0]
+            params["coef"] = self.theta[1:]
             return params
         except:
-            raise Exception('Fit the model first!')
+            raise Exception("Fit the model first!")
 
     @staticmethod
     def _hsic(x, covariate):

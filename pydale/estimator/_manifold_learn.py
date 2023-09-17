@@ -19,8 +19,17 @@ from ._base import _BaseFramework
 
 
 class LapSVM(_BaseFramework):
-    def __init__(self, C=1.0, kernel='linear', gamma_=1.0, solver='osqp', k_neighbour=3,
-                 manifold_metric='cosine', knn_mode='distance', **kwargs):
+    def __init__(
+        self,
+        C=1.0,
+        kernel="linear",
+        gamma_=1.0,
+        solver="osqp",
+        k_neighbour=3,
+        manifold_metric="cosine",
+        knn_mode="distance",
+        **kwargs
+    ):
         """Laplacian Regularized Support Vector Machine
 
         Parameters
@@ -81,7 +90,9 @@ class LapSVM(_BaseFramework):
             Q_ = ctr_mat + self.gamma_ * np.dot(lap_mat, ker_x)
 
         y_ = self._lb.fit_transform(y)
-        self.coef_, self.support_ = self._solve_semi_dual(ker_x, y_, Q_, self.C, self.solver)
+        self.coef_, self.support_ = self._solve_semi_dual(
+            ker_x, y_, Q_, self.C, self.solver
+        )
         # if self._lb.y_type_ == 'binary':
         #     self.support_vectors_ = X_fit[:nl, :][self.support_]
         #     self.n_support_ = self.support_vectors_.shape[0]
@@ -111,11 +122,12 @@ class LapSVM(_BaseFramework):
             decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
-        check_is_fitted(self, 'X_fit')
-        check_is_fitted(self, 'y')
+        check_is_fitted(self, "X_fit")
+        check_is_fitted(self, "y")
         # X_fit = self.X_fit
-        ker_x = pairwise_kernels(X, self.X, metric=self.kernel,
-                                 filter_params=True, **self.kwargs)
+        ker_x = pairwise_kernels(
+            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+        )
 
         return np.dot(ker_x, self.coef_)  # +self.intercept_
 
@@ -133,7 +145,7 @@ class LapSVM(_BaseFramework):
             predicted labels, shape (n_samples,)
         """
         dec = self.decision_function(X)
-        if self._lb.y_type_ == 'binary':
+        if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
             y_pred_ = score2pred(dec)
@@ -161,8 +173,16 @@ class LapSVM(_BaseFramework):
 
 
 class LapRLS(_BaseFramework):
-    def __init__(self, kernel='linear', gamma_=1.0, sigma_=1.0, k_neighbour=5,
-                 manifold_metric='cosine', knn_mode='distance', **kwargs):
+    def __init__(
+        self,
+        kernel="linear",
+        gamma_=1.0,
+        sigma_=1.0,
+        k_neighbour=5,
+        manifold_metric="cosine",
+        knn_mode="distance",
+        **kwargs
+    ):
         """Laplacian Regularized Least Squares
 
         Parameters
@@ -220,8 +240,12 @@ class LapRLS(_BaseFramework):
         J[:nl, :nl] = np.eye(nl)
 
         if self.gamma_ != 0:
-            lap_mat = lap_norm(X, n_neighbour=self.k_neighbour,
-                               metric=self.manifold_metric, mode=self.knn_mode)
+            lap_mat = lap_norm(
+                X,
+                n_neighbour=self.k_neighbour,
+                metric=self.manifold_metric,
+                mode=self.knn_mode,
+            )
             Q_ = np.dot((J + self.gamma_ * lap_mat), ker_x) + self.sigma_ * unit_mat
         else:
             Q_ = np.dot(J, ker_x) + self.sigma_ * ctr_mat
@@ -248,7 +272,7 @@ class LapRLS(_BaseFramework):
             predicted labels, shape (n_samples,)
         """
         dec = self.decision_function(X)
-        if self._lb.y_type_ == 'binary':
+        if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
             y_pred_ = score2pred(dec)
@@ -269,7 +293,9 @@ class LapRLS(_BaseFramework):
             decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
-        ker_x = pairwise_kernels(X, self.X, metric=self.kernel, filter_params=True, **self.kwargs)
+        ker_x = pairwise_kernels(
+            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+        )
         return np.dot(ker_x, self.coef_)
 
     def fit_predict(self, X, y):

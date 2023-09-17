@@ -13,8 +13,8 @@ except:
 from .utils import fast_svd, mldivide
 
 
-def sobi(Y, p=4):#, maxEncore=1000):
-    '''
+def sobi(Y, p=4):  # , maxEncore=1000):
+    """
      program  by  A. Belouchrani and A. Cichocki
      Second Order Blind Identification (SOBI)
     **************************************************
@@ -55,14 +55,14 @@ def sobi(Y, p=4):#, maxEncore=1000):
      p = 4:            M: m x m x 4
      p = [ 4 5]        M: m x m x 2    p = 4 and p = 5
      Code by Phan Anh Huy 28022007
-    '''
+    """
     eps = 1e-10
     X = Y.copy()
     m, N = X.shape
     if isinstance(p, int):
         p = np.arange(p)
 
-    pm = len(p)*m # for convenience
+    pm = len(p) * m  # for convenience
     X = X - np.mean(X, axis=1, keepdims=True)
     # prewhitening
     UU, S, VVt = np.linalg.svd(X.T, full_matrices=False)
@@ -74,58 +74,62 @@ def sobi(Y, p=4):#, maxEncore=1000):
     lenS = S.size
     M = np.zeros([m, pm], dtype=np.complex)
     for u in xrange(0, pm, m):
-        Rxp = np.dot(X[:, p[k]:N], X[:, : N-p[k]].T) / (N - p[k]) # p[0]=0
-        M[:, u : u+m] = np.linalg.norm(Rxp) * Rxp
+        Rxp = np.dot(X[:, p[k] : N], X[:, : N - p[k]].T) / (N - p[k])  # p[0]=0
+        M[:, u : u + m] = np.linalg.norm(Rxp) * Rxp
         k += 1
     ### joint diagonalization
-    epsil = 1./(N**0.5 * 100)
+    epsil = 1.0 / (N ** 0.5 * 100)
     encore = True
     V = np.eye(m, dtype=np.complex)
     numEncore = 0
-    indG = int(np.ceil(float(pm-m+1)/m))
+    indG = int(np.ceil(float(pm - m + 1) / m))
     g = np.zeros([3, indG], dtype=np.complex)
-    while (encore):# and (numEncore < maxEncore):
+    while encore:  # and (numEncore < maxEncore):
         encore = False
-        for p in xrange(m-1):
+        for p in xrange(m - 1):
             for q in xrange(p, m):
                 ### Givens rotations
-                g[0, :] = M[p:p+1, p:pm:m] - M[q:q+1, q:pm:m]
-                g[1, :] = M[p:p+1, q:pm:m] + M[q:q+1, p:pm:m]
-                g[2, :] = 1j*(M[q:q+1, p:pm:m] - M[p:p+1, q:pm:m])
+                g[0, :] = M[p : p + 1, p:pm:m] - M[q : q + 1, q:pm:m]
+                g[1, :] = M[p : p + 1, q:pm:m] + M[q : q + 1, p:pm:m]
+                g[2, :] = 1j * (M[q : q + 1, p:pm:m] - M[p : p + 1, q:pm:m])
                 tmp = np.dot(g, g.T)
                 vcp, D, _ = np.linalg.svd(tmp.real)
-                #D = D**2.
-                #[la,K]=sort(diag(D));
-                angles = vcp[:, 0] ## matlab - ascending, python - descending
+                # D = D**2.
+                # [la,K]=sort(diag(D));
+                angles = vcp[:, 0]  ## matlab - ascending, python - descending
                 angles = np.sign(angles[0]) * angles
-                c = (0.5*(1. + angles[0]))**0.5
-                sr = 0.5*(angles[1] - 1j*angles[2])/c
+                c = (0.5 * (1.0 + angles[0])) ** 0.5
+                sr = 0.5 * (angles[1] - 1j * angles[2]) / c
                 sc = sr.conjugate()
                 oui = abs(sr) > epsil
                 encore = (encore) or (oui)
                 if oui:  ### update of the M and V matrices
                     colp = M[:, p:pm:m].copy()
                     colq = M[:, q:pm:m].copy()
-                    M[:, p:pm:m] = c*colp + sr*colq
-                    M[:, q:pm:m] = c*colq - sc*colp
+                    M[:, p:pm:m] = c * colp + sr * colq
+                    M[:, q:pm:m] = c * colq - sc * colp
                     rowp = M[p, :].copy()
                     rowq = M[q, :].copy()
-                    M[p, :] = c*rowp + sc*rowq
-                    M[q, :] = c*rowq - sr*rowp
+                    M[p, :] = c * rowp + sc * rowq
+                    M[q, :] = c * rowq - sr * rowp
                     temp = V[:, p].copy()
-                    V[:, p] = c*V[:, p] + sr*V[:, q]
-                    V[:, q] = c*V[:, q] - sc*temp
-        #numEncore += encore
+                    V[:, p] = c * V[:, p] + sr * V[:, q]
+                    V[:, q] = c * V[:, q] - sc * temp
+        # numEncore += encore
     ### estimation of the mixing matrix and source signals
-    H = np.dot(iQ, V) # estimated mixing matrix
-    S = np.dot(V.T, X) # estimated sources
-    if (np.linalg.norm(H.imag) >= eps) or (np.linalg.norm(S.imag) >= eps) or\
-      (np.linalg.norm(D.imag) >= eps):
+    H = np.dot(iQ, V)  # estimated mixing matrix
+    S = np.dot(V.T, X)  # estimated sources
+    if (
+        (np.linalg.norm(H.imag) >= eps)
+        or (np.linalg.norm(S.imag) >= eps)
+        or (np.linalg.norm(D.imag) >= eps)
+    ):
         print("sobi(): non-zero imaginary part")
     return H.real, S.real, D.real
 
+
 def PMFsobi(Y, c=None, p=4):
-    '''
+    """
      call the sobi algorithm
      usage: S, w = PMFsobi(X, m, p)
       m: source number
@@ -133,7 +137,7 @@ def PMFsobi(Y, c=None, p=4):
       X: X=S*A, where the columns of S are the sources, A is the mixing matrix.
 
       Based on the version developed by A. Belouchrani and A. Cichocki.
-    '''
+    """
     # the devil is in the details
     # here was a root of evil
     m = c
@@ -161,7 +165,7 @@ def pca_psc(x, n):
         z = np.dot(x.T, x)
         v, d, _ = np.linalg.svd(z)
         lenD = d.size
-        u = np.dot(x, v[:, :lenD] / (d**0.5))
+        u = np.dot(x, v[:, :lenD] / (d ** 0.5))
     else:
         z = np.dot(x, x.T)
         u, d, _ = np.linalg.svd(z)

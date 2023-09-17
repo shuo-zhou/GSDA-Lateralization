@@ -6,19 +6,19 @@ import numpy as np
 from joblib import dump, load
 from scipy.io import savemat
 
-sys.path.append('../')
+sys.path.append("../")
 from io_ import fetch_weights_joblib
 
 
 def main():
     tasks = [
         # 'L0G1_vs_L2G1',
-        'L2G0_vs_L2G1',
-        'L0G0_vs_L0G1',
+        "L2G0_vs_L2G1",
+        "L0G0_vs_L0G1",
         # 'L0G0_vs_L2G0',
-        'L5G0_vs_L5G1',
-        'L0G0_vs_L5G0',
-        'L0G1_vs_L5G1',
+        "L5G0_vs_L5G1",
+        "L0G0_vs_L5G0",
+        "L0G1_vs_L5G1",
     ]
     # base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
     # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/ukbio/Models"
@@ -38,5 +38,5 @@ def main():
             savemat(os.path.join(base_dir, fname + ".mat"), midc)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

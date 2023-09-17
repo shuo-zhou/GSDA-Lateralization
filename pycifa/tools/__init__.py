@@ -7,5 +7,4 @@ from .py_tools import addStringInFilename, pyHeadExtract
 # from matdict import mat2txt
 
 
-
 __all__ = [savemat, loadmat, addStringInFilename, pyHeadExtract]

@@ -17,7 +17,9 @@ from pydale.estimator import GSLR
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Hold-out part of subjects for testing")
+    parser = argparse.ArgumentParser(
+        description="Hold-out part of subjects for testing"
+    )
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument("--gpus", default=None, help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
@@ -56,19 +58,35 @@ def main():
 
     # test_sizes = [0.1, 0.2, 0.3, 0.4]
 
-    info_file = '%s_%s_half_brain.csv' % (cfg.DATASET.DATASET, atlas)
-    info = io_.read_table(os.path.join(data_dir, info_file), index_col='ID')
+    info_file = "%s_%s_half_brain.csv" % (cfg.DATASET.DATASET, atlas)
+    info = io_.read_table(os.path.join(data_dir, info_file), index_col="ID")
 
-    data = io_.load_half_brain(data_dir, atlas, session=None, run=run_,
-                               connection_type=connection_type, dataset=dataset)
-    groups = info['gender'].values
+    data = io_.load_half_brain(
+        data_dir,
+        atlas,
+        session=None,
+        run=run_,
+        connection_type=connection_type,
+        dataset=dataset,
+    )
+    groups = info["gender"].values
 
     # main loop
-    res = {"acc_ic": [], "acc_oc": [], 'pred_loss': [], 'hsic_loss': [], 'lambda': [],
-           'split': [], 'fold': [], 'train_gender': [], 'time_used': [], 'test_size': []}
+    res = {
+        "acc_ic": [],
+        "acc_oc": [],
+        "pred_loss": [],
+        "hsic_loss": [],
+        "lambda": [],
+        "split": [],
+        "fold": [],
+        "train_gender": [],
+        "time_used": [],
+        "test_size": [],
+    }
     if 0 < test_size < 1:
-        res['acc_tgt_test_sub'] = []
-        res['acc_nt_test_sub'] = []
+        res["acc_tgt_test_sub"] = []
+        res["acc_nt_test_sub"] = []
 
     x, y, x1, y1 = _pick_half(data, random_state=random_state)
     y = label_binarize(y, classes=[-1, 1]).reshape(-1)
@@ -77,7 +95,9 @@ def main():
     x_all = [x, x1]
     y_all = [y, y1]
 
-    sss = StratifiedShuffleSplit(n_splits=num_repeat, test_size=test_size, random_state=random_state)
+    sss = StratifiedShuffleSplit(
+        n_splits=num_repeat, test_size=test_size, random_state=random_state
+    )
     for i_split, (train_sub, test_sub) in enumerate(sss.split(x, groups)):
         for train_fold in [0, 1]:
             x_train_fold = x_all[train_fold]
@@ -102,35 +122,82 @@ def main():
                 y_train_fold_test_nt = y_test_fold[train_sub][train_sub_nt_idx]
 
                 model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
-                fit_kws = {"y": y_train_fold[train_sub_tgt_idx], "groups": groups, "target_idx": train_sub_tgt_idx}
-                model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (dataset, int(lambda_), i_split, train_fold,
-                                                                     target_group, random_state)
+                fit_kws = {
+                    "y": y_train_fold[train_sub_tgt_idx],
+                    "groups": groups,
+                    "target_idx": train_sub_tgt_idx,
+                }
+                model_filename = "%s_lambda%s_%s_%s_gender_%s_%s" % (
+                    dataset,
+                    int(lambda_),
+                    i_split,
+                    train_fold,
+                    target_group,
+                    random_state,
+                )
                 if 0 < test_size < 1:
                     x_train = x_train_fold[train_sub]
-                    xy_test = {"acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
-                               "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
-                               "acc_tgt_test_sub": [np.concatenate((x_train_fold[test_sub][test_sub_tgt_idx],
-                                                                    x_test_fold[test_sub][test_sub_tgt_idx])),
-                                                    np.concatenate((y_train_fold[test_sub][test_sub_tgt_idx],
-                                                                    y_test_fold[test_sub][test_sub_tgt_idx]))],
-                               "acc_nt_test_sub": [np.concatenate((x_train_fold[test_sub][test_sub_nt_idx],
-                                                                   x_test_fold[test_sub][test_sub_nt_idx])),
-                                                   np.concatenate((y_train_fold[test_sub][test_sub_nt_idx],
-                                                                   y_test_fold[test_sub][test_sub_nt_idx]))]}
-                    model_filename = model_filename + "_test_sub_0%s" % str(int(test_size * 10))
-                    fit_kws = {"y": y_train_fold[train_sub][train_sub_tgt_idx], "groups": groups[train_sub],
-                               "target_idx": train_sub_tgt_idx}
+                    xy_test = {
+                        "acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
+                        "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
+                        "acc_tgt_test_sub": [
+                            np.concatenate(
+                                (
+                                    x_train_fold[test_sub][test_sub_tgt_idx],
+                                    x_test_fold[test_sub][test_sub_tgt_idx],
+                                )
+                            ),
+                            np.concatenate(
+                                (
+                                    y_train_fold[test_sub][test_sub_tgt_idx],
+                                    y_test_fold[test_sub][test_sub_tgt_idx],
+                                )
+                            ),
+                        ],
+                        "acc_nt_test_sub": [
+                            np.concatenate(
+                                (
+                                    x_train_fold[test_sub][test_sub_nt_idx],
+                                    x_test_fold[test_sub][test_sub_nt_idx],
+                                )
+                            ),
+                            np.concatenate(
+                                (
+                                    y_train_fold[test_sub][test_sub_nt_idx],
+                                    y_test_fold[test_sub][test_sub_nt_idx],
+                                )
+                            ),
+                        ],
+                    }
+                    model_filename = model_filename + "_test_sub_0%s" % str(
+                        int(test_size * 10)
+                    )
+                    fit_kws = {
+                        "y": y_train_fold[train_sub][train_sub_tgt_idx],
+                        "groups": groups[train_sub],
+                        "target_idx": train_sub_tgt_idx,
+                    }
                 else:
                     x_train = x_train_fold
-                    xy_test = {"acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
-                               "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt]}
+                    xy_test = {
+                        "acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
+                        "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
+                    }
 
                 if mix_group:
                     model_filename = model_filename + "_mix_gender"
                     if 0 < test_size < 1:
-                        fit_kws = {"y": y_train_fold[train_sub], "group": groups[train_sub], "target_idx": None}
+                        fit_kws = {
+                            "y": y_train_fold[train_sub],
+                            "group": groups[train_sub],
+                            "target_idx": None,
+                        }
                     else:
-                        fit_kws = {"y": y_train_fold, "group": groups, "target_idx": None}
+                        fit_kws = {
+                            "y": y_train_fold,
+                            "group": groups,
+                            "target_idx": None,
+                        }
 
                 model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
@@ -146,26 +213,31 @@ def main():
                     acc_ = accuracy_score(test_y, y_pred_)
                     res[acc_key].append(acc_)
 
-                res['pred_loss'].append(model.losses['pred'][-1])
-                res['hsic_loss'].append(model.losses['hsic'][-1])
+                res["pred_loss"].append(model.losses["pred"][-1])
+                res["hsic_loss"].append(model.losses["hsic"][-1])
 
-                res['train_gender'].append(target_group)
-                res['split'].append(i_split)
-                res['fold'].append(train_fold)
+                res["train_gender"].append(target_group)
+                res["split"].append(i_split)
+                res["fold"].append(train_fold)
 
-                res['lambda'].append(lambda_)
-                res['test_size'].append(test_size)
-                res['time_used'].append(model.losses['time'][-1])
+                res["lambda"].append(lambda_)
+                res["test_size"].append(test_size)
+                res["time_used"].append(model.losses["time"][-1])
 
     res_df = pd.DataFrame.from_dict(res)
 
-    out_filename = 'results_%s_lambda%s_test_sub_0%s_%s_%s' % (dataset, int(lambda_), str(int(test_size * 10)), run_,
-                                                               random_state)
+    out_filename = "results_%s_lambda%s_test_sub_0%s_%s_%s" % (
+        dataset,
+        int(lambda_),
+        str(int(test_size * 10)),
+        run_,
+        random_state,
+    )
     if mix_group:
-        out_filename = out_filename + '_mix_gender'
-    out_file = os.path.join(out_dir, '%s.csv' % out_filename)
+        out_filename = out_filename + "_mix_gender"
+    out_file = os.path.join(out_dir, "%s.csv" % out_filename)
     res_df.to_csv(out_file, index=False)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

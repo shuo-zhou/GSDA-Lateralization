@@ -1,4 +1,3 @@
-
 from ._artl import ARRLS, ARSVM
 from ._gsda import CoDeLR_Torch, GSLR, hsic
 from ._manifold_learn import LapRLS, LapSVM

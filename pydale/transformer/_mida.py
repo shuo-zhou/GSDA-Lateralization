@@ -13,8 +13,20 @@ from ._base import _BaseTransformer
 
 
 class MIDA(_BaseTransformer):
-    def __init__(self, n_components, kernel='linear', lambda_=1.0, mu=1.0, eta=1.0, aug=True,
-                 n_jobs=1.0,  alpha=1.0, kernel_params=None, fit_inverse_transform=False, **kwargs):
+    def __init__(
+        self,
+        n_components,
+        kernel="linear",
+        lambda_=1.0,
+        mu=1.0,
+        eta=1.0,
+        aug=True,
+        n_jobs=1.0,
+        alpha=1.0,
+        kernel_params=None,
+        fit_inverse_transform=False,
+        **kwargs
+    ):
         """Maximum independence domain adaptation
 
         Parameters
@@ -71,13 +83,22 @@ class MIDA(_BaseTransformer):
             ker_c = np.dot(co_variates, co_variates.T)
         else:
             ker_c = np.zeros((n_samples, n_samples))
-        obj_min = multi_dot([ker_x, ctr_mat, ker_c, ctr_mat, ker_x]) / np.square(n_samples - 1) + self.eta * unit_mat
+        obj_min = (
+            multi_dot([ker_x, ctr_mat, ker_c, ctr_mat, ker_x])
+            / np.square(n_samples - 1)
+            + self.eta * unit_mat
+        )
         if y is not None:
             y_mat = self._lb.fit_transform(y)
             ker_y = np.dot(y_mat, y_mat.T)
-            obj_max = multi_dot([ker_x,
-                                 self.mu * ctr_mat + self.lambda_ * multi_dot([ctr_mat, ker_y, ctr_mat]),
-                                 ker_x])
+            obj_max = multi_dot(
+                [
+                    ker_x,
+                    self.mu * ctr_mat
+                    + self.lambda_ * multi_dot([ctr_mat, ker_y, ctr_mat]),
+                    ker_x,
+                ]
+            )
         # obj_min = np.trace(np.dot(K,L))
         else:
             obj_max = self.mu * multi_dot([ker_x, ctr_mat, ker_x])
@@ -87,9 +108,9 @@ class MIDA(_BaseTransformer):
         eig_values, eig_vectors = linalg.eigh(objective)
         idx_sorted = (-1 * eig_values).argsort()
 
-        self.eig_vectors = eig_vectors[:, idx_sorted][:, :self.n_components]
+        self.eig_vectors = eig_vectors[:, idx_sorted][:, : self.n_components]
         self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.float)
-        self.eig_values = eig_values[idx_sorted][:self.n_components]
+        self.eig_values = eig_values[idx_sorted][: self.n_components]
 
         if self.fit_inverse_transform:
             scaled_eig_vec = self.eig_vectors / np.sqrt(np.abs(self.eig_values))
@@ -112,7 +133,7 @@ class MIDA(_BaseTransformer):
         array-like
             transformed data
         """
-        check_is_fitted(self, 'X_fit')
+        check_is_fitted(self, "X_fit")
         if self.aug and type(co_variates) == np.ndarray:
             X = np.concatenate((X, co_variates), axis=1)
         ker_x = self._get_kernel(X, self.X_fit)
@@ -143,8 +164,16 @@ class MIDA(_BaseTransformer):
 
 
 class LinearMIDA(_BaseTransformer):
-    def __init__(self, n_components, lambda_=1.0, mu=1.0, eta=1.0, aug=False,
-                 n_jobs=1.0, **kwargs):
+    def __init__(
+        self,
+        n_components,
+        lambda_=1.0,
+        mu=1.0,
+        eta=1.0,
+        aug=False,
+        n_jobs=1.0,
+        **kwargs
+    ):
         """Maximum independence domain adaptation
 
         Parameters
@@ -204,7 +233,14 @@ class LinearMIDA(_BaseTransformer):
         if y is not None:
             y_mat = self._lb.fit_transform(y)
             ker_y = np.dot(y_mat, y_mat.T)
-            obj_max = multi_dot([X.T, self.mu * ctr_mat + self.lambda_ * multi_dot([ctr_mat, ker_y, ctr_mat]), X])
+            obj_max = multi_dot(
+                [
+                    X.T,
+                    self.mu * ctr_mat
+                    + self.lambda_ * multi_dot([ctr_mat, ker_y, ctr_mat]),
+                    X,
+                ]
+            )
         # obj_min = np.trace(np.dot(K,L))
         else:
             # obj_max = self.mu * multi_dot([X.T, X])

@@ -3,7 +3,7 @@ import numpy as np
 
 
 def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False):
-    '''
+    """
     %      TSNE Performs symmetric t-SNE on dataset X
     %
     % The function performs symmetric t-SNE on the NxD dataset X to reduce its
@@ -26,7 +26,7 @@ def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False
     %
     % (C) Laurens van der Maaten, 2010
     % University California, San Diego / Delft University of Technology
-    '''
+    """
     if initial_dims is None:
         initial_dims = min(50, X.shape[1])
     # First check whether we already have an initial solution
@@ -43,24 +43,24 @@ def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False
     # Perform preprocessing using PCA
     if not initial_solution:
         if verb:
-            print('Preprocessing data using PCA...')
+            print("Preprocessing data using PCA...")
         if X.shape[1] < X.shape[0]:
             C = np.dot(X.T, X)
         else:
-            C = (1. / X.shape[0]) * np.dot(X, X.T)
+            C = (1.0 / X.shape[0]) * np.dot(X, X.T)
         M, lambd, _ = np.linalg.svd(C)
         M = M[:, :initial_dims]
-        lambd = lambd[ :initial_dims]
-        if (X.shape[1] >= X.shape[0]):
-            M = np.dot(X.T, M) * (1. / np.sqrt(X.shape[0]*lambd)).T
+        lambd = lambd[:initial_dims]
+        if X.shape[1] >= X.shape[0]:
+            M = np.dot(X.T, M) * (1.0 / np.sqrt(X.shape[0] * lambd)).T
         X = np.dot(X, M)
         del M, lambd
     # Compute pairwise distance matrix
-    sum_X = np.sum(X**2., axis=1, keepdims=True)
-    tmp1 = sum_X.T + (-2*np.dot(X, X.T))
+    sum_X = np.sum(X ** 2.0, axis=1, keepdims=True)
+    tmp1 = sum_X.T + (-2 * np.dot(X, X.T))
     D = sum_X + tmp1
     # Compute joint probabilities
-    P, _ = d2p(D, perplexity, 1e-5, verb) # compute affinities using fixed perplexity
+    P, _ = d2p(D, perplexity, 1e-5, verb)  # compute affinities using fixed perplexity
     del D
     # Run t-SNE
     if initial_solution:
@@ -69,8 +69,9 @@ def tsne(X, labels=None, no_dims=2, initial_dims=None, perplexity=30, verb=False
         ydata = tsne_p(P, labels, no_dims)
     return ydata
 
+
 def d2p(D, u=15, tol=1e-4, verb=False):
-    '''
+    """
      D2P Identifies appropriate sigma's to get kk NNs up to some tolerance
        [P, beta] = d2p(D, kk, tol)
      Identifies the required precision (= 1 / variance^2) to obtain a Gaussian
@@ -93,29 +94,29 @@ def d2p(D, u=15, tol=1e-4, verb=False):
 
      (C) Laurens van der Maaten, 2010
      University California, San Diego / Delft University of Technology
-    '''
+    """
     # Initialize some variables
-    n = D.shape[0] # number of instances
-    P = np.zeros([n, n]) # empty probability matrix
-    beta = np.ones(n) # empty precision vector
-    logU = np.log(u) # log of perplexity (= entropy)
+    n = D.shape[0]  # number of instances
+    P = np.zeros([n, n])  # empty probability matrix
+    beta = np.ones(n)  # empty precision vector
+    logU = np.log(u)  # log of perplexity (= entropy)
     # Run over all datapoints
     for i in range(n):
         if verb:
             if i % 500 == 0:
-                print('Computed P-values %d of %d datapoints...' % (i, n))
+                print("Computed P-values %d of %d datapoints..." % (i, n))
         # Set minimum and maximum values for precision
         betamin = -np.inf
         betamax = np.inf
         # Compute the Gaussian kernel and entropy for the current precision
-        tmp = np.hstack([D[i:i+1, :i], D[i:i+1, i+1:]])
+        tmp = np.hstack([D[i : i + 1, :i], D[i : i + 1, i + 1 :]])
         H, thisP = Hbeta(tmp, beta[i])
         # Evaluate whether the perplexity is within tolerance
         Hdiff = H - logU
         tries = 0
         while (abs(Hdiff) > tol) and (tries < 50):
             # If not, increase or decrease precision
-            if (Hdiff > 0):
+            if Hdiff > 0:
                 betamin = beta[i]
                 if np.isinf(betamax):
                     beta[i] *= 2
@@ -128,34 +129,37 @@ def d2p(D, u=15, tol=1e-4, verb=False):
                 else:
                     beta[i] = (beta[i] + betamin) / 2
             # Recompute the values
-            tmp = np.hstack([D[i:i+1, :i], D[i:i+1, i+1:]])
+            tmp = np.hstack([D[i : i + 1, :i], D[i : i + 1, i + 1 :]])
             H, thisP = Hbeta(tmp, beta[i])
             Hdiff = H - logU
             tries += 1
         # Set the final row of P
-        ind = list(range(i)) + list(range(i+1, n))
+        ind = list(range(i)) + list(range(i + 1, n))
         ind = tuple(ind)
         P[i, ind] = thisP.copy()
     if verb:
-        print('Mean value of sigma: %.5f' % (np.mean(np.sqrt(1. / beta))))
-        print('Minimum value of sigma: %.5f' % (np.min(np.sqrt(1. / beta))))
-        print('Maximum value of sigma: %.5f' % (np.max(np.sqrt(1. / beta))))
+        print("Mean value of sigma: %.5f" % (np.mean(np.sqrt(1.0 / beta))))
+        print("Minimum value of sigma: %.5f" % (np.min(np.sqrt(1.0 / beta))))
+        print("Maximum value of sigma: %.5f" % (np.max(np.sqrt(1.0 / beta))))
     return P, beta
 
+
 def Hbeta(D, beta):
-    '''
+    """
      Function that computes the Gaussian kernel values given a vector of
      squared Euclidean distances, and the precision of the Gaussian kernel.
      The function also computes the perplexity of the distribution.
-    '''
-    P = np.exp(-D*beta)
+    """
+    P = np.exp(-D * beta)
     sumP = np.sum(P)
-    H = np.log(sumP) + beta*np.sum(D*P) / sumP
+    H = np.log(sumP) + beta * np.sum(D * P) / sumP
     # why not: H = np.exp(-np.sum(P[P > 1e-5]*np.log(P[P > 1e-5]))) ???
     P /= sumP
     return H, P
 
-def tsne_p(P,
+
+def tsne_p(
+    P,
     labels=None,
     no_dims=2,
     momentum=0.5,
@@ -164,9 +168,9 @@ def tsne_p(P,
     stop_lying_iter=100,
     max_iter=500,
     epsilon=500,
-    min_gain=.01
+    min_gain=0.01,
 ):
-    '''
+    """
     %TSNE_P Performs symmetric t-SNE on affinity matrix P
     %
     %   mappedX = tsne_p(P, labels, no_dims)
@@ -196,80 +200,89 @@ def tsne_p(P,
     max_iter = 500;                                    % maximum number of iterations
     epsilon = 500;                                      % initial learning rate
     min_gain = .01;                                     % minimum gain for delta-bar-delta
-    '''
+    """
     realmin = np.finfo(float).tiny
     # First check whether we already have an initial solution
     if (isinstance(no_dims, np.ndarray)) and (no_dims.size > 1):
-        initial_solution = True;
+        initial_solution = True
         ydata = no_dims.copy()
         no_dims = ydata.shape[1]
     else:
         initial_solution = False
     # Initialize some variables
-    n = P.shape[0] # number of instances
+    n = P.shape[0]  # number of instances
     # Make sure P-vals are set properly
     # set diagonal to zero
     np.fill_diagonal(P, 0)
     # symmetrize P-values
-    P = 0.5*(P + P.T)
+    P = 0.5 * (P + P.T)
     # make sure P-values sum to one
     P /= np.sum(P)
     P[P < realmin] = realmin
     # constant in KL divergence
-    const = np.sum(P*np.log(P))
+    const = np.sum(P * np.log(P))
     #  lie about the P-vals to find better local minima
-    if  not initial_solution:
+    if not initial_solution:
         P *= 4
     # Initialize the solution
     if not initial_solution:
-        ydata = 1e-4*np.random.randn(n, no_dims)
-    y_incs  = np.zeros(ydata.shape)
+        ydata = 1e-4 * np.random.randn(n, no_dims)
+    y_incs = np.zeros(ydata.shape)
     gains = np.ones(ydata.shape)
     # Run the iterations
     for iter in range(max_iter):
         # Compute joint probability that point i and j are neighbors
-        sum_ydata = np.sum(ydata**2., axis=1, keepdims=True)
+        sum_ydata = np.sum(ydata ** 2.0, axis=1, keepdims=True)
         # Student-t distribution
-        num = sum_ydata.T + (-2*np.dot(ydata, ydata.T))
-        #bsxfun(@plus, sum_ydata', -2 * (ydata * ydata'))
+        num = sum_ydata.T + (-2 * np.dot(ydata, ydata.T))
+        # bsxfun(@plus, sum_ydata', -2 * (ydata * ydata'))
         num += sum_ydata
-        #bsxfun(@plus, sum_ydata, num)
-        num = 1./(1 + num)
+        # bsxfun(@plus, sum_ydata, num)
+        num = 1.0 / (1 + num)
         # set diagonal to zero
         np.fill_diagonal(num, 0)
         # normalize to get probabilities
-        Q = np.maximum(num/np.sum(num), realmin)
+        Q = np.maximum(num / np.sum(num), realmin)
         # Compute the gradients (faster implementation)
-        L = (P - Q)*num
-        y_grads = 4. * np.dot(np.diag(np.sum(L, axis=0)) - L, ydata) ## diag#############
+        L = (P - Q) * num
+        y_grads = 4.0 * np.dot(
+            np.diag(np.sum(L, axis=0)) - L, ydata
+        )  ## diag#############
         # Update the solution
         #  note that the y_grads are actually -y_grads
-        gains = (gains + 0.2)*(np.sign(y_grads) != np.sign(y_incs)) +\
-                (gains * 0.8)*(np.sign(y_grads) == np.sign(y_incs))
+        gains = (gains + 0.2) * (np.sign(y_grads) != np.sign(y_incs)) + (
+            gains * 0.8
+        ) * (np.sign(y_grads) == np.sign(y_incs))
         gains[gains < min_gain] = min_gain
-        y_incs = momentum*y_incs - epsilon*(gains*y_grads)
+        y_incs = momentum * y_incs - epsilon * (gains * y_grads)
         ydata += y_incs
         ydata -= np.mean(ydata, axis=0, keepdims=True)
-        #ydata = bsxfun(@minus, ydata, mean(ydata, 1));
+        # ydata = bsxfun(@minus, ydata, mean(ydata, 1));
         # Update the momentum if necessary
-        if (iter == mom_switch_iter):
+        if iter == mom_switch_iter:
             momentum = final_momentum
         if (iter == stop_lying_iter) and (not initial_solution):
-            P /= 4.
+            P /= 4.0
         # Print out progress
-        if (iter % 10 == 0):
-            cost = const - np.sum(P*np.log(Q))
+        if iter % 10 == 0:
+            cost = const - np.sum(P * np.log(Q))
             # disp(['Iteration ' num2str(iter) ': error is ' num2str(cost)]);
         # Display scatter plot (maximally first three dimensions)
         if (iter % 10 == 0) and (labels is not None):
             if no_dims == 1:
-                plt.scatter(ydata, ydata, 9) #######, labels, 'filled') ###################3
-            elif (no_dims == 2):
-                plt.scatter(ydata[:, 0], ydata[:, 1], 9) #####, labels, 'filled') ################
+                plt.scatter(
+                    ydata, ydata, 9
+                )  #######, labels, 'filled') ###################3
+            elif no_dims == 2:
+                plt.scatter(
+                    ydata[:, 0], ydata[:, 1], 9
+                )  #####, labels, 'filled') ################
             else:
                 fig = plt.figure()
                 ax = Axes3D(fig)
-                ax.scatter(ydata[:, 0], ydata[:, 1], ydata[:, 2], 40) ######, labels, 'filled') ###################
+                ax.scatter(
+                    ydata[:, 0], ydata[:, 1], ydata[:, 2], 40
+                )  ######, labels, 'filled') ###################
             #######axis tight
             #######axis off
             plt.show()
