@@ -33,7 +33,8 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    run_experiment(cfg)
+    results, outfile = run_experiment(cfg)
+    results.to_csv(outfile, index=False)
 
 
 if __name__ == "__main__":

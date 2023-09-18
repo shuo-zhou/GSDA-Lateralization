@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression, RidgeClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
+from sklearn.preprocessing import label_binarize
 from sklearn.svm import LinearSVC
 
 from pydale.estimator import SIDeRLS, SIDeRSVM
@@ -135,6 +136,9 @@ def _pick_half(data, random_state=144):
     y1 = np.zeros(n_sub)
     y1[left_idx] = -1
     y1[right_idx] = 1
+
+    y = label_binarize(y, classes=[-1, 1]).reshape(-1)
+    y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
 
     return x, y, x1, y1
 
