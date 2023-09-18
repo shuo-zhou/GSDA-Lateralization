@@ -6,41 +6,34 @@ from cr8_cfgs import mk_dir
 
 def main():
     # dataset = "ukb"
-    dataset = "gsp"
+    # dataset = "gsp"
+    dataset = "HCP"
     # hpc_node = "tale"
     hpc_node = "rse"
-    hold_out_sub = True
+
     # lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
+    # lambdas = [0.0, 1.0, 2.0]
     lambdas = [5.0, 8.0, 10.0]
     memory = 2
     test_size = 0.2
+    test_size_str = str(int(test_size * 10))
 
     batch_dir = os.path.join("/shared/tale2/Shared/szhou/qsub/Brain_LR", dataset)
     cfg_dir = os.path.join(batch_dir, "configs")
     data_dir = "/shared/tale2/Shared/data/brain/%s/proc" % dataset
-    output_dir = "/shared/tale2/Shared/data/brain/%s/Models" % dataset
+    output_dir = "/shared/tale2/Shared/data/brain/%s/Models/test_size0%s" % (dataset, test_size_str)
     for _dir in [batch_dir, cfg_dir]:
         mk_dir(_dir)
     py_dir = "/shared/tale2/Shared/szhou/code/Brain_LR_BNU"
-
-    if hold_out_sub:
-        py_file = "main_test_sub.py"
-    else:
-        py_file = "main_validset.py"
+    py_file = "main.py"
 
     seeds = 2023 - np.arange(50)
 
     for lambda_ in lambdas:
-        qbatch_fname = "q_L%s_no_sub_hold.sh" % lambda_
-        if hold_out_sub:
-            qbatch_fname = "q_L%s_hold_sub.sh" % lambda_
+        qbatch_fname = "q_L%s_test0%s.sh" % (lambda_, test_size_str)
         qbatch_file = open(os.path.join(batch_dir, qbatch_fname), "w")
         for seed in seeds:
-            base_script_fname = "%s_L%s_%s" % (dataset, lambda_, seed)
-            if hold_out_sub:
-                base_script_fname += "_sub_hold"
-            else:
-                base_script_fname += "_no_sub_hold"
+            base_script_fname = "%s_L%s_%s_%s" % (dataset, lambda_, test_size_str, seed)
             cfg_fname = "%s.yaml" % (base_script_fname)
             batch_fname = "%s.sh" % (base_script_fname)
 
@@ -48,8 +41,7 @@ def main():
             cfg_file.write("DATASET:\n")
             cfg_file.write("  DATASET: %s\n" % dataset)
             cfg_file.write("  ROOT: %s\n" % data_dir)
-            if hold_out_sub:
-                cfg_file.write("  TEST_SIZE: %s\n" % test_size)
+            cfg_file.write("  TEST_SIZE: %s\n" % test_size)
             cfg_file.write("SOLVER:\n")
             cfg_file.write("  SEED: %s\n" % seed)
             cfg_file.write("  LAMBDA_: %s\n" % lambda_)

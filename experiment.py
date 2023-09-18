@@ -7,7 +7,6 @@ import pandas as pd
 import torch
 from sklearn.metrics import accuracy_score  # , roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import label_binarize  # , StandardScaler
 
 import io_
 from _base import _pick_half  # _pick_half_subs
@@ -165,7 +164,15 @@ def save_loop_results(
 
 
 def run_no_sub_hold_hcp(
-    data, groups, lambda_, l2_param, mix_group, out_dir, num_repeat, random_state, **kwargs
+    data,
+    groups,
+    lambda_,
+    l2_param,
+    mix_group,
+    out_dir,
+    num_repeat,
+    random_state,
+    **kwargs
 ):
     # main loop
     res = {
@@ -243,16 +250,13 @@ def run_no_sub_hold_hcp(
                         "groups": groups,
                         "target_idx": tgt_is_idx,
                     }
-                    model_filename = (
-                        "HCP_L%s_test_size00_%s_%s_%s_group_%s_%s"
-                        % (
-                            int(lambda_),
-                            train_session,
-                            i_split,
-                            i_fold,
-                            train_group,
-                            random_state,
-                        )
+                    model_filename = "HCP_L%s_test_size00_%s_%s_%s_group_%s_%s" % (
+                        int(lambda_),
+                        train_session,
+                        i_split,
+                        i_fold,
+                        train_group,
+                        random_state,
                     )
                     if mix_group:
                         model_filename = model_filename + "_group_mix"
@@ -262,7 +266,14 @@ def run_no_sub_hold_hcp(
                             "target_idx": None,
                         }
 
-                    model = train_modal(lambda_, l2_param, x_train_fold, fit_kws, out_dir, model_filename)
+                    model = train_modal(
+                        lambda_,
+                        l2_param,
+                        x_train_fold,
+                        fit_kws,
+                        out_dir,
+                        model_filename,
+                    )
                     res = save_loop_results(
                         model,
                         res,
@@ -321,7 +332,9 @@ def run_sub_hold_hcp(
 
                 for target_group in [0, 1]:
                     train_sub_tgt_idx = np.where(groups[train_sub] == target_group)[0]
-                    train_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[0]
+                    train_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[
+                        0
+                    ]
                     test_sub_tgt_idx = np.where(groups[test_sub] == target_group)[0]
                     test_sub_nt_idx = np.where(groups[test_sub] == 1 - target_group)[0]
 
@@ -422,7 +435,9 @@ def run_sub_hold_hcp(
                             "target_idx": None,
                         }
 
-                    model = train_modal(lambda_, l2_param, x_train, fit_kws, out_dir, model_filename)
+                    model = train_modal(
+                        lambda_, l2_param, x_train, fit_kws, out_dir, model_filename
+                    )
                     res = save_loop_results(
                         model,
                         res,
@@ -561,7 +576,9 @@ def run_sub_hold_gsp(
                             "target_idx": None,
                         }
 
-                model = train_modal(lambda_, l2_param, x_train, fit_kws, out_dir, model_filename)
+                model = train_modal(
+                    lambda_, l2_param, x_train, fit_kws, out_dir, model_filename
+                )
                 res = save_loop_results(
                     model,
                     res,
@@ -576,10 +593,19 @@ def run_sub_hold_gsp(
 
 
 def run_no_sub_hold_gsp(
-        data, groups, lambda_, l2_param, mix_group, out_dir, num_repeat, random_state, **kwargs
+    data,
+    groups,
+    lambda_,
+    l2_param,
+    mix_group,
+    out_dir,
+    num_repeat,
+    random_state,
+    **kwargs
 ):
     res = {
-        **{"acc_ic": [], "acc_oc": []}, **copy.deepcopy(BASE_RESULT_DICT),
+        **{"acc_ic": [], "acc_oc": []},
+        **copy.deepcopy(BASE_RESULT_DICT),
     }
     for i_split in range(num_repeat):
         x, y, x1, y1 = _pick_half(data, random_state=random_state * (i_split + 1))
@@ -606,7 +632,11 @@ def run_no_sub_hold_gsp(
                     "acc_oc": [x_all[1 - i_fold][nt_idx], x_all[1 - i_fold][nt_idx]],
                 }
 
-                fit_kws = {"y": y_train[tgt_idx], "groups": groups, "target_idx": tgt_idx}
+                fit_kws = {
+                    "y": y_train[tgt_idx],
+                    "groups": groups,
+                    "target_idx": tgt_idx,
+                }
                 model_filename = "gsp_L%s_test_size00_%s_%s_group_%s_%s" % (
                     int(lambda_),
                     i_split,
@@ -623,7 +653,9 @@ def run_no_sub_hold_gsp(
                         "target_idx": None,
                     }
 
-                model = train_modal(lambda_, l2_param, x_train, fit_kws, out_dir, model_filename)
+                model = train_modal(
+                    lambda_, l2_param, x_train, fit_kws, out_dir, model_filename
+                )
                 res = save_loop_results(
                     model,
                     res,

@@ -21,14 +21,14 @@ def main():
         qbatch_fname = "q_%s.sh" % lambda_
         qbatch_file = open(os.path.join(batch_dir, qbatch_fname), "w")
         for seed in seeds:
-            cfg_fname = "lambda%s_%s.yaml" % (lambda_, seed)
+            cfg_fname = "L%s_%s.yaml" % (lambda_, seed)
             cfg_file = open(os.path.join(cfg_dir, cfg_fname), "w")
             cfg_file.write("SOLVER:\n")
             cfg_file.write("  SEED: %s\n" % seed)
             cfg_file.write("  LAMBDA_: %s\n" % lambda_)
             cfg_file.close()
 
-            batch_fname = "lambda%s_%s.sh" % (lambda_, seed)
+            batch_fname = "L%s_%s.sh" % (lambda_, seed)
             batch_file = open(os.path.join(batch_dir, batch_fname), "w")
             batch_file.write("#!/bin/bash\n")
             batch_file.write("#$ -P tale\n")

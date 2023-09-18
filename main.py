@@ -1,25 +1,16 @@
 import argparse
-import os
 
-# import pickle
-import numpy as np
-import pandas as pd
-import torch
-from sklearn.metrics import accuracy_score, roc_auc_score
-# from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import label_binarize, StandardScaler
-
-import io_
-from _base import _pick_half  # _pick_half_subs
 from default_cfg import get_cfg_defaults
 from experiment import run_experiment
 
 
 def arg_parse():
     """Parsing arguments"""
-    parser = argparse.ArgumentParser(description="Multi-source domain adaptation")
+    parser = argparse.ArgumentParser(
+        description="GSDA brain hemispheres classification"
+    )
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    parser.add_argument("--gpus", default=None, help="gpu id(s) to use", type=str)
+    # parser.add_argument("--gpus", default=None, help="gpu id(s) to use", type=str)
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
