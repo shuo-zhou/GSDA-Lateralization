@@ -23,7 +23,7 @@ def get_coef(file_name, file_dir):
 #     return model.model.weight.data.numpy().T
 
 
-def fetch_weights(base_dir, gender, lambda_, dataset, sessions, seed_=2023):
+def fetch_weights(base_dir, group, lambda_, dataset, sessions, seed_=2023):
     """
 
     Args:
@@ -36,7 +36,7 @@ def fetch_weights(base_dir, gender, lambda_, dataset, sessions, seed_=2023):
     """
 
     sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
-    if lambda_ == "0_mix_gender":
+    if lambda_ == "0_group_mix":
         lambda_ = 0
     weight = []
     num_repeat = 5
@@ -45,13 +45,13 @@ def fetch_weights(base_dir, gender, lambda_, dataset, sessions, seed_=2023):
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(50):
-                    model_file = "%s_lambda%s_%s%s_%s_gender_%s_%s.pt" % (
+                    model_file = "%s_L%s_%s%s_%s_group_%s_%s.pt" % (
                         dataset,
                         lambda_,
                         session_i,
                         i_split,
                         half_i,
-                        gender,
+                        group,
                         seed_ - seed,
                     )
                     if os.path.exists(os.path.join(sub_dir, model_file)):

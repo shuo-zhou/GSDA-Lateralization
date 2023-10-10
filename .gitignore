@@ -24,3 +24,4 @@ __pycache__
 **/lightning_logs/
 **.ipynb_checkpoints/
 nilearn_cache/
+.pytest_cache
