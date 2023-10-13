@@ -1,0 +1,26 @@
+*.csv
+*.dcm
+# *.edge
+*.iml
+*.json
+*.log
+# *.mat
+*.npy
+*.pdf
+*.pkl
+*.png
+*.pt
+*.pyc
+*.sh
+# *.svg
+*.xml
+configs/*.yaml
+*.zip
+
+.idea/
+.vscode/
+
+__pycache__
+**/lightning_logs/
+**.ipynb_checkpoints/
+nilearn_cache/
