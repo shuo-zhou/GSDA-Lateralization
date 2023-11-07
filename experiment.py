@@ -9,8 +9,7 @@ from sklearn.metrics import accuracy_score  # , roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit
 
 import io_
-from _base import _pick_half  # _pick_half_subs
-from pydale.estimator import GSLR
+from mgstats.estimator import GSLR
 
 BASE_RESULT_DICT = {
     "pred_loss": [],
@@ -192,7 +191,7 @@ def run_no_sub_hold_hcp(
             x_all = dict()
             y_all = dict()
             for session in [train_session, test_session]:
-                x, y, x1, y1 = _pick_half(
+                x, y, x1, y1 = io_._pick_half(
                     data[session], random_state=random_state * (i_split + 1)
                 )
                 # x, y = _pick_half_subs(data[run_])
@@ -315,7 +314,7 @@ def run_sub_hold_hcp(
     y_all = dict()
 
     for session in ["REST1", "REST2"]:
-        x, y, x1, y1 = _pick_half(data[session], random_state=random_state)
+        x, y, x1, y1 = io_._pick_half(data[session], random_state=random_state)
 
         x_all[session] = [x, x1]
         y_all[session] = [y, y1]
@@ -468,7 +467,7 @@ def run_sub_hold_gsp(
         **copy.deepcopy(BASE_RESULT_DICT),
     }
 
-    x, y, x1, y1 = _pick_half(data, random_state=random_state)
+    x, y, x1, y1 = io_._pick_half(data, random_state=random_state)
 
     x_all = [x, x1]
     y_all = [y, y1]
@@ -608,7 +607,7 @@ def run_no_sub_hold_gsp(
         **copy.deepcopy(BASE_RESULT_DICT),
     }
     for i_split in range(num_repeat):
-        x, y, x1, y1 = _pick_half(data, random_state=random_state * (i_split + 1))
+        x, y, x1, y1 = io_._pick_half(data, random_state=random_state * (i_split + 1))
         x_all = [x, x1]
         y_all = [y, y1]
 

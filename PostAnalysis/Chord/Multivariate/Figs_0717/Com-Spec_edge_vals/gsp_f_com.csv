@@ -1,7 +1,0 @@
-node1_name,node2_name,edge_name,edge_value
-Temporal_MTG-40,Parietal_IPL-68,Temporal_MTG-40-Parietal_IPL-68,-0.14511538082685912
-Parietal_IPL-72,Insular_INS-86,Parietal_IPL-72-Insular_INS-86,-0.12973347464875412
-Frontal_SFG-1,Frontal_SFG-6,Frontal_SFG-1-Frontal_SFG-6,-0.09242296136555751
-Frontal_MFG-7,Insular_INS-86,Frontal_MFG-7-Insular_INS-86,0.1253003549331345
-Frontal_PrG-28,Parietal_PoG-80,Frontal_PrG-28-Parietal_PoG-80,0.13002758588970148
-Frontal_MFG-7,Frontal_IFG-18,Frontal_MFG-7-Frontal_IFG-18,0.15354979486272477

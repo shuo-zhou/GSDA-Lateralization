@@ -6,7 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 from sklearn.preprocessing import label_binarize
 from sklearn.svm import LinearSVC
 
-from pydale.estimator import SIDeRLS, SIDeRSVM
+from mgstats.estimator import SIDeRLS, SIDeRSVM
 
 
 def cross_val(x, y, clf=LinearSVC(), random_state=144, co_variates=None):
@@ -114,42 +114,3 @@ def param_search(x, y, clf_="SVC", co_variates=None, reduce_dim=True):
     best_estimator["clf"] = estimator(**best_params["clf"])
 
     return best_estimator, best_params
-
-
-def _pick_half(data, random_state=144):
-    x = np.zeros(data["Left"].shape)
-    left_idx, right_idx = train_test_split(
-        range(x.shape[0]), test_size=0.5, random_state=random_state
-    )
-    x[left_idx] = data["Left"][left_idx]
-    x[right_idx] = data["Right"][right_idx]
-
-    n_sub = x.shape[0]
-    y = np.zeros(n_sub)
-    y[left_idx] = 1
-    y[right_idx] = -1
-
-    x1 = np.zeros(data["Left"].shape)
-    x1[left_idx] = data["Right"][left_idx]
-    x1[right_idx] = data["Left"][right_idx]
-
-    y1 = np.zeros(n_sub)
-    y1[left_idx] = -1
-    y1[right_idx] = 1
-
-    y = label_binarize(y, classes=[-1, 1]).reshape(-1)
-    y1 = label_binarize(y1, classes=[-1, 1]).reshape(-1)
-
-    return x, y, x1, y1
-
-
-def _pick_half_subs(data, random_state=144):
-    n_ = data["Left"].shape[0]
-    train_idx, hold_idx = train_test_split(
-        range(n_), test_size=0.5, random_state=random_state
-    )
-    x = np.concatenate([data["Left"][train_idx], data["Right"][train_idx]], axis=0)
-    y = np.ones(n_)
-    y[int(n_ / 2) :] = -1
-
-    return x, y

@@ -1,7 +1,0 @@
-node1_name,node2_name,edge_name,edge_value
-Temporal_MTG-40,Parietal_IPL-68,Temporal_MTG-40-Parietal_IPL-68,-0.1925235339082353
-Parietal_Pcun-75,Limbic_CG-90,Parietal_Pcun-75-Limbic_CG-90,-0.15058137292714754
-Frontal_MFG-7,Frontal_OrG-20,Frontal_MFG-7-Frontal_OrG-20,-0.10193766589644325
-Frontal_SFG-4,Frontal_PrG-29,Frontal_SFG-4-Frontal_PrG-29,0.07920010550768239
-Frontal_MFG-7,Insular_INS-86,Frontal_MFG-7-Insular_INS-86,0.10192071015019034
-Frontal_MFG-7,Frontal_IFG-18,Frontal_MFG-7-Frontal_IFG-18,0.1382710912210087
