@@ -297,13 +297,103 @@ def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
     return np.concatenate(weight, axis=0)
 
 
-def save_results(res_dict, output_dir):
+def save_results(res_dict, output_dir, mix_group=False):
+    """_summary_
+
+    Args:
+        res_dict (_type_): _description_
+        output_dir (_type_): _description_
+        mix_group (bool, optional): _description_. Defaults to False.
+    """
     res_df = pd.DataFrame.from_dict(res_dict)
 
     if mix_group:
-        out_filename = out_filename + "_mix_gender"
+        out_filename = out_filename + "_mix_group"
     out_file = os.path.join(output_dir, "%s.csv" % out_filename)
     res_df.to_csv(out_file, index=False)
+
+
+def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
+    """load brain left/right classification results for a dataset
+
+    Args:
+        dataset (string): _description_
+        root_dir (string): _description_
+        lambdas (list): _description_
+        seed_start (_type_): _description_
+    """
+    res_dict = dict()
+    res_list = []
+    test_size_str = str(int(test_size * 10))
+    for lambda_ in lambdas:
+        res_dict[lambda_] = []
+
+    for lambda_ in lambdas:
+        if type(lambda_) != str:
+            lambda_str = str(int(lambda_))
+        else:
+            lambda_str = lambda_
+        model_dir = os.path.join(root_dir, "lambda%s" % lambda_str)
+        for seed_iter in range(50):
+            random_state = seed_start - seed_iter
+            res_fname = "results_%s_L%s_test_size0%s_Fisherz_%s.csv" % (dataset, lambda_str,
+                                                                        test_size_str,
+                                                                        random_state)
+            res_df = pd.read_csv(os.path.join(model_dir, res_fname))
+            res_df["seed"] = random_state
+            res_dict[lambda_].append(res_df)
+            res_list.append(res_df)
+
+    for lambda_ in lambdas:
+        res_dict[lambda_] = pd.concat(res_dict[lambda_])
+
+    res_df_all = pd.concat(res_list)
+    res_df_all = res_df_all.reset_index(drop=True)
+
+    return res_df_all
+
+
+def reformat_results(res_df, test_sets, male=0):
+    """reformat results dataframe to one accuracy per row
+
+    Args:
+        res_df (_type_): _description_
+        test_sets (_type_): _description_
+        male (int, optional): _description_. Defaults to 0.
+
+    Returns:
+        _type_: _description_
+    """
+    res_reformat = {"Accuracy": [], "Test set": [], "Lambda": [], "Target group": [],
+                    "seed": [], "split": [], "fold": [], "Train session": []}
+    for idx_ in res_df.index:
+        # print(idx_, res_df.iloc[idx_, 12])
+        subset_ = res_df.loc[idx_, :]
+        for test_set in test_sets:
+            res_reformat["Accuracy"].append(subset_[test_set])
+            res_reformat["Lambda"].append(subset_["lambda"])
+            if "train_session" in subset_:
+                res_reformat["Train session"].append(subset_["train_session"])
+            else:
+                res_reformat["Train session"].append(None)
+            _group = subset_["train_gender"]
+            test_set_list = test_set.split("_")
+            if _group == male:
+                res_reformat["Target group"].append("Male")
+                if "oc" in test_set_list or "tgt" in test_set_list:
+                    res_reformat["Test set"].append("Female")
+                else:
+                    res_reformat["Test set"].append("Male")
+            else:
+                res_reformat["Target group"].append("Female")
+                if "oc" in test_set_list or "tgt" in test_set_list:
+                    res_reformat["Test set"].append("Male")
+                else:
+                    res_reformat["Test set"].append("Female")
+
+            for key in ["seed", "split", "fold"]:
+                res_reformat[key].append(subset_[key])
+    return pd.DataFrame(res_reformat)
 
 
 # read: nib.load()
