@@ -58,7 +58,6 @@ def subj_dice_auc(t_act, t_pred, thrs):
     # thrs = np.arange(0.0001,1,0.0001) #
     Dices = pd.DataFrame()
     for k, thr in enumerate(thrs):
-
         topN = round(thr * len(t_act))
 
         # 升序排列，返回索引index,取排名靠前的topN

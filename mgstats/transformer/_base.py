@@ -13,7 +13,6 @@ class _BaseTransformer(BaseEstimator, TransformerMixin):
         kernel_params=None,
         fit_inverse_transform=False,
     ):
-
         self.kernel = kernel
         self.n_jobs = n_jobs
         self.kernel_params = kernel_params

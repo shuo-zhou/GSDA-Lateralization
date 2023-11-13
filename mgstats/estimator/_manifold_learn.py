@@ -219,7 +219,7 @@ class LapRLS(_BaseFramework):
         self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
 
     def fit(self, X, y):
-        """"Fit the model according to the given training data.
+        """ "Fit the model according to the given training data.
 
         Parameters
         ----------

@@ -20,9 +20,13 @@ from torch.hub import download_url_to_file
 # import sys
 
 
-HCP_LINK = {"REST1": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST1_Fisherz.hdf5",
-            "REST2": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST2_Fisherz.hdf5"}
-GSP_LINK = "https://zenodo.org/records/10050234/files/GSP_BNA_intra_half_brain_Fisherz.mat"
+HCP_LINK = {
+    "REST1": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST1_Fisherz.hdf5",
+    "REST2": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST2_Fisherz.hdf5",
+}
+GSP_LINK = (
+    "https://zenodo.org/records/10050234/files/GSP_BNA_intra_half_brain_Fisherz.mat"
+)
 
 
 def load_txt(fpaths, connection_type="intra"):
@@ -109,7 +113,9 @@ def get_fpaths(fdir, idx_list, file_format="txt"):
         if os.path.exists(fpath):
             fpaths[idx] = fpath
 
-    fpath_df = pd.DataFrame(data={"File path": fpaths.values()}, index=list(fpaths.keys()))
+    fpath_df = pd.DataFrame(
+        data={"File path": fpaths.values()}, index=list(fpaths.keys())
+    )
 
     return fpath_df
 
@@ -188,14 +194,14 @@ def save_half_brain_mat(out_dir, out_fname, data_left, data_right):
 
 
 def load_half_brain(
-        data_dir,
-        atlas,
-        session=None,
-        run=None,
-        connection_type="intra",
-        data_type="functional",
-        dataset="HCP",
-        download=True,
+    data_dir,
+    atlas,
+    session=None,
+    run=None,
+    connection_type="intra",
+    data_type="functional",
+    dataset="HCP",
+    download=True,
 ):
     """
 
@@ -225,7 +231,10 @@ def load_half_brain(
             fpath = os.path.join(data_dir, fname)
             if not os.path.exists(fpath):
                 if download:
-                    download_url_to_file(HCP_LINK[session], fpath, )
+                    download_url_to_file(
+                        HCP_LINK[session],
+                        fpath,
+                    )
                 else:
                     raise ValueError("File %s does not exist" % fpath)
             data = load_hdf5(fpath)
@@ -345,9 +354,12 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
         model_dir = os.path.join(root_dir, "lambda%s" % lambda_str)
         for seed_iter in range(50):
             random_state = seed_start - seed_iter
-            res_fname = "results_%s_L%s_test_size0%s_Fisherz_%s.csv" % (dataset, lambda_str,
-                                                                        test_size_str,
-                                                                        random_state)
+            res_fname = "results_%s_L%s_test_size0%s_Fisherz_%s.csv" % (
+                dataset,
+                lambda_str,
+                test_size_str,
+                random_state,
+            )
             res_df = pd.read_csv(os.path.join(model_dir, res_fname))
             res_df["seed"] = random_state
             res_dict[lambda_].append(res_df)
@@ -373,8 +385,16 @@ def reformat_results(res_df, test_sets, male=0):
     Returns:
         _type_: _description_
     """
-    res_reformat = {"Accuracy": [], "Test set": [], "Lambda": [], "Target group": [],
-                    "seed": [], "split": [], "fold": [], "Train session": []}
+    res_reformat = {
+        "Accuracy": [],
+        "Test set": [],
+        "Lambda": [],
+        "Target group": [],
+        "seed": [],
+        "split": [],
+        "fold": [],
+        "Train session": [],
+    }
     for idx_ in res_df.index:
         # print(idx_, res_df.iloc[idx_, 12])
         subset_ = res_df.loc[idx_, :]
@@ -424,7 +444,9 @@ def read_file(file):
     elif ext == ".pkl":
         df = pd.read_pickle(file)
     else:
-        raise ValueError("Unsupported file type %s, supported type: xxx.h5 or xxx.pkl..." % ext)
+        raise ValueError(
+            "Unsupported file type %s, supported type: xxx.h5 or xxx.pkl..." % ext
+        )
 
     return df
 
@@ -470,7 +492,7 @@ def _pick_half_subs(data, random_state=144):
     )
     x = np.concatenate([data["Left"][train_idx], data["Right"][train_idx]], axis=0)
     y = np.ones(n_)
-    y[int(n_ / 2):] = -1
+    y[int(n_ / 2) :] = -1
 
     return x, y
 
@@ -525,12 +547,12 @@ def creat_fs_lr32k_atlas(shape_gii_base, array_write, atlas_file, hemi, savepath
     f_data = f_data[0, :]
 
     if hemi == "L":
-        cdata = f_data[0: int(len(f_data) / 2)].copy()  # L
+        cdata = f_data[0 : int(len(f_data) / 2)].copy()  # L
         print("cdata.shape: %d" % (len(cdata)))
         for i, data in enumerate(array_write):
             cdata[np.where(cdata == i + 1)] = data
     else:
-        cdata = f_data[int(len(f_data) / 2): int(len(f_data))].copy()  # R
+        cdata = f_data[int(len(f_data) / 2) : int(len(f_data))].copy()  # R
         for i, data in enumerate(array_write):
             cdata[np.where(cdata == i + 1 + int(np.max(f_data) / 2))] = data
 
@@ -554,6 +576,7 @@ def jointplot_fitlinear(x, y):
 
 # sns.regplot(x='LL_LPAC_Math_Corr',y='ReadEng_AgeAdj',data=df, color='red', scatter_kws={"s": 8}),不显示分布信息
 
+
 # *************************************** Extract top N in a array ************************************ #
 # Extract top N element in an array and set others to 0.
 def topN_array(arr, topN):
@@ -565,6 +588,7 @@ def topN_array(arr, topN):
     arr_topN = arr.copy()
     arr_topN[idx_res] = 0
     return arr_topN
+
 
 # def main_creat_shape_gii():
 #

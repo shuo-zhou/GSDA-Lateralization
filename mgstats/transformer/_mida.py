@@ -300,7 +300,6 @@ class LinearMIDA(_BaseTransformer):
         return self.transform(X)
 
     def inverse_transform(self, x):
-
         x_rec = np.dot(x, self.eig_vectors.T)
 
         return x_rec + self.mean_

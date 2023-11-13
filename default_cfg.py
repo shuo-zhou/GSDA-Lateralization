@@ -24,14 +24,15 @@ _C.DATASET.TYPE = "functional"
 _C.DATASET.SESSIONS = [None]
 _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
-_C.DATASET.NUM_REPEAT = 5
+_C.DATASET.NUM_REPEAT = 1
 _C.DATASET.MIX_GROUP = False
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.SEED = 2023
-_C.SOLVER.L2PARAM = 10  # Initial learning rate
+_C.SOLVER.L2PARAM = 10
+_C.SOLVER.LR = 0.04  # Initial learning rate
 _C.SOLVER.LAMBDA_ = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
 # ---------------------------------------------------------------------------- #

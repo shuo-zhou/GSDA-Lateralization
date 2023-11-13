@@ -30,7 +30,7 @@ def main():
         cfg_file.write("  MIX_GEND: True\n")
         cfg_file.write("SOLVER:\n")
         cfg_file.write("  SEED: %s\n" % seed)
-        cfg_file.write("  LAMBDA_: %s\n" % lambda_)
+        cfg_file.write("  LAMBDA_: [%s]\n" % lambda_)
         cfg_file.write("OUTPUT:\n")
         cfg_file.write("  ROOT: %s\n" % output_dir)
         cfg_file.close()

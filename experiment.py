@@ -23,8 +23,10 @@ BASE_RESULT_DICT = {
 }
 
 
-LABEL_FILE_LINK = {"HCP": "https://zenodo.org/records/10050233/files/HCP_half_brain.csv",
-                   "GSP": "https://zenodo.org/records/10050234/files/GSP_half_brain.csv"}
+LABEL_FILE_LINK = {
+    "HCP": "https://zenodo.org/records/10050233/files/HCP_half_brain.csv",
+    "GSP": "https://zenodo.org/records/10050234/files/GSP_half_brain.csv",
+}
 
 
 def run_experiment(cfg):
@@ -223,12 +225,13 @@ def run_no_sub_hold_hcp(
     }
 
     for train_session, test_session in [("REST1", "REST2"), ("REST2", "REST1")]:
-
         for i_split in range(num_repeat):
             x_all = dict()
             y_all = dict()
             for session in [train_session, test_session]:
-                x, y, x1, y1 = io_.pick_half(data[session], random_state=random_state * (i_split + 1))
+                x, y, x1, y1 = io_.pick_half(
+                    data[session], random_state=random_state * (i_split + 1)
+                )
                 # x, y = _pick_half_subs(data[run_])
 
                 x_all[session] = [x, x1]
@@ -363,7 +366,12 @@ def run_sub_hold_hcp(
 
                 for tgt_group in [0, 1]:
                     _idx = split_by_group(groups, train_sub, test_sub, tgt_group)
-                    train_sub_tgt_idx, train_sub_nt_idx, test_sub_tgt_idx, test_sub_nt_idx = _idx
+                    (
+                        train_sub_tgt_idx,
+                        train_sub_nt_idx,
+                        test_sub_tgt_idx,
+                        test_sub_nt_idx,
+                    ) = _idx
 
                     if mix_group:
                         if tgt_group == 1:
@@ -444,9 +452,10 @@ def run_sub_hold_hcp(
                         "groups": groups[train_sub],
                         "target_idx": train_sub_tgt_idx,
                     }
-                    model_filename = "HCP_L%s_test_size0%s_%s_%s_group_%s_%s" % (
+                    model_filename = "HCP_L%s_test_size0%s_%s_%s_%s_group_%s_%s" % (
                         int(lambda_),
                         str(int(test_size * 10)),
+                        train_session,
                         i_split,
                         train_fold,
                         tgt_group,
@@ -512,7 +521,12 @@ def run_sub_hold_gsp(
 
             for tgt_group in [0, 1]:
                 _idx = split_by_group(groups, train_sub, test_sub, tgt_group)
-                train_sub_tgt_idx, train_sub_nt_idx, test_sub_tgt_idx, test_sub_nt_idx = _idx
+                (
+                    train_sub_tgt_idx,
+                    train_sub_nt_idx,
+                    test_sub_tgt_idx,
+                    test_sub_nt_idx,
+                ) = _idx
 
                 if mix_group:
                     tgt_group = "mix"

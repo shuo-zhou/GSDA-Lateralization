@@ -25,7 +25,7 @@ def main():
             cfg_file = open(os.path.join(cfg_dir, cfg_fname), "w")
             cfg_file.write("SOLVER:\n")
             cfg_file.write("  SEED: %s\n" % seed)
-            cfg_file.write("  LAMBDA_: %s\n" % lambda_)
+            cfg_file.write("  LAMBDA_: [%s]\n" % lambda_)
             cfg_file.close()
 
             batch_fname = "L%s_%s.sh" % (lambda_, seed)

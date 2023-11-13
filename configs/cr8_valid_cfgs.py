@@ -21,7 +21,10 @@ def main():
     batch_dir = os.path.join("/shared/tale2/Shared/szhou/qsub/Brain_LR", dataset)
     cfg_dir = os.path.join(batch_dir, "configs")
     data_dir = "/shared/tale2/Shared/data/brain/%s/proc" % dataset
-    output_dir = "/shared/tale2/Shared/data/brain/%s/Models/test_size0%s" % (dataset, test_size_str)
+    output_dir = "/shared/tale2/Shared/data/brain/%s/Models/test_size0%s" % (
+        dataset,
+        test_size_str,
+    )
     for _dir in [batch_dir, cfg_dir]:
         mk_dir(_dir)
     py_dir = "/shared/tale2/Shared/szhou/code/Brain_LR_BNU"
@@ -44,7 +47,7 @@ def main():
             cfg_file.write("  TEST_SIZE: %s\n" % test_size)
             cfg_file.write("SOLVER:\n")
             cfg_file.write("  SEED: %s\n" % seed)
-            cfg_file.write("  LAMBDA_: %s\n" % lambda_)
+            cfg_file.write("  LAMBDA_: [%s]\n" % lambda_)
             cfg_file.write("OUTPUT:\n")
             cfg_file.write("  ROOT: %s\n" % output_dir)
             cfg_file.close()

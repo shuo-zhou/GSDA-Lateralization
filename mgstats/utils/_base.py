@@ -76,7 +76,6 @@ def mmd_coef(ns, nt, ys=None, yt=None, kind="marginal", mu=0.5):
 
 
 def base_init(X, kernel="linear", **kwargs):
-
     n = X.shape[0]
     # Construct kernel matrix
     ker_x = pairwise_kernels(X, metric=kernel, filter_params=True, **kwargs)
