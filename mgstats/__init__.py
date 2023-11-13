@@ -1,7 +1,7 @@
 """
-SSLearn
+MGStats:
 
-A Semi-supervised Learning Python package
+A Multi-Group Statistical Analysis Python package
 """
 
 __version__ = "0.0.1"

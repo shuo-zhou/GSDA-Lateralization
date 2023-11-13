@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 from sklearn.metrics import accuracy_score  # , roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit
+from torch.hub import download_url_to_file
 
 import io_
 from mgstats.estimator import GSLR
@@ -22,12 +23,17 @@ BASE_RESULT_DICT = {
 }
 
 
+LABEL_FILE_LINK = {"HCP": "https://zenodo.org/records/10050233/files/HCP_half_brain.csv",
+                   "GSP": "https://zenodo.org/records/10050234/files/GSP_half_brain.csv"}
+
+
 def run_experiment(cfg):
     atlas = cfg.DATASET.ATLAS
+    download = cfg.DATASET.DOWNLOAD
     connection_type = cfg.DATASET.CONNECTION
     data_dir = cfg.DATASET.ROOT
-    dataset = cfg.DATASET.DATASET
-    lambda_ = cfg.SOLVER.LAMBDA_
+    dataset = cfg.DATASET.DATASET.upper()
+    lambda_list = cfg.SOLVER.LAMBDA_
     run_ = cfg.DATASET.RUN
     random_state = cfg.SOLVER.SEED
     test_size = cfg.DATASET.TEST_SIZE
@@ -37,77 +43,91 @@ def run_experiment(cfg):
     mix_group = cfg.DATASET.MIX_GROUP
 
     if mix_group:
-        lambda_ = 0.0
-        out_folder = "lambda0_group_mix"
-    else:
-        out_folder = "lambda%s" % int(lambda_)
-    out_dir = os.path.join(cfg.OUTPUT.ROOT, out_folder)
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+        lambda_list = [0.0]
 
-    info_file = "%s_%s_half_brain.csv" % (cfg.DATASET.DATASET, atlas)
-    info = io_.read_table(os.path.join(data_dir, info_file), index_col="ID")
-    group_label = info["gender"].values
+    label_file = "%s_%s_half_brain.csv" % (cfg.DATASET.DATASET, atlas)
+    label_fpath = os.path.join(data_dir, label_file)
+    if not os.path.exists(label_fpath):
+        if download:
+            os.makedirs(data_dir, exist_ok=True)
+            download_url_to_file(LABEL_FILE_LINK[dataset], label_fpath)
+        else:
+            raise ValueError("File %s does not exist" % label_file)
+    labels = io_.read_table(label_fpath, index_col="ID")
+    group_label = labels["gender"].values
 
-    kwargs = {
-        "groups": group_label,
-        "lambda_": lambda_,
-        "l2_param": l2_param,
-        "mix_group": mix_group,
-        "out_dir": out_dir,
-        "num_repeat": num_repeat,
-        "test_size": test_size,
-        "random_state": random_state,
-    }
+    for lambda_ in lambda_list:
+        print("Training model with lambda = %s" % lambda_)
+        if mix_group:
+            out_folder = "lambda0_group_mix"
+        else:
+            out_folder = "lambda%s" % int(lambda_)
+        out_dir = os.path.join(cfg.OUTPUT.ROOT, out_folder)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
 
-    if dataset == "HCP":
-        data = dict()
-        sessions = ["REST1", "REST2"]
-        for session in sessions:
-            data[session] = io_.load_half_brain(
-                data_dir, atlas, session, run_, connection_type
+        kwargs = {
+            "groups": group_label,
+            "lambda_": lambda_,
+            "l2_param": l2_param,
+            "mix_group": mix_group,
+            "out_dir": out_dir,
+            "num_repeat": num_repeat,
+            "test_size": test_size,
+            "random_state": random_state,
+        }
+
+        if dataset == "HCP":
+            data = dict()
+            sessions = ["REST1", "REST2"]
+            for session in sessions:
+                data[session] = io_.load_half_brain(
+                    data_dir, atlas, session, run_, connection_type, download=download
+                )
+            kwargs = {**{"data": data}, **kwargs}
+            if test_size == 0:
+                results = run_no_sub_hold_hcp(**kwargs)
+            elif 0 < test_size < 1:
+                results = run_sub_hold_hcp(**kwargs)
+            else:
+                raise ValueError("Invalid test_size %s" % test_size)
+
+        elif dataset == "GSP":
+            data = io_.load_half_brain(
+                data_dir,
+                atlas,
+                session=None,
+                run=run_,
+                connection_type=connection_type,
+                dataset=dataset,
+                download=download,
             )
-        kwargs = {**{"data": data}, **kwargs}
-        if test_size == 0:
-            results = run_no_sub_hold_hcp(**kwargs)
-        elif 0 < test_size < 1:
-            results = run_sub_hold_hcp(**kwargs)
+            kwargs = {**{"data": data}, **kwargs}
+            if 0 < test_size < 1:
+                results = run_sub_hold_gsp(**kwargs)
+            elif test_size == 0:
+                results = run_sub_hold_gsp(**kwargs)
+            else:
+                raise ValueError("Invalid test_size %s" % test_size)
         else:
-            raise ValueError("Invalid test_size %s" % test_size)
+            raise ValueError("Invalid dataset %s" % dataset)
 
-    elif dataset == "gsp":
-        data = io_.load_half_brain(
-            data_dir,
-            atlas,
-            session=None,
-            run=run_,
-            connection_type=connection_type,
-            dataset=dataset,
+        res_df = pd.DataFrame.from_dict(results)
+        out_filename = "results_%s_L%s_test_size0%s_%s_%s" % (
+            dataset,
+            int(lambda_),
+            str(int(test_size * 10)),
+            run_,
+            random_state,
         )
-        kwargs = {**{"data": data}, **kwargs}
-        if 0 < test_size < 1:
-            results = run_sub_hold_gsp(**kwargs)
-        elif test_size == 0:
-            results = run_sub_hold_gsp(**kwargs)
-        else:
-            raise ValueError("Invalid test_size %s" % test_size)
-    else:
-        raise ValueError("Invalid dataset %s" % dataset)
 
-    res_df = pd.DataFrame.from_dict(results)
-    out_filename = "results_%s_L%s_test_size0%s_%s_%s" % (
-        dataset,
-        int(lambda_),
-        str(int(test_size * 10)),
-        run_,
-        random_state,
-    )
+        if mix_group:
+            out_filename = out_filename + "_group_mix"
+        out_file = os.path.join(out_dir, "%s.csv" % out_filename)
 
-    if mix_group:
-        out_filename = out_filename + "_group_mix"
-    out_file = os.path.join(out_dir, "%s.csv" % out_filename)
+        res_df.to_csv(out_file, index=False)
 
-    return res_df, out_file
+    # return res_df, out_file
 
 
 def train_modal(lambda_, l2_param, x_train, fit_kws, out_dir, model_filename):
@@ -162,6 +182,23 @@ def save_loop_results(
     return res_dict
 
 
+def split_by_group(groups, train_subject, test_subject, target_group=0):
+    """Split the data by group.
+
+    Args:
+        groups (np.ndarray): Group labels.
+        train_subject (np.ndarray): Training subjects indices.
+        test_subject (np.ndarray): Testing subjects indices.
+        target_group (int, optional): Target group. Defaults to 0.
+    """
+    train_sub_tgt_idx = np.where(groups[train_subject] == target_group)[0]
+    train_sub_nt_idx = np.where(groups[train_subject] == 1 - target_group)[0]
+    test_sub_tgt_idx = np.where(groups[test_subject] == target_group)[0]
+    test_sub_nt_idx = np.where(groups[test_subject] == 1 - target_group)[0]
+
+    return train_sub_tgt_idx, train_sub_nt_idx, test_sub_tgt_idx, test_sub_nt_idx
+
+
 def run_no_sub_hold_hcp(
     data,
     groups,
@@ -176,10 +213,10 @@ def run_no_sub_hold_hcp(
     # main loop
     res = {
         **{
-            "acc_ic_is": [],
-            "acc_ic_os": [],
-            "acc_oc_is": [],
-            "acc_oc_os": [],
+            "acc_tgt_train_session": [],
+            "acc_tgt_test_session": [],
+            "acc_nt_train_session": [],
+            "acc_nt_test_session": [],
             "train_session": [],
         },
         **copy.deepcopy(BASE_RESULT_DICT),
@@ -191,9 +228,7 @@ def run_no_sub_hold_hcp(
             x_all = dict()
             y_all = dict()
             for session in [train_session, test_session]:
-                x, y, x1, y1 = io_._pick_half(
-                    data[session], random_state=random_state * (i_split + 1)
-                )
+                x, y, x1, y1 = io_.pick_half(data[session], random_state=random_state * (i_split + 1))
                 # x, y = _pick_half_subs(data[run_])
 
                 x_all[session] = [x, x1]
@@ -205,56 +240,53 @@ def run_no_sub_hold_hcp(
 
                 # scaler = StandardScaler()
                 # scaler.fit(x_train_fold)
-                for train_group in [0, 1]:
-                    tgt_is_idx = np.where(groups == train_group)[0]
-                    nt_is_idx = np.where(groups == 1 - train_group)[0]
-
-                    tgt_os_idx = np.where(groups == train_group)[0]
-                    nt_os_idx = np.where(groups == 1 - train_group)[0]
+                for tgt_group in [0, 1]:
+                    tgt_idx = np.where(groups == tgt_group)[0]
+                    nt_idx = np.where(groups == 1 - tgt_group)[0]
 
                     if mix_group:
-                        if train_group == 1:
+                        if tgt_group == 1:
                             continue
-                        train_group = "mix"
+                        tgt_group = "mix"
 
                     xy_test = {
-                        "acc_ic_is": [
-                            x_all[train_session][1 - i_fold][tgt_is_idx],
-                            y_all[train_session][1 - i_fold][tgt_is_idx],
+                        "acc_tgt_train_session": [
+                            x_all[train_session][1 - i_fold][tgt_idx],
+                            y_all[train_session][1 - i_fold][tgt_idx],
                         ],
-                        "acc_ic_os": [
+                        "acc_tgt_test_session": [
                             np.concatenate(
-                                [x_all[test_session][i][tgt_os_idx] for i in range(2)]
+                                [x_all[test_session][i][tgt_idx] for i in range(2)]
                             ),
                             np.concatenate(
-                                [y_all[test_session][i][tgt_os_idx] for i in range(2)]
+                                [y_all[test_session][i][tgt_idx] for i in range(2)]
                             ),
                         ],
-                        "acc_oc_is": [
-                            x_all[train_session][1 - i_fold][nt_is_idx],
-                            y_all[train_session][1 - i_fold][nt_is_idx],
+                        "acc_nt_train_session": [
+                            x_all[train_session][1 - i_fold][nt_idx],
+                            y_all[train_session][1 - i_fold][nt_idx],
                         ],
-                        "acc_oc_os": [
+                        "acc_nt_test_session": [
                             np.concatenate(
-                                [x_all[test_session][i][nt_os_idx] for i in range(2)]
+                                [x_all[test_session][i][nt_idx] for i in range(2)]
                             ),
                             np.concatenate(
-                                [y_all[test_session][i][nt_os_idx] for i in range(2)]
+                                [y_all[test_session][i][nt_idx] for i in range(2)]
                             ),
                         ],
                     }
 
                     fit_kws = {
-                        "y": y_train_fold[tgt_is_idx],
+                        "y": y_train_fold[tgt_idx],
                         "groups": groups,
-                        "target_idx": tgt_is_idx,
+                        "target_idx": tgt_idx,
                     }
                     model_filename = "HCP_L%s_test_size00_%s_%s_%s_group_%s_%s" % (
                         int(lambda_),
                         train_session,
                         i_split,
                         i_fold,
-                        train_group,
+                        tgt_group,
                         random_state,
                     )
                     if mix_group:
@@ -277,7 +309,7 @@ def run_no_sub_hold_hcp(
                         model,
                         res,
                         xy_test,
-                        train_group,
+                        tgt_group,
                         train_session,
                         lambda_,
                         i_split,
@@ -300,10 +332,10 @@ def run_sub_hold_hcp(
 ):
     res = {
         **{
-            "acc_ic_is": [],
-            "acc_ic_os": [],
-            "acc_oc_is": [],
-            "acc_oc_os": [],
+            "acc_tgt_train_session": [],
+            "acc_tgt_test_session": [],
+            "acc_nt_train_session": [],
+            "acc_nt_test_session": [],
             "acc_tgt_test_sub": [],
             "acc_nt_test_sub": [],
             "train_session": [],
@@ -314,7 +346,7 @@ def run_sub_hold_hcp(
     y_all = dict()
 
     for session in ["REST1", "REST2"]:
-        x, y, x1, y1 = io_._pick_half(data[session], random_state=random_state)
+        x, y, x1, y1 = io_.pick_half(data[session], random_state=random_state)
 
         x_all[session] = [x, x1]
         y_all[session] = [y, y1]
@@ -329,21 +361,17 @@ def run_sub_hold_hcp(
                 x_train_fold = x_all[train_session][train_fold]
                 y_train_fold = y_all[train_session][train_fold]
 
-                for target_group in [0, 1]:
-                    train_sub_tgt_idx = np.where(groups[train_sub] == target_group)[0]
-                    train_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[
-                        0
-                    ]
-                    test_sub_tgt_idx = np.where(groups[test_sub] == target_group)[0]
-                    test_sub_nt_idx = np.where(groups[test_sub] == 1 - target_group)[0]
+                for tgt_group in [0, 1]:
+                    _idx = split_by_group(groups, train_sub, test_sub, tgt_group)
+                    train_sub_tgt_idx, train_sub_nt_idx, test_sub_tgt_idx, test_sub_nt_idx = _idx
 
                     if mix_group:
-                        if target_group == 1:
+                        if tgt_group == 1:
                             continue
-                        target_group = "mix"
+                        tgt_group = "mix"
 
                     xy_test = {
-                        "acc_ic_is": [
+                        "acc_tgt_train_session": [
                             x_all[train_session][1 - train_fold][train_sub][
                                 train_sub_tgt_idx
                             ],
@@ -351,7 +379,7 @@ def run_sub_hold_hcp(
                                 train_sub_tgt_idx
                             ],
                         ],
-                        "acc_ic_os": [
+                        "acc_tgt_test_session": [
                             np.concatenate(
                                 [
                                     x_all[test_session][i][train_sub][train_sub_tgt_idx]
@@ -365,7 +393,7 @@ def run_sub_hold_hcp(
                                 ]
                             ),
                         ],
-                        "acc_oc_is": [
+                        "acc_nt_train_session": [
                             x_all[train_session][1 - train_fold][train_sub][
                                 train_sub_nt_idx
                             ],
@@ -373,7 +401,7 @@ def run_sub_hold_hcp(
                                 train_sub_nt_idx
                             ],
                         ],
-                        "acc_oc_os": [
+                        "acc_nt_test_session": [
                             np.concatenate(
                                 [
                                     x_all[test_session][i][train_sub][train_sub_nt_idx]
@@ -421,7 +449,7 @@ def run_sub_hold_hcp(
                         str(int(test_size * 10)),
                         i_split,
                         train_fold,
-                        target_group,
+                        tgt_group,
                         random_state,
                     )
                     x_train = x_train_fold[train_sub]
@@ -441,7 +469,7 @@ def run_sub_hold_hcp(
                         model,
                         res,
                         xy_test,
-                        target_group,
+                        tgt_group,
                         train_session,
                         lambda_,
                         i_split,
@@ -467,7 +495,7 @@ def run_sub_hold_gsp(
         **copy.deepcopy(BASE_RESULT_DICT),
     }
 
-    x, y, x1, y1 = io_._pick_half(data, random_state=random_state)
+    x, y, x1, y1 = io_.pick_half(data, random_state=random_state)
 
     x_all = [x, x1]
     y_all = [y, y1]
@@ -482,15 +510,13 @@ def run_sub_hold_gsp(
             x_test_fold = x_all[1 - train_fold]
             y_test_fold = y_all[1 - train_fold]
 
-            for target_group in [0, 1]:
-                train_sub_tgt_idx = np.where(groups[train_sub] == target_group)[0]
-                train_sub_nt_idx = np.where(groups[train_sub] == 1 - target_group)[0]
-                test_sub_tgt_idx = np.where(groups[test_sub] == target_group)[0]
-                test_sub_nt_idx = np.where(groups[test_sub] == 1 - target_group)[0]
+            for tgt_group in [0, 1]:
+                _idx = split_by_group(groups, train_sub, test_sub, tgt_group)
+                train_sub_tgt_idx, train_sub_nt_idx, test_sub_tgt_idx, test_sub_nt_idx = _idx
 
                 if mix_group:
-                    target_group = "mix"
-                    if target_group == 1:
+                    tgt_group = "mix"
+                    if tgt_group == 1:
                         continue
 
                 x_train_fold_test_tgt = x_test_fold[train_sub][train_sub_tgt_idx]
@@ -503,12 +529,12 @@ def run_sub_hold_gsp(
                     "groups": groups,
                     "target_idx": train_sub_tgt_idx,
                 }
-                model_filename = "gsp_L%s_test_size0%s_%s_%s_group_%s_%s" % (
+                model_filename = "GSP_L%s_test_size0%s_%s_%s_group_%s_%s" % (
                     int(lambda_),
                     str(int(test_size * 10)),
                     i_split,
                     train_fold,
-                    target_group,
+                    tgt_group,
                     random_state,
                 )
                 if 0 < test_size < 1:
@@ -582,7 +608,7 @@ def run_sub_hold_gsp(
                     model,
                     res,
                     xy_test,
-                    target_group,
+                    tgt_group,
                     lambda_=lambda_,
                     i_split=i_split,
                     train_fold=train_fold,
@@ -607,7 +633,7 @@ def run_no_sub_hold_gsp(
         **copy.deepcopy(BASE_RESULT_DICT),
     }
     for i_split in range(num_repeat):
-        x, y, x1, y1 = io_._pick_half(data, random_state=random_state * (i_split + 1))
+        x, y, x1, y1 = io_.pick_half(data, random_state=random_state * (i_split + 1))
         x_all = [x, x1]
         y_all = [y, y1]
 
@@ -636,7 +662,7 @@ def run_no_sub_hold_gsp(
                     "groups": groups,
                     "target_idx": tgt_idx,
                 }
-                model_filename = "gsp_L%s_test_size00_%s_%s_group_%s_%s" % (
+                model_filename = "GSP_L%s_test_size00_%s_%s_group_%s_%s" % (
                     int(lambda_),
                     i_split,
                     i_fold,

@@ -2,10 +2,11 @@ from time import time
 
 import numpy as np
 import torch
-import torch.nn as nn
+# import torch.nn as nn
 from numpy.linalg import multi_dot
 from sklearn.base import BaseEstimator, ClassifierMixin
-from torch.nn import functional as F
+
+# from torch.nn import functional as F
 
 
 def hsic(x, y):
@@ -20,78 +21,78 @@ def hsic(x, y):
     )
 
 
-class CoDeLR_Torch(nn.Module):
-    def __init__(
-        self, lr=0.001, l1_hparam=0.0, l2_hparam=1.0, lambda_=1.0, n_epochs=500
-    ):
-        super().__init__()
-        self.lr = lr
-        self.l1_hparam = l1_hparam
-        self.l2_hparam = l2_hparam
-        self.lambda_ = lambda_
-        self.n_epochs = n_epochs
-        self.model = None
-        self.optimizer = None
-        self.fit_time = 0
-        self.losses = {"ovr": [], "pred": [], "code": [], "time": []}
-        # self.linear = nn.Linear(n_features, n_classes)
-
-    def fit(self, x, y, c, target_idx=None):
-        n_features = x.shape[1]
-        # n_classes = torch.unique(y).shape[0]
-        # self.model = nn.Linear(n_features, n_classes)
-        self.model = nn.Linear(n_features, 1)
-        n_train = y.shape[0]
-        if target_idx is None:
-            target_idx = torch.arange(n_train)
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam
-        )
-        # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-
-        start_time = time()
-        for epoch in range(self.n_epochs):
-            out = self.model(x)
-            pred_loss = self._compute_pred_loss(out[target_idx], y.view(-1))
-            # l2_norm = torch.linalg.norm()
-            code_loss = self._compute_code_loss(out, c)
-            loss = pred_loss + self.lambda_ * code_loss
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-
-            if (epoch + 1) % 10 == 0:
-                time_used = time() - start_time
-                self.losses["ovr"].append(loss.item())
-                self.losses["pred"].append(pred_loss.item())
-                self.losses["code"].append(code_loss.item())
-                self.losses["time"].append(time_used)
-                # print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, self.n_epochs, loss.item()))
-                # print('Pred Loss: {:.4f}'.format(pred_loss.item()))
-                # print('CoDe Loss: {:.4f}'.format(code_loss.item()))
-
-        # print('Time used: {:.4f}'.format(time_used))
-
-    @staticmethod
-    def _compute_pred_loss(input_, y):
-        # return F.cross_entropy(F.sigmoid(input_), y.view(-1))
-        return F.binary_cross_entropy(torch.sigmoid(input_), y.view((-1, 1)).float())
-
-    @staticmethod
-    def _compute_code_loss(input_, c):
-        return 1 - torch.sigmoid(hsic(input_, c.float()))
-
-    def forward(self, x):
-        return self.model(x)
-
-    def predict(self, x):
-        output = self.forward(x)
-        # _, y_pred = torch.max(output, 1)
-        y_prob = torch.sigmoid(output)
-        y_pred = torch.zeros(output.shape)
-        y_pred[torch.where(y_prob > 0.5)] = 1
-
-        return y_pred
+# class CoDeLR_Torch(nn.Module):
+#     def __init__(
+#         self, lr=0.001, l1_hparam=0.0, l2_hparam=1.0, lambda_=1.0, n_epochs=500
+#     ):
+#         super().__init__()
+#         self.lr = lr
+#         self.l1_hparam = l1_hparam
+#         self.l2_hparam = l2_hparam
+#         self.lambda_ = lambda_
+#         self.n_epochs = n_epochs
+#         self.model = None
+#         self.optimizer = None
+#         self.fit_time = 0
+#         self.losses = {"ovr": [], "pred": [], "code": [], "time": []}
+#         # self.linear = nn.Linear(n_features, n_classes)
+#
+#     def fit(self, x, y, c, target_idx=None):
+#         n_features = x.shape[1]
+#         # n_classes = torch.unique(y).shape[0]
+#         # self.model = nn.Linear(n_features, n_classes)
+#         self.model = nn.Linear(n_features, 1)
+#         n_train = y.shape[0]
+#         if target_idx is None:
+#             target_idx = torch.arange(n_train)
+#         self.optimizer = torch.optim.Adam(
+#             self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam
+#         )
+#         # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+#
+#         start_time = time()
+#         for epoch in range(self.n_epochs):
+#             out = self.model(x)
+#             pred_loss = self._compute_pred_loss(out[target_idx], y.view(-1))
+#             # l2_norm = torch.linalg.norm()
+#             code_loss = self._compute_code_loss(out, c)
+#             loss = pred_loss + self.lambda_ * code_loss
+#             self.optimizer.zero_grad()
+#             loss.backward()
+#             self.optimizer.step()
+#
+#             if (epoch + 1) % 10 == 0:
+#                 time_used = time() - start_time
+#                 self.losses["ovr"].append(loss.item())
+#                 self.losses["pred"].append(pred_loss.item())
+#                 self.losses["code"].append(code_loss.item())
+#                 self.losses["time"].append(time_used)
+#                 # print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, self.n_epochs, loss.item()))
+#                 # print('Pred Loss: {:.4f}'.format(pred_loss.item()))
+#                 # print('CoDe Loss: {:.4f}'.format(code_loss.item()))
+#
+#         # print('Time used: {:.4f}'.format(time_used))
+#
+#     @staticmethod
+#     def _compute_pred_loss(input_, y):
+#         # return F.cross_entropy(F.sigmoid(input_), y.view(-1))
+#         return F.binary_cross_entropy(torch.sigmoid(input_), y.view((-1, 1)).float())
+#
+#     @staticmethod
+#     def _compute_code_loss(input_, c):
+#         return 1 - torch.sigmoid(hsic(input_, c.float()))
+#
+#     def forward(self, x):
+#         return self.model(x)
+#
+#     def predict(self, x):
+#         output = self.forward(x)
+#         # _, y_pred = torch.max(output, 1)
+#         y_prob = torch.sigmoid(output)
+#         y_pred = torch.zeros(output.shape)
+#         y_pred[torch.where(y_prob > 0.5)] = 1
+#
+#         return y_pred
 
 
 class GSLR(BaseEstimator, ClassifierMixin):
@@ -113,7 +114,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         Smaller values specify stronger regularization.
     tolerance : float, optional, default=1e-4
         Value indicating the weight change between epochs in which
-        gradient descent should terminated.
+        gradient descent should be terminated.
     """
 
     def __init__(
@@ -203,6 +204,10 @@ class GSLR(BaseEstimator, ClassifierMixin):
                 self.losses["pred"].append(pred_log_loss)
                 self.losses["hsic"].append(hsic_log_loss)
                 self.losses["time"].append(time_used)
+                # if np.abs(self.losses["ovr"][-1] - self.losses["ovr"][-2]) < self.tolerance:
+                #     break
+                if len(self.losses["ovr"]) > 10 and self.losses["ovr"][-1] > self.losses["ovr"][-2]:
+                    break
 
             # if _ % 100 == 0:
             #     self.learning_rate *= 0.9

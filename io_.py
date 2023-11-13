@@ -1,7 +1,6 @@
 import copy
-import glob
+# import glob
 import os
-import sys
 
 import h5py
 import matplotlib.pyplot as plt
@@ -11,11 +10,19 @@ import pandas as pd
 import seaborn as sns
 # MRI related func
 import torch
-from joblib import dump, load
+from joblib import load
 from scipy.io import loadmat, savemat
 from scipy.stats import pearsonr
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
+from torch.hub import download_url_to_file
+
+# import sys
+
+
+HCP_LINK = {"REST1": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST1_Fisherz.hdf5",
+            "REST2": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST2_Fisherz.hdf5"}
+GSP_LINK = "https://zenodo.org/records/10050234/files/GSP_BNA_intra_half_brain_Fisherz.mat"
 
 
 def load_txt(fpaths, connection_type="intra"):
@@ -102,7 +109,7 @@ def get_fpaths(fdir, idx_list, file_format="txt"):
         if os.path.exists(fpath):
             fpaths[idx] = fpath
 
-    fpath_df = pd.DataFrame(data={"File path": fpaths.values()}, index=fpaths.keys())
+    fpath_df = pd.DataFrame(data={"File path": fpaths.values()}, index=list(fpaths.keys()))
 
     return fpath_df
 
@@ -144,7 +151,7 @@ def split_functional_brain(matrix, connection_type="intra"):
 
 
 def save_half_brain(out_dir, out_fname, data_left, data_right):
-    """Save two hemisphere nadarrays into an hdf5 file
+    """Save two hemisphere nadarrays into a hdf5 file
 
     Parameters
     ----------
@@ -164,7 +171,7 @@ def save_half_brain(out_dir, out_fname, data_left, data_right):
 
 
 def save_half_brain_mat(out_dir, out_fname, data_left, data_right):
-    """Save two hemisphere nadarrays into an hdf5 file
+    """Save two hemisphere nadarrays into a hdf5 file
 
     Parameters
     ----------
@@ -181,13 +188,14 @@ def save_half_brain_mat(out_dir, out_fname, data_left, data_right):
 
 
 def load_half_brain(
-    data_dir,
-    atlas,
-    session=None,
-    run=None,
-    connection_type="intra",
-    data_type="functional",
-    dataset="HCP",
+        data_dir,
+        atlas,
+        session=None,
+        run=None,
+        connection_type="intra",
+        data_type="functional",
+        dataset="HCP",
+        download=True,
 ):
     """
 
@@ -200,6 +208,7 @@ def load_half_brain(
     connection_type
     data_type
     dataset
+    download: bool, optional, download the data if the data files not exist (default=True)
 
     Returns
     -------
@@ -207,29 +216,19 @@ def load_half_brain(
     """
     if dataset == "HCP":
         if data_type == "functional":
-            if connection_type == "both":
-                data = {"Left": [], "Right": []}
-                for type_ in ["inter", "intra"]:
-                    fname = "%s_%s_%s_half_brain_%s_%s.hdf5" % (
-                        dataset,
-                        atlas,
-                        type_,
-                        session,
-                        run,
-                    )
-                    data_in = load_hdf5(os.path.join(data_dir, fname))
-                    data["Left"].append(data_in["Left"])
-                    data["Right"].append(data_in["Right"])
-                data["Left"] = np.concatenate(data["Left"], axis=1)
-                data["Right"] = np.concatenate(data["Right"], axis=1)
-            else:
-                fname = "HCP_%s_%s_half_brain_%s_%s.hdf5" % (
-                    atlas,
-                    connection_type,
-                    session,
-                    run,
-                )
-                data = load_hdf5(os.path.join(data_dir, fname))
+            fname = "HCP_%s_%s_half_brain_%s_%s.hdf5" % (
+                atlas,
+                connection_type,
+                session,
+                run,
+            )
+            fpath = os.path.join(data_dir, fname)
+            if not os.path.exists(fpath):
+                if download:
+                    download_url_to_file(HCP_LINK[session], fpath, )
+                else:
+                    raise ValueError("File %s does not exist" % fpath)
+            data = load_hdf5(fpath)
         elif data_type == "structural":
             data = {"Left": [], "Right": []}
             fname = "%s_Volume.mat" % atlas
@@ -240,13 +239,20 @@ def load_half_brain(
             data["Right"] = data_in[:, 1::2]
         else:
             raise ValueError("Invalid data type %s" % data_type)
-    elif dataset in ["ABIDE", "ukb", "gsp"]:
-        data_file = loadmat(
-            os.path.join(
-                data_dir,
-                "%s_%s_%s_half_brain_%s.mat" % (dataset, atlas, connection_type, run),
-            )
+    elif dataset in ["ABIDE", "ukb", "GSP"]:
+        fpath = os.path.join(
+            data_dir,
+            "%s_%s_%s_half_brain_%s.mat" % (dataset, atlas, connection_type, run),
         )
+        if not os.path.exists(fpath):
+            if download:
+                if dataset == "GSP":
+                    download_url_to_file(GSP_LINK, fpath)
+                else:
+                    raise ValueError("File %s does not exist" % fpath)
+            else:
+                raise ValueError("File %s does not exist" % fpath)
+        data_file = loadmat(fpath)
         data = {"Left": data_file["Left"], "Right": data_file["Right"]}
     else:
         raise ValueError("Invalid dataset %s" % dataset)
@@ -272,8 +278,9 @@ def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
 
     Args:
         base_dir:
-        gender:
-        lambda_:
+        task:
+        num_repeat:
+        permutation:
 
     Returns:
 
@@ -297,12 +304,13 @@ def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
     return np.concatenate(weight, axis=0)
 
 
-def save_results(res_dict, output_dir, mix_group=False):
-    """_summary_
+def save_results(res_dict, out_filename, output_dir, mix_group=False):
+    """save a dictionary to a csv file
 
     Args:
         res_dict (_type_): _description_
-        output_dir (_type_): _description_
+        out_filename (str): _description_
+        output_dir (str): _description_
         mix_group (bool, optional): _description_. Defaults to False.
     """
     res_df = pd.DataFrame.from_dict(res_dict)
@@ -321,6 +329,7 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
         root_dir (string): _description_
         lambdas (list): _description_
         seed_start (_type_): _description_
+        test_size (float, optional): _description_. Defaults to 0.0.
     """
     res_dict = dict()
     res_list = []
@@ -329,7 +338,7 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
         res_dict[lambda_] = []
 
     for lambda_ in lambdas:
-        if type(lambda_) != str:
+        if type(lambda_) is not str:
             lambda_str = str(int(lambda_))
         else:
             lambda_str = lambda_
@@ -398,14 +407,14 @@ def reformat_results(res_df, test_sets, male=0):
 
 # read: nib.load()
 # write: nib.save()
-#### ******************************* file split ********************************** ####
+# ********************************** file split ************************************* #
 def file_split(file_path):
     filepath, tempfilename = os.path.split(file_path)
     filename, extension = os.path.splitext(tempfilename)
     return filepath, filename, extension
 
 
-#### ******************************* read h5 or pickle file as a df ********************************** ####
+# ********************************** read h5 or pickle file as a df ************************************* #
 
 
 def read_file(file):
@@ -415,7 +424,7 @@ def read_file(file):
     elif ext == ".pkl":
         df = pd.read_pickle(file)
     else:
-        print("file shoud be xxx.h5 or xxx.pkl...")
+        raise ValueError("Unsupported file type %s, supported type: xxx.h5 or xxx.pkl..." % ext)
 
     return df
 
@@ -427,7 +436,7 @@ def select_data_subj(df, subj_id, df_column_name):
     )
 
 
-def _pick_half(data, random_state=144):
+def pick_half(data, random_state=144):
     x = np.zeros(data["Left"].shape)
     left_idx, right_idx = train_test_split(
         range(x.shape[0]), test_size=0.5, random_state=random_state
@@ -461,7 +470,7 @@ def _pick_half_subs(data, random_state=144):
     )
     x = np.concatenate([data["Left"][train_idx], data["Right"][train_idx]], axis=0)
     y = np.ones(n_)
-    y[int(n_ / 2) :] = -1
+    y[int(n_ / 2):] = -1
 
     return x, y
 
@@ -477,7 +486,7 @@ def select_data_multi_subj(df, subj_ids, df_column_name):
     return data.to_numpy()  # convert pd series to numpy ndarray
 
 
-#### ******************************* read MRI files ****************************** ####
+# ********************************** read MRI files ********************************* #
 def read_surf(surface):
     surf = nib.load(surface)
     arr = surf.darrays
@@ -499,7 +508,7 @@ def read_shape_gii(shape_gii):
     return gii, data
 
 
-#### ******************************* Creat a .shape.gii file ****************************** ####
+# ********************************** Creat a .shape.gii file ********************************* #
 
 
 def creat_shape_gii(shape_gii_base, array_write, savepath):
@@ -508,7 +517,7 @@ def creat_shape_gii(shape_gii_base, array_write, savepath):
     nib.save(gii, savepath)
 
 
-## Creat a .shape gii file with atlas, e.g.,Kong400,Schaefer400
+# Creat a .shape gii file with atlas, e.g.,Kong400,Schaefer400
 def creat_fs_lr32k_atlas(shape_gii_base, array_write, atlas_file, hemi, savepath):
     # cdata = np.zeros((32492,))
     f_atlas = nib.load(atlas_file)
@@ -516,19 +525,19 @@ def creat_fs_lr32k_atlas(shape_gii_base, array_write, atlas_file, hemi, savepath
     f_data = f_data[0, :]
 
     if hemi == "L":
-        cdata = f_data[0 : int(len(f_data) / 2)].copy()  # L
+        cdata = f_data[0: int(len(f_data) / 2)].copy()  # L
         print("cdata.shape: %d" % (len(cdata)))
         for i, data in enumerate(array_write):
             cdata[np.where(cdata == i + 1)] = data
     else:
-        cdata = f_data[int(len(f_data) / 2) : int(len(f_data))].copy()  # R
+        cdata = f_data[int(len(f_data) / 2): int(len(f_data))].copy()  # R
         for i, data in enumerate(array_write):
             cdata[np.where(cdata == i + 1 + int(np.max(f_data) / 2))] = data
 
     creat_shape_gii(shape_gii_base, cdata, savepath)
 
 
-###################################### Corr with pvalue ###################################################
+# *********************************************** Corr with pvalue ************************************************ #
 def Corr(x, y):
     r, p = pearsonr(x, y)
     rr = round(r, 3)
@@ -536,7 +545,7 @@ def Corr(x, y):
     return rr, pp
 
 
-###################################### Join plot ###########################################################
+# ************************************************ Join plot ***************************************************** #
 # x,y should not be object data type, if so, convert it to np.float data type.
 def jointplot_fitlinear(x, y):
     plt.figure(figsize=(20, 16))
@@ -545,8 +554,8 @@ def jointplot_fitlinear(x, y):
 
 # sns.regplot(x='LL_LPAC_Math_Corr',y='ReadEng_AgeAdj',data=df, color='red', scatter_kws={"s": 8}),不显示分布信息
 
-###################################### Extract top N in a array ##############################
-# Extract top N element in a array and set others to 0.
+# *************************************** Extract top N in a array ************************************ #
+# Extract top N element in an array and set others to 0.
 def topN_array(arr, topN):
     idx_all = set(np.arange(len(arr)))
     idx_topN = arr.argsort()[::-1][:topN]
@@ -557,15 +566,16 @@ def topN_array(arr, topN):
     arr_topN[idx_res] = 0
     return arr_topN
 
-
 # def main_creat_shape_gii():
 #
 #     tasks = ['LANGUAGE']
 #     subjs = sio.loadmat(project_path + '/Subject_taskT.mat')
 #     subjects = subjs['Subject_taskT']
 #     subjects = np.reshape(subjects,(len(subjects),))
-#     shape_gii_base_L = project_path + '/Base_shape_gii/100206.L.thickness.32k_fs_LR.shape.gii' # for creat shape gii files
-#     shape_gii_base_R = project_path + '/Base_shape_gii/100206.R.thickness.32k_fs_LR.shape.gii'  # for creat shape gii files
+#     for creat shape gii files
+#     shape_gii_base_L = project_path + '/Base_shape_gii/100206.L.thickness.32k_fs_LR.shape.gii'
+#     for creat shape gii files
+#     shape_gii_base_R = project_path + '/Base_shape_gii/100206.R.thickness.32k_fs_LR.shape.gii'
 #
 #     for subj_id in subjects:
 #         df_column_name = 'task_t'
@@ -577,7 +587,8 @@ def topN_array(arr, topN):
 #                 Dirs = os.path.split(os.path.splitext(file)[0])
 #                 kName = Dirs[1]
 #                 df = rvp.read_orig_data(file, kName)
-#                 ResultantFolder = project_path +'/Result/Ridge_Vert_SubBased/Statistics/task_t_gii/' + str(subj_id) +'/' + task
+#                 ResultantFolder = (project_path + '/Result/Ridge_Vert_SubBased/Statistics/task_t_gii/'
+#                                    + str(subj_id) +'/' + task)
 #                 if not os.path.exists(ResultantFolder):
 #                     os.makedirs(ResultantFolder)
 #                 task_t = rvp.select_data_subj(df, subj_id, 'task_t').to_numpy()[0]

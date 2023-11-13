@@ -24,8 +24,7 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    results, outfile = run_experiment(cfg)
-    results.to_csv(outfile, index=False)
+    run_experiment(cfg)
 
 
 if __name__ == "__main__":

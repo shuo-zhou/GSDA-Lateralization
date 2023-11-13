@@ -19,7 +19,8 @@ configs/*.yaml
 
 .idea/
 .vscode/
-
+data/
+output/
 __pycache__
 **/lightning_logs/
 **.ipynb_checkpoints/
