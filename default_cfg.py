@@ -26,6 +26,7 @@ _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 1
 _C.DATASET.MIX_GROUP = False
+_C.DATASET.REST1_ONLY = True  # only use rest1 data for training, HCP dataset only
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #

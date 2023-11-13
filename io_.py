@@ -1,5 +1,4 @@
 import copy
-# import glob
 import os
 
 import h5py
@@ -8,7 +7,6 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 import seaborn as sns
-# MRI related func
 import torch
 from joblib import load
 from scipy.io import loadmat, savemat
@@ -16,9 +14,6 @@ from scipy.stats import pearsonr
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
 from torch.hub import download_url_to_file
-
-# import sys
-
 
 HCP_LINK = {
     "REST1": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST1_Fisherz.hdf5",

@@ -48,7 +48,7 @@ def _init_artl(Xs, ys, Xt=None, yt=None, **kwargs):
 
     """
 
-    if type(Xt) == np.ndarray:
+    if type(Xt) is np.ndarray:
         X = np.concatenate([Xs, Xt], axis=0)
         ns = Xs.shape[0]
         nt = Xt.shape[0]

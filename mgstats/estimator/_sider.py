@@ -14,8 +14,6 @@ from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.preprocessing import LabelBinarizer
 
 from ..utils import base_init, lap_norm
-# import cvxpy as cvx
-# from cvxpy.error import SolverError
 from ..utils.multiclass import score2pred
 from ._base import _BaseFramework
 
@@ -288,7 +286,7 @@ class SIDeRLS(_BaseFramework):
         # X_fit, D = cat_data(Xl, Dl, Xu, Du)
         nl = y.shape[0]
         ker_x, unit_mat, ctr_mat, n = base_init(X, kernel=self.kernel, **self.kwargs)
-        if type(co_variates) == np.ndarray:
+        if type(co_variates) is np.ndarray:
             ker_c = np.dot(co_variates, co_variates.T)
         else:
             ker_c = np.zeros((n, n))

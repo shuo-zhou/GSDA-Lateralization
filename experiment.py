@@ -12,7 +12,7 @@ from torch.hub import download_url_to_file
 import io_
 from mgstats.estimator import GSLR
 
-BASE_RESULT_DICT = {
+BASE_RESULT_DICT: dict = {
     "pred_loss": [],
     "hsic_loss": [],
     "lambda": [],
@@ -41,8 +41,10 @@ def run_experiment(cfg):
     test_size = cfg.DATASET.TEST_SIZE
 
     l2_param = cfg.SOLVER.L2PARAM
+    learning_rate = cfg.SOLVER.LR
     num_repeat = cfg.DATASET.NUM_REPEAT
     mix_group = cfg.DATASET.MIX_GROUP
+    rest1_only = cfg.DATASET.REST1_ONLY
 
     if mix_group:
         lambda_list = [0.0]
@@ -72,11 +74,13 @@ def run_experiment(cfg):
             "groups": group_label,
             "lambda_": lambda_,
             "l2_param": l2_param,
+            "learning_rate": learning_rate,
             "mix_group": mix_group,
             "out_dir": out_dir,
             "num_repeat": num_repeat,
             "test_size": test_size,
             "random_state": random_state,
+            "rest1_only": rest1_only,
         }
 
         if dataset == "HCP":
@@ -132,13 +136,17 @@ def run_experiment(cfg):
     # return res_df, out_file
 
 
-def train_modal(lambda_, l2_param, x_train, fit_kws, out_dir, model_filename):
+def train_modal(
+    lambda_, l2_param, x_train, fit_kws, out_dir, model_filename, learning_rate=0.1
+):
     model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
     if os.path.exists(model_path):
         model = torch.load(model_path)
     else:
-        model = GSLR(lambda_=lambda_, C=l2_param, max_iter=5000)
+        model = GSLR(
+            lambda_=lambda_, C=l2_param, learning_rate=learning_rate, max_iter=5000
+        )
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
 
@@ -210,7 +218,7 @@ def run_no_sub_hold_hcp(
     out_dir,
     num_repeat,
     random_state,
-    **kwargs
+    **kwargs,
 ):
     # main loop
     res = {
@@ -225,6 +233,8 @@ def run_no_sub_hold_hcp(
     }
 
     for train_session, test_session in [("REST1", "REST2"), ("REST2", "REST1")]:
+        if train_session == "REST2" and kwargs["rest1_only"]:
+            continue
         for i_split in range(num_repeat):
             x_all = dict()
             y_all = dict()
@@ -307,6 +317,7 @@ def run_no_sub_hold_hcp(
                         fit_kws,
                         out_dir,
                         model_filename,
+                        learning_rate=kwargs["learning_rate"],
                     )
                     res = save_loop_results(
                         model,
@@ -332,6 +343,7 @@ def run_sub_hold_hcp(
     num_repeat,
     test_size,
     random_state,
+    **kwargs,
 ):
     res = {
         **{
@@ -355,6 +367,8 @@ def run_sub_hold_hcp(
         y_all[session] = [y, y1]
 
     for train_session, test_session in [("REST1", "REST2"), ("REST2", "REST1")]:
+        if train_session == "REST2" and kwargs["rest1_only"]:
+            continue
         sss = StratifiedShuffleSplit(
             n_splits=num_repeat, test_size=test_size, random_state=random_state
         )
@@ -472,7 +486,13 @@ def run_sub_hold_hcp(
                         }
 
                     model = train_modal(
-                        lambda_, l2_param, x_train, fit_kws, out_dir, model_filename
+                        lambda_,
+                        l2_param,
+                        x_train,
+                        fit_kws,
+                        out_dir,
+                        model_filename,
+                        learning_rate=kwargs["learning_rate"],
                     )
                     res = save_loop_results(
                         model,
@@ -498,6 +518,7 @@ def run_sub_hold_gsp(
     num_repeat,
     test_size,
     random_state,
+    **kwargs,
 ):
     res = {
         **{"acc_ic": [], "acc_oc": [], "acc_tgt_test_sub": [], "acc_nt_test_sub": []},
@@ -614,9 +635,14 @@ def run_sub_hold_gsp(
                             "group": groups,
                             "target_idx": None,
                         }
-
                 model = train_modal(
-                    lambda_, l2_param, x_train, fit_kws, out_dir, model_filename
+                    lambda_,
+                    l2_param,
+                    x_train,
+                    fit_kws,
+                    out_dir,
+                    model_filename,
+                    learning_rate=kwargs["learning_rate"],
                 )
                 res = save_loop_results(
                     model,
@@ -640,7 +666,7 @@ def run_no_sub_hold_gsp(
     out_dir,
     num_repeat,
     random_state,
-    **kwargs
+    **kwargs,
 ):
     res = {
         **{"acc_ic": [], "acc_oc": []},
@@ -691,9 +717,14 @@ def run_no_sub_hold_gsp(
                         "groups": groups,
                         "target_idx": None,
                     }
-
                 model = train_modal(
-                    lambda_, l2_param, x_train, fit_kws, out_dir, model_filename
+                    lambda_,
+                    l2_param,
+                    x_train,
+                    fit_kws,
+                    out_dir,
+                    model_filename,
+                    learning_rate=kwargs["learning_rate"],
                 )
                 res = save_loop_results(
                     model,

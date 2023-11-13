@@ -69,7 +69,7 @@ class JDA(_BaseTransformer):
         yt : array-like, optional
             Target domain labels, shape (nt_samples,), by default None.
         """
-        if type(Xt) == np.ndarray:
+        if type(Xt) is np.ndarray:
             X = np.vstack((Xs, Xt))
             ns = Xs.shape[0]
             nt = Xt.shape[0]

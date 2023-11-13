@@ -74,12 +74,12 @@ class MIDA(_BaseTransformer):
             Unsupervised MIDA is performed if ys and yt are not given.
             Semi-supervised MIDA is performed is ys and yt are given.
         """
-        if self.aug and type(co_variates) == np.ndarray:
+        if self.aug and type(co_variates) is np.ndarray:
             X = np.concatenate((X, co_variates), axis=1)
         ker_x = self._get_kernel(X)
         n_samples = X.shape[0]
         unit_mat, ctr_mat = self._get_unit_ctr_mat(n_samples)
-        if type(co_variates) == np.ndarray:
+        if type(co_variates) is np.ndarray:
             ker_c = np.dot(co_variates, co_variates.T)
         else:
             ker_c = np.zeros((n_samples, n_samples))
@@ -134,7 +134,7 @@ class MIDA(_BaseTransformer):
             transformed data
         """
         check_is_fitted(self, "X_fit")
-        if self.aug and type(co_variates) == np.ndarray:
+        if self.aug and type(co_variates) is np.ndarray:
             X = np.concatenate((X, co_variates), axis=1)
         ker_x = self._get_kernel(X, self.X_fit)
         scaled_eig_vec = self.eig_vectors / np.sqrt(np.abs(self.eig_values))
@@ -217,7 +217,7 @@ class LinearMIDA(_BaseTransformer):
             Unsupervised MIDA is performed if ys and yt are not given.
             Semi-supervised MIDA is performed is ys and yt are given.
         """
-        if self.aug and type(co_variates) == np.ndarray:
+        if self.aug and type(co_variates) is np.ndarray:
             X = np.concatenate((X, co_variates), axis=1)
         self.mean_ = np.mean(X, axis=0)
         X = X - self.mean_
@@ -225,7 +225,7 @@ class LinearMIDA(_BaseTransformer):
         n_features = X.shape[1]
         unit_mat, ctr_mat = self._get_unit_ctr_mat(n_samples)
         unit_mat = np.eye(n_features)
-        if type(co_variates) == np.ndarray:
+        if type(co_variates) is np.ndarray:
             ker_c = np.dot(co_variates, co_variates.T)
         else:
             ker_c = np.zeros((n_samples, n_samples))
@@ -273,7 +273,7 @@ class LinearMIDA(_BaseTransformer):
             transformed data
         """
         # check_is_fitted(self, 'X_fit')
-        if self.aug and type(co_variates) == np.ndarray:
+        if self.aug and type(co_variates) is np.ndarray:
             X = np.concatenate((X, co_variates), axis=1)
         X = X - self.mean_
 

@@ -110,7 +110,7 @@ def main():
                     coef_m = get_coef(model_file_m, model_path).reshape((1, -1))[0, 1:]
                     coef_f = get_coef(model_file_f, model_path).reshape((1, -1))[0, 1:]
 
-                    ## add spec_rate
+                    # add spec_rate
                     DiceAuc, Dices = subj_dice_auc(coef_m, coef_f, thrs)
                     Dices["Spec_Rate"] = 1 - Dices["Dice"]
                     AUC_Spec = AUC_spec(Dices)

@@ -5,9 +5,9 @@ import numpy as np
 from numpy.linalg import multi_dot
 from scipy import linalg
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.utils.validation import check_is_fitted
 
 from ..utils import lap_norm, mmd_coef
-# from sklearn.utils.validation import check_is_fitted
 from ._base import _BaseTransformer
 
 
@@ -74,7 +74,7 @@ class TCA(_BaseTransformer):
         yt : array-like, optional
             Target domain labels, shape (nt_samples,), by default None
         """
-        if type(Xt) == np.ndarray:
+        if type(Xt) is np.ndarray:
             X = np.vstack((Xs, Xt))
             ns = Xs.shape[0]
             nt = Xt.shape[0]
@@ -137,8 +137,8 @@ class TCA(_BaseTransformer):
         array-like
             transformed data
         """
-        # check_is_fitted(self, 'Xs')
-        # check_is_fitted(self, 'Xt')
+        check_is_fitted(self, "Xs")
+        check_is_fitted(self, "Xt")
         X_fit = np.vstack((self.Xs, self.Xt))
         ker_x = self._get_kernel(X, X_fit)
         scaled_eig_vec = self.eig_vectors / np.sqrt(self.eig_values)
