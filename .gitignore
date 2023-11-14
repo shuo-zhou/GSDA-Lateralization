@@ -26,3 +26,6 @@ __pycache__
 **.ipynb_checkpoints/
 nilearn_cache/
 .pytest_cache
+model_analysis/figures
+model_analysis/first-order
+model_analysis/second-order

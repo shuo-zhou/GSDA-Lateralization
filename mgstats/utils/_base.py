@@ -6,12 +6,12 @@ from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.neighbors import kneighbors_graph
 
 
-def lap_norm(X, n_neighbour=3, metric="cosine", mode="distance", normalise=True):
+def lap_norm(x, n_neighbour=3, metric="cosine", mode="distance", normalise=True):
     """[summary]
 
     Parameters
     ----------
-    X : [type]
+    x : [type]
         [description]
     n_neighbour : int, optional
         [description], by default 3
@@ -30,12 +30,12 @@ def lap_norm(X, n_neighbour=3, metric="cosine", mode="distance", normalise=True)
     [type]
         [description]
     """
-    n = X.shape[0]
-    knn_graph = kneighbors_graph(X, n_neighbour, metric=metric, mode=mode).toarray()
+    n = x.shape[0]
+    knn_graph = kneighbors_graph(x, n_neighbour, metric=metric, mode=mode).toarray()
     W = np.zeros((n, n))
     knn_idx = np.logical_or(knn_graph, knn_graph.T)
     if mode == "distance":
-        graph_kernel = pairwise_distances(X, metric=metric)
+        graph_kernel = pairwise_distances(x, metric=metric)
         W[knn_idx] = graph_kernel[knn_idx]
     else:
         W[knn_idx] = 1
@@ -75,10 +75,10 @@ def mmd_coef(ns, nt, ys=None, yt=None, kind="marginal", mu=0.5):
     return M
 
 
-def base_init(X, kernel="linear", **kwargs):
-    n = X.shape[0]
+def base_init(x, kernel="linear", **kwargs):
+    n = x.shape[0]
     # Construct kernel matrix
-    ker_x = pairwise_kernels(X, metric=kernel, filter_params=True, **kwargs)
+    ker_x = pairwise_kernels(x, metric=kernel, filter_params=True, **kwargs)
     ker_x[np.isnan(ker_x)] = 0
 
     unit_mat = np.eye(n)

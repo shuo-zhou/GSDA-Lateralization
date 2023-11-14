@@ -57,29 +57,29 @@ class GSRCA(_BaseTransformer):
         # self.fit_inverse_transform = fit_inverse_transform
         self.kwargs = kwargs
 
-    def fit(self, X, y=None, co_variates=None):
+    def fit(self, x, y=None, groups=None):
         """
         Parameters
         ----------
-        X : array-like
+        x : array-like
             Input data, shape (n_samples, n_features)
         y : array-like
             Labels, shape (nl_samples,)
-        co_variates : array-like
-            Domain co-variates, shape (n_samples, n_co-variates)
+        groups : array-like
+            Domain/group information or covariates, shape (n_samples, n_co-variates)
 
         Note
         ----
             Unsupervised MIDA is performed if ys and yt are not given.
             Semi-supervised MIDA is performed is ys and yt are given.
         """
-        if self.aug and type(co_variates) is np.ndarray:
-            X = np.concatenate((X, co_variates), axis=1)
-        ker_x = self._get_kernel(X)
-        n_samples = X.shape[0]
+        if self.aug and isinstance(groups, np.ndarray):
+            x = np.concatenate((x, groups), axis=1)
+        ker_x = self._get_kernel(x)
+        n_samples = x.shape[0]
         unit_mat, ctr_mat = self._get_unit_ctr_mat(n_samples)
-        if type(co_variates) is np.ndarray:
-            ker_c = np.dot(co_variates, co_variates.T)
+        if isinstance(groups, np.ndarray):
+            ker_c = np.dot(groups, groups.T)
         else:
             ker_c = np.zeros((n_samples, n_samples))
         obj_min = (
@@ -108,45 +108,45 @@ class GSRCA(_BaseTransformer):
         idx_sorted = eig_values.argsort()
 
         self.eig_vectors = eig_vectors[:, idx_sorted][:, : self.n_components]
-        self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.float)
+        self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.double)
         self.eig_values = eig_values[idx_sorted][: self.n_components]
 
         if self.fit_inverse_transform:
             # scaled_eig_vec = self.eig_vectors / np.sqrt(np.abs(self.eig_values))
-            # X_transformed = np.dot(ker_x, scaled_eig_vec)
-            X_transformed = np.dot(ker_x, self.eig_vectors)
-            self._fit_inverse_transform(X_transformed, X)
+            # x_transformed = np.dot(ker_x, scaled_eig_vec)
+            x_transformed = np.dot(ker_x, self.eig_vectors)
+            self._fit_inverse_transform(x_transformed, x)
 
-        self.X_fit = X
+        self.x_fit = x
         return self
 
-    def transform(self, X, co_variates=None):
+    def transform(self, x, groups=None):
         """
         Parameters
         ----------
-        X : array-like,
+        x : array-like,
             shape (n_samples, n_features)
-        co_variates : array-like,
+        groups : array-like,
             Domain co-variates, shape (n_samples, n_co-variates)
         Returns
         -------
         array-like
             transformed data
         """
-        check_is_fitted(self, "X_fit")
-        if self.aug and type(co_variates) is np.ndarray:
-            X = np.concatenate((X, co_variates), axis=1)
-        ker_x = self._get_kernel(X, self.X_fit)
+        check_is_fitted(self, "x_fit")
+        if self.aug and isinstance(groups, np.ndarray):
+            x = np.concatenate((x, groups), axis=1)
+        ker_x = self._get_kernel(x, self.x_fit)
         # scaled_eig_vec = self.eig_vectors / np.sqrt(np.abs(self.eig_values))
 
         # return np.dot(ker_x, scaled_eig_vec)
         return np.dot(ker_x, self.eig_vectors)
 
-    def fit_transform(self, X, y=None, co_variates=None):
+    def fit_transform(self, x, y=None, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like,
+        x : array-like,
             shape (n_samples, n_features)
         y : array-like
             shape (n_samples,)
@@ -156,8 +156,8 @@ class GSRCA(_BaseTransformer):
         Returns
         -------
         array-like
-            transformed X_transformed
+            transformed x_transformed
         """
-        self.fit(X, y, co_variates)
+        self.fit(x, y, co_variates)
 
-        return self.transform(X)
+        return self.transform(x)

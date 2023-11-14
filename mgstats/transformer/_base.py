@@ -18,6 +18,9 @@ class _BaseTransformer(BaseEstimator, TransformerMixin):
         self.kernel_params = kernel_params
         self.alpha = alpha
         self.fit_inverse_transform = fit_inverse_transform
+        self.x_fit = None
+        self.eig_vectors = None
+        self.eig_values = None
 
     def _get_kernel(self, x, y=None):
         if self.kernel in ["linear", "rbf", "poly"]:
@@ -38,7 +41,7 @@ class _BaseTransformer(BaseEstimator, TransformerMixin):
         ker = self._get_kernel(x_transformed)
         ker.flat[:: n_samples + 1] += self.alpha
         self.dual_coef_ = linalg.solve(ker, x, sym_pos=True, overwrite_a=True)
-        self.X_transformed_fit_ = x_transformed
+        self.x_transformed_fit_ = x_transformed
 
     def inverse_transform(self, x):
         """Transform X back to original space.
@@ -47,10 +50,10 @@ class _BaseTransformer(BaseEstimator, TransformerMixin):
         x : {array-like, sparse matrix} of shape (n_samples, n_components)
         Returns
         -------
-        X_new : ndarray of shape (n_samples, n_features)
+        x_new : ndarray of shape (n_samples, n_features)
         References
         ----------
-        "Learning to Find Pre-Images", G BakIr et al, 2004.
+        "Learning to Find Pre-Images", G BakIr et al., 2004.
         """
         if not self.fit_inverse_transform:
             raise ValueError(
@@ -58,8 +61,8 @@ class _BaseTransformer(BaseEstimator, TransformerMixin):
                 "the inverse transform is not available."
             )
 
-        ker_x = self._get_kernel(x, self.X_transformed_fit_)
-        n_samples = self.X_transformed_fit_.shape[0]
+        ker_x = self._get_kernel(x, self.x_transformed_fit_)
+        n_samples = self.x_transformed_fit_.shape[0]
         ker_x.flat[:: n_samples + 1] += self.alpha
         return np.dot(ker_x, self.dual_coef_)
 

@@ -19,16 +19,16 @@ from ._base import _BaseFramework
 # =============================================================================
 
 
-def _init_artl(Xs, ys, Xt=None, yt=None, **kwargs):
+def _init_artl(xs, ys, xt=None, yt=None, **kwargs):
     """[summary]
 
     Parameters
     ----------
-    Xs : array-like
+    xs : array-like
         Source data, shape (ns_samples, n_features)
     ys : array-like
         Source labels, shape (ns_samples,)
-    Xt : array-like
+    xt : array-like
         Target data, shape (nt_samples, n_features), the first ntl
         samples are labelled if yt is not None
     yt : array-like, optional
@@ -36,7 +36,7 @@ def _init_artl(Xs, ys, Xt=None, yt=None, **kwargs):
 
     Returns
     -------
-    X_fit : array-like
+    x_fit : array-like
         [description]
     y : array-like
 
@@ -48,25 +48,25 @@ def _init_artl(Xs, ys, Xt=None, yt=None, **kwargs):
 
     """
 
-    if type(Xt) is np.ndarray:
-        X = np.concatenate([Xs, Xt], axis=0)
-        ns = Xs.shape[0]
-        nt = Xt.shape[0]
+    if isinstance(xt, np.ndarray):
+        x = np.concatenate([xs, xt], axis=0)
+        ns = xs.shape[0]
+        nt = xt.shape[0]
         M = mmd_coef(ns, nt, ys, yt, kind="joint")
     else:
-        X = Xs.copy()
-        M = np.zeros((X.shape[0], X.shape[0]))
+        x = xs.copy()
+        M = np.zeros((x.shape[0], x.shape[0]))
 
     if yt is not None:
         y = np.concatenate([ys, yt])
     else:
         y = ys.copy()
-    n = X.shape[0]
-    ker_x = pairwise_kernels(X, **kwargs)
+    n = x.shape[0]
+    ker_x = pairwise_kernels(x, **kwargs)
     ker_x[np.isnan(ker_x)] = 0
     unit_mat = np.eye(n)
 
-    return X, y, ker_x, M, unit_mat
+    return x, y, ker_x, M, unit_mat
 
 
 class ARSVM(_BaseFramework):
@@ -91,9 +91,9 @@ class ARSVM(_BaseFramework):
         kernel : str, optional
             'rbf' | 'linear' | 'poly' , by default 'linear'
         lambda_ : float, optional
-            MMD regulisation param, by default 1.0
+            MMD regularisation param, by default 1.0
         gamma_ : float, optional
-            manifold regulisation param, by default 0.0
+            manifold regularisation param, by default 0.0
         k_neighbour : int, optional
             number of nearest numbers for each sample in manifold regularisation,
             by default 5
@@ -102,7 +102,7 @@ class ARSVM(_BaseFramework):
         manifold_metric : str, optional
             The distance metric used to calculate the k-Neighbors for each
             sample point. The DistanceMetric class gives a list of available
-            metrics. By default 'cosine'.
+            metrics. By default, 'cosine'.
         knn_mode : str, optional
             {‘connectivity’, ‘distance’}, by default 'distance'. Type of
             returned matrix: ‘connectivity’ will return the connectivity
@@ -111,6 +111,7 @@ class ARSVM(_BaseFramework):
         kwargs :
             kernel param
         """
+        super().__init__()
         self.kwargs = kwargs
         self.kernel = kernel
         self.lambda_ = lambda_
@@ -122,31 +123,32 @@ class ARSVM(_BaseFramework):
         self.knn_mode = knn_mode
         self.manifold_metric = manifold_metric
         self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
+        self.support_ = None
         # self.scaler = StandardScaler()
 
-    def fit(self, Xs, ys, Xt=None, yt=None):
+    def fit(self, xs, ys, xt=None, yt=None):
         """Fit the model according to the given training data.
 
         Parameters
         ----------
-        Xs : array-like
+        xs : array-like
             Source data, shape (ns_samples, n_features)
         ys : array-like
             Source labels, shape (ns_samples,)
-        Xt : array-like
+        xt : array-like
             Target data, shape (nt_samples, n_features), the first ntl
             samples are labelled if yt is not None
         yt : array-like, optional
             Target label, shape (ntl_samples, ), by default None
         """
-        X, y, ker_x, M, unit_mat = _init_artl(
-            Xs, ys, Xt, yt, metric=self.kernel, filter_params=True, **self.kwargs
+        x, y, ker_x, M, unit_mat = _init_artl(
+            xs, ys, xt, yt, metric=self.kernel, filter_params=True, **self.kwargs
         )
 
         y_ = self._lb.fit_transform(y)
 
         if self.gamma_ != 0:
-            lap_mat = lap_norm(X, n_neighbour=self.k_neighbour, mode=self.knn_mode)
+            lap_mat = lap_norm(x, n_neighbour=self.k_neighbour, mode=self.knn_mode)
             Q_ = unit_mat + multi_dot(
                 [(self.lambda_ * M + self.gamma_ * lap_mat), ker_x]
             )
@@ -157,57 +159,57 @@ class ARSVM(_BaseFramework):
             ker_x, y_, Q_, self.C, self.solver
         )
         # if self._lb.y_type_ == 'binary':
-        #     self.support_vectors_ = X_fit[:nl, :][self.support_]
+        #     self.support_vectors_ = x_fit[:nl, :][self.support_]
         #     self.n_support_ = self.support_vectors_.shape[0]
         # else:
         #     self.support_vectors_ = []
         #     self.n_support_ = []
         #     for i in range(y_.shape[1]):
-        #         self.support_vectors_.append(X_fit[:nl, :][self.support_[i]][-1])
+        #         self.support_vectors_.append(x_fit[:nl, :][self.support_[i]][-1])
         #         self.n_support_.append(self.support_vectors_[-1].shape[0])
 
-        self.X = X
+        self.x = x
         self.y = y
 
         return self
 
-    def decision_function(self, X):
-        """Evaluates the decision function for the samples in X_fit.
+    def decision_function(self, x):
+        """Evaluates the decision function for the samples in x_fit.
 
         Parameters
         ----------
-        X : array-like
+        x : array-like
             shape (n_samples, n_features)
 
         Returns
         -------
         array-like
-            decision scores, , shape (n_samples,) for binary classification,
+            decision scores, shape (n_samples,) for binary classification,
             (n_samples, n_class) for multi-class cases
         """
-        check_is_fitted(self, "X_fit")
+        check_is_fitted(self, "x_fit")
         check_is_fitted(self, "y")
-        # X_fit = self.X_fit
+        # x_fit = self.x_fit
         ker_x = pairwise_kernels(
-            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+            x, self.x, metric=self.kernel, filter_params=True, **self.kwargs
         )
 
         return np.dot(ker_x, self.coef_)  # +self.intercept_
 
-    def predict(self, X):
-        """Perform classification on samples in X_fit.
+    def predict(self, x):
+        """Perform classification on samples in x_fit.
 
         Parameters
         ----------
-        X : array-like
+        x : array-like
             shape (n_samples, n_features)
 
         Returns
         -------
         array-like
-            predicted labels, , shape (n_samples, )
+            predicted labels, shape (n_samples)
         """
-        dec = self.decision_function(X)
+        dec = self.decision_function(x)
         if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
@@ -215,25 +217,25 @@ class ARSVM(_BaseFramework):
 
         return self._lb.inverse_transform(y_pred_)
 
-    def fit_predict(self, Xs, ys, Xt=None, yt=None):
+    def fit_predict(self, xs, ys, xt=None, yt=None):
         """Fit the model according to the given training data and then perform
-            classification on samples in Xt.
+            classification on samples in xt.
 
         Parameters
         ----------
-        Xs : array-like
+        xs : array-like
             Source data, shape (ns_samples, n_features)
         ys : array-like
             Source labels, shape (ns_samples,)
-        Xt : array-like
+        xt : array-like
             Target data, shape (nt_samples, n_features), the first ntl
             samples are labelled if yt is not None
         yt : array-like, optional
             Target label, shape (ntl_samples, ), by default None
         """
-        self.fit(Xs, ys, Xt, yt)
+        self.fit(xs, ys, xt, yt)
 
-        return self.predict(self.X)
+        return self.predict(self.x)
 
 
 class ARRLS(_BaseFramework):
@@ -266,7 +268,7 @@ class ARRLS(_BaseFramework):
         manifold_metric : str, optional
             The distance metric used to calculate the k-Neighbors for each
             sample point. The DistanceMetric class gives a list of available
-            metrics. By default 'cosine'.
+            metrics. By default, 'cosine'.
         knn_mode : str, optional
             {‘connectivity’, ‘distance’}, by default 'distance'. Type of
             returned matrix: ‘connectivity’ will return the connectivity
@@ -275,34 +277,35 @@ class ARRLS(_BaseFramework):
         kwargs:
             kernel param
         """
+        super().__init__()
         self.kwargs = kwargs
         self.kernel = kernel
         self.lambda_ = lambda_
         self.gamma_ = gamma_
         self.sigma_ = sigma_
         self.k_neighbour = k_neighbour
-        # self.coef_ = None
         self.knn_mode = knn_mode
         self.manifold_metric = manifold_metric
         self._lb = LabelBinarizer(pos_label=1, neg_label=-1)
+        self.support_ = None
 
-    def fit(self, Xs, ys, Xt=None, yt=None):
+    def fit(self, xs, ys, xt=None, yt=None):
         """Fit the model according to the given training data.
 
         Parameters
         ----------
-        Xs : array-like
+        xs : array-like
             Source data, shape (ns_samples, n_features)
         ys : array-like
             Source labels, shape (ns_samples,)
-        Xt : array-like
+        xt : array-like
             Target data, shape (nt_samples, n_features), the first ntl
             samples are labelled if yt is not None
         yt : array-like, optional
             Target label, shape (ntl_samples, ), by default None
         """
-        X, y, ker_x, M, unit_mat = _init_artl(
-            Xs, ys, Xt, yt, metric=self.kernel, filter_params=True, **self.kwargs
+        x, y, ker_x, M, unit_mat = _init_artl(
+            xs, ys, xt, yt, metric=self.kernel, filter_params=True, **self.kwargs
         )
         n = ker_x.shap[0]
         nl = y.shape[0]
@@ -311,7 +314,7 @@ class ARRLS(_BaseFramework):
 
         if self.gamma_ != 0:
             lap_mat = lap_norm(
-                X,
+                x,
                 n_neighbour=self.k_neighbour,
                 metric=self.manifold_metric,
                 mode=self.knn_mode,
@@ -326,24 +329,24 @@ class ARRLS(_BaseFramework):
         y_ = self._lb.fit_transform(y)
         self.coef_ = self._solve_semi_ls(Q_, y_)
 
-        self.X = X
+        self.x = x
         self.y = y
 
         return self
 
-    def predict(self, X):
-        """Perform classification on samples in X_fit.
+    def predict(self, x):
+        """Perform classification on samples in x_fit.
 
         Parameters:
         ----------
-            X_fit : array-like,
+            x_fit : array-like,
                 shape (n_samples, n_features)
         Returns
         -------
         array-like
             predicted labels, shape (n_samples)
         """
-        dec = self.decision_function(X)
+        dec = self.decision_function(x)
         if self._lb.y_type_ == "binary":
             y_pred_ = np.sign(dec).reshape(-1, 1)
         else:
@@ -351,12 +354,12 @@ class ARRLS(_BaseFramework):
 
         return self._lb.inverse_transform(y_pred_)
 
-    def decision_function(self, X):
-        """Evaluates the decision function for the samples in X_fit.
+    def decision_function(self, x):
+        """Evaluates the decision function for the samples in x_fit.
 
         Parameters
         ----------
-            X : array-like,
+            x : array-like,
                 shape (n_samples, n_features)
         Returns
         -------
@@ -364,26 +367,26 @@ class ARRLS(_BaseFramework):
             prediction scores, shape (n_samples)
         """
         ker_x = pairwise_kernels(
-            X, self.X, metric=self.kernel, filter_params=True, **self.kwargs
+            x, self.x, metric=self.kernel, filter_params=True, **self.kwargs
         )
         return np.dot(ker_x, self.coef_)
 
-    def fit_predict(self, Xs, ys, Xt=None, yt=None):
+    def fit_predict(self, xs, ys, xt=None, yt=None):
         """Fit the model according to the given training data and then perform
-            classification on samples in Xt.
+            classification on samples in xt.
 
         Parameters
         ----------
-        Xs : array-like
+        xs : array-like
             Source data, shape (ns_samples, n_features)
         ys : array-like
             Source labels, shape (ns_samples,)
-        Xt : array-like
+        xt : array-like
             Target data, shape (nt_samples, n_features), the first ntl
             samples are labelled if yt is not None
         yt : array-like, optional
             Target label, shape (ntl_samples, ), by default None
         """
-        self.fit(Xs, ys, Xt, yt)
+        self.fit(xs, ys, xt, yt)
 
-        return self.predict(Xt)
+        return self.predict(xt)

@@ -11,6 +11,12 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 class _BaseFramework(BaseEstimator, ClassifierMixin):
     """Semi-supervised Learning Framework"""
 
+    def __init__(self):
+        # super().__init__()
+        self.x = None
+        self.y = None
+        self.coef_ = None
+
     @classmethod
     def _solve_semi_dual(cls, K, y, Q_, C, solver="osqp"):
         """[summary]

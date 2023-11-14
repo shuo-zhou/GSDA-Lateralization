@@ -58,11 +58,11 @@ class MIDA(_BaseTransformer):
         # self.fit_inverse_transform = fit_inverse_transform
         self.kwargs = kwargs
 
-    def fit(self, X, y=None, co_variates=None):
+    def fit(self, x, y=None, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like
+        x : array-like
             Input data, shape (n_samples, n_features)
         y : array-like
             Labels, shape (nl_samples,)
@@ -74,12 +74,12 @@ class MIDA(_BaseTransformer):
             Unsupervised MIDA is performed if ys and yt are not given.
             Semi-supervised MIDA is performed is ys and yt are given.
         """
-        if self.aug and type(co_variates) is np.ndarray:
-            X = np.concatenate((X, co_variates), axis=1)
-        ker_x = self._get_kernel(X)
-        n_samples = X.shape[0]
+        if self.aug and isinstance(co_variates, np.ndarray):
+            x = np.concatenate((x, co_variates), axis=1)
+        ker_x = self._get_kernel(x)
+        n_samples = x.shape[0]
         unit_mat, ctr_mat = self._get_unit_ctr_mat(n_samples)
-        if type(co_variates) is np.ndarray:
+        if isinstance(co_variates, np.ndarray):
             ker_c = np.dot(co_variates, co_variates.T)
         else:
             ker_c = np.zeros((n_samples, n_samples))
@@ -109,22 +109,22 @@ class MIDA(_BaseTransformer):
         idx_sorted = (-1 * eig_values).argsort()
 
         self.eig_vectors = eig_vectors[:, idx_sorted][:, : self.n_components]
-        self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.float)
+        self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.double)
         self.eig_values = eig_values[idx_sorted][: self.n_components]
 
         if self.fit_inverse_transform:
             scaled_eig_vec = self.eig_vectors / np.sqrt(np.abs(self.eig_values))
-            X_transformed = np.dot(ker_x, scaled_eig_vec)
-            self._fit_inverse_transform(X_transformed, X)
+            x_transformed = np.dot(ker_x, scaled_eig_vec)
+            self._fit_inverse_transform(x_transformed, x)
 
-        self.X_fit = X
+        self.x_fit = x
         return self
 
-    def transform(self, X, co_variates=None):
+    def transform(self, x, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like,
+        x : array-like,
             shape (n_samples, n_features)
         co_variates : array-like,
             Domain co-variates, shape (n_samples, n_co-variates)
@@ -133,20 +133,20 @@ class MIDA(_BaseTransformer):
         array-like
             transformed data
         """
-        check_is_fitted(self, "X_fit")
-        if self.aug and type(co_variates) is np.ndarray:
-            X = np.concatenate((X, co_variates), axis=1)
-        ker_x = self._get_kernel(X, self.X_fit)
+        check_is_fitted(self, "x_fit")
+        if self.aug and isinstance(co_variates, np.ndarray):
+            x = np.concatenate((x, co_variates), axis=1)
+        ker_x = self._get_kernel(x, self.x_fit)
         scaled_eig_vec = self.eig_vectors / np.sqrt(np.abs(self.eig_values))
 
         return np.dot(ker_x, scaled_eig_vec)
         # return np.dot(ker_x, self.eig_vectors)
 
-    def fit_transform(self, X, y=None, co_variates=None):
+    def fit_transform(self, x, y=None, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like,
+        x : array-like,
             shape (n_samples, n_features)
         y : array-like
             shape (n_samples,)
@@ -156,11 +156,11 @@ class MIDA(_BaseTransformer):
         Returns
         -------
         array-like
-            transformed X_transformed
+            transformed x_transformed
         """
-        self.fit(X, y, co_variates)
+        self.fit(x, y, co_variates)
 
-        return self.transform(X)
+        return self.transform(x)
 
 
 class LinearMIDA(_BaseTransformer):
@@ -201,11 +201,11 @@ class LinearMIDA(_BaseTransformer):
         # self.fit_inverse_transform = fit_inverse_transform
         self.kwargs = kwargs
 
-    def fit(self, X, y=None, co_variates=None):
+    def fit(self, x, y=None, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like
+        x : array-like
             Input data, shape (n_samples, n_features)
         y : array-like
             Labels, shape (nl_samples,)
@@ -217,35 +217,35 @@ class LinearMIDA(_BaseTransformer):
             Unsupervised MIDA is performed if ys and yt are not given.
             Semi-supervised MIDA is performed is ys and yt are given.
         """
-        if self.aug and type(co_variates) is np.ndarray:
-            X = np.concatenate((X, co_variates), axis=1)
-        self.mean_ = np.mean(X, axis=0)
-        X = X - self.mean_
-        n_samples = X.shape[0]
-        n_features = X.shape[1]
+        if self.aug and isinstance(co_variates, np.ndarray):
+            x = np.concatenate((x, co_variates), axis=1)
+        self.mean_ = np.mean(x, axis=0)
+        x = x - self.mean_
+        n_samples = x.shape[0]
+        n_features = x.shape[1]
         unit_mat, ctr_mat = self._get_unit_ctr_mat(n_samples)
         unit_mat = np.eye(n_features)
-        if type(co_variates) is np.ndarray:
+        if isinstance(co_variates, np.ndarray):
             ker_c = np.dot(co_variates, co_variates.T)
         else:
             ker_c = np.zeros((n_samples, n_samples))
-        obj_min = multi_dot([X.T, ctr_mat, ker_c, ctr_mat, X]) + self.eta * unit_mat
+        obj_min = multi_dot([x.T, ctr_mat, ker_c, ctr_mat, x]) + self.eta * unit_mat
         if y is not None:
             y_mat = self._lb.fit_transform(y)
             ker_y = np.dot(y_mat, y_mat.T)
             obj_max = multi_dot(
                 [
-                    X.T,
+                    x.T,
                     self.mu * ctr_mat
                     + self.lambda_ * multi_dot([ctr_mat, ker_y, ctr_mat]),
-                    X,
+                    x,
                 ]
             )
         # obj_min = np.trace(np.dot(K,L))
         else:
             # obj_max = self.mu * multi_dot([X.T, X])
             # obj_max = self.mu * unit_mat
-            obj_max = multi_dot([X.T, X])
+            obj_max = multi_dot([x.T, x])
 
         # objective = multi_dot([ker_x, (obj_max - obj_min), ker_x.T])
         objective = np.dot(linalg.inv(obj_min), obj_max)
@@ -254,16 +254,16 @@ class LinearMIDA(_BaseTransformer):
         idx_sorted = (-1 * eig_values).argsort()
 
         self.eig_vectors = eig_vectors[:, idx_sorted]
-        self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.float)
+        self.eig_vectors = np.asarray(self.eig_vectors, dtype=np.double)
         self.eig_values = eig_values[idx_sorted]
 
         return self
 
-    def transform(self, X, co_variates=None):
+    def transform(self, x, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like,
+        x : array-like,
             shape (n_samples, n_features)
         co_variates : array-like,
             Domain co-variates, shape (n_samples, n_co-variates)
@@ -272,18 +272,18 @@ class LinearMIDA(_BaseTransformer):
         array-like
             transformed data
         """
-        # check_is_fitted(self, 'X_fit')
-        if self.aug and type(co_variates) is np.ndarray:
-            X = np.concatenate((X, co_variates), axis=1)
-        X = X - self.mean_
+        # check_is_fitted(self, 'x_fit')
+        if self.aug and isinstance(co_variates, np.ndarray):
+            x = np.concatenate((x, co_variates), axis=1)
+        x = x - self.mean_
 
-        return np.dot(X, self.eig_vectors)
+        return np.dot(x, self.eig_vectors)
 
-    def fit_transform(self, X, y=None, co_variates=None):
+    def fit_transform(self, x, y=None, co_variates=None):
         """
         Parameters
         ----------
-        X : array-like,
+        x : array-like,
             shape (n_samples, n_features)
         y : array-like
             shape (n_samples,)
@@ -293,11 +293,11 @@ class LinearMIDA(_BaseTransformer):
         Returns
         -------
         array-like
-            transformed X_transformed
+            transformed x_transformed
         """
-        self.fit(X, y, co_variates)
+        self.fit(x, y, co_variates)
 
-        return self.transform(X)
+        return self.transform(x)
 
     def inverse_transform(self, x):
         x_rec = np.dot(x, self.eig_vectors.T)

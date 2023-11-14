@@ -342,7 +342,7 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
         res_dict[lambda_] = []
 
     for lambda_ in lambdas:
-        if type(lambda_) is not str:
+        if not isinstance(lambda_, str):
             lambda_str = str(int(lambda_))
         else:
             lambda_str = lambda_
@@ -563,7 +563,7 @@ def Corr(x, y):
 
 
 # ************************************************ Join plot ***************************************************** #
-# x,y should not be object data type, if so, convert it to np.float data type.
+# x,y should not be object data type, if so, convert it to np.double data type.
 def jointplot_fitlinear(x, y):
     plt.figure(figsize=(20, 16))
     sns.jointplot(x=x, y=y, kind="reg", scatter_kws={"s": 8})
