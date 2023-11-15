@@ -1,4 +1,5 @@
 import os
+import sys
 
 import numpy as np
 import torch
@@ -9,6 +10,8 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.utils import shuffle
 
 # from skops.io import dump
+sys.path.append("../")
+from io_ import fetch_weights
 
 
 def get_coef(file_name, file_dir):
@@ -21,43 +24,6 @@ def get_coef(file_name, file_dir):
 #     file_path = os.path.join(file_dir, file_name)
 #     model = torch.load(file_path)
 #     return model.model.weight.data.numpy().T
-
-
-def fetch_weights(base_dir, group, lambda_, dataset, sessions, seed_=2023):
-    """
-
-    Args:
-        base_dir:
-        gender:
-        lambda_:
-
-    Returns:
-        a matrix of weights, shape (n_models, n_features)
-    """
-
-    sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
-    if lambda_ == "0_group_mix":
-        lambda_ = 0
-    weight = []
-    num_repeat = 5
-    halfs = [0, 1]
-    for session_i in sessions:
-        for half_i in halfs:
-            for i_split in range(num_repeat):
-                for seed in range(50):
-                    model_file = "%s_L%s_%s%s_%s_group_%s_%s.pt" % (
-                        dataset,
-                        lambda_,
-                        session_i,
-                        i_split,
-                        half_i,
-                        group,
-                        seed_ - seed,
-                    )
-                    if os.path.exists(os.path.join(sub_dir, model_file)):
-                        weight.append(get_coef(model_file, sub_dir).reshape((1, -1)))
-
-    return np.concatenate(weight, axis=0)
 
 
 def main():

@@ -1,7 +1,7 @@
 """
-MGStats:
+SemiStats:
 
-A Multi-Group Statistical Analysis Python package
+A semi-supervised statistical learning Python package for multi-group data analysis
 """
 
 __version__ = "0.0.1"

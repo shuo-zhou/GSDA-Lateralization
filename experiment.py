@@ -10,7 +10,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from torch.hub import download_url_to_file
 
 import io_
-from mgstats.estimator import GSLR
+from semistats.estimator import GSLR
 
 BASE_RESULT_DICT: dict = {
     "pred_loss": [],
@@ -25,7 +25,7 @@ BASE_RESULT_DICT: dict = {
 
 LABEL_FILE_LINK = {
     "HCP": "https://zenodo.org/records/10050233/files/HCP_half_brain.csv",
-    "GSP": "https://zenodo.org/records/10050234/files/GSP_half_brain.csv",
+    "GSP": "https://zenodo.org/records/10050234/files/gsp_half_brain.csv",
 }
 
 
@@ -40,7 +40,7 @@ def run_experiment(cfg):
     random_state = cfg.SOLVER.SEED
     test_size = cfg.DATASET.TEST_SIZE
 
-    l2_param = cfg.SOLVER.L2PARAM
+    alpha = cfg.SOLVER.ALPHA
     learning_rate = cfg.SOLVER.LR
     num_repeat = cfg.DATASET.NUM_REPEAT
     mix_group = cfg.DATASET.MIX_GROUP
@@ -73,7 +73,7 @@ def run_experiment(cfg):
         kwargs = {
             "groups": group_label,
             "lambda_": lambda_,
-            "l2_param": l2_param,
+            "alpha": alpha,
             "learning_rate": learning_rate,
             "mix_group": mix_group,
             "out_dir": out_dir,
@@ -137,7 +137,7 @@ def run_experiment(cfg):
 
 
 def train_modal(
-    lambda_, l2_param, x_train, fit_kws, out_dir, model_filename, learning_rate=0.1
+    lambda_, alpha, x_train, fit_kws, out_dir, model_filename, learning_rate=0.1
 ):
     model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
@@ -145,7 +145,7 @@ def train_modal(
         model = torch.load(model_path)
     else:
         model = GSLR(
-            lambda_=lambda_, C=l2_param, learning_rate=learning_rate, max_iter=5000
+            learning_rate=learning_rate, max_iter=5000, alpha=alpha, lambda_=lambda_
         )
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
@@ -213,7 +213,7 @@ def run_no_sub_hold_hcp(
     data,
     groups,
     lambda_,
-    l2_param,
+    alpha,
     mix_group,
     out_dir,
     num_repeat,
@@ -312,7 +312,7 @@ def run_no_sub_hold_hcp(
 
                     model = train_modal(
                         lambda_,
-                        l2_param,
+                        alpha,
                         x_train_fold,
                         fit_kws,
                         out_dir,
@@ -337,7 +337,7 @@ def run_sub_hold_hcp(
     data,
     groups,
     lambda_,
-    l2_param,
+    alpha,
     mix_group,
     out_dir,
     num_repeat,
@@ -487,7 +487,7 @@ def run_sub_hold_hcp(
 
                     model = train_modal(
                         lambda_,
-                        l2_param,
+                        alpha,
                         x_train,
                         fit_kws,
                         out_dir,
@@ -512,7 +512,7 @@ def run_sub_hold_gsp(
     data,
     groups,
     lambda_,
-    l2_param,
+    alpha,
     mix_group,
     out_dir,
     num_repeat,
@@ -637,7 +637,7 @@ def run_sub_hold_gsp(
                         }
                 model = train_modal(
                     lambda_,
-                    l2_param,
+                    alpha,
                     x_train,
                     fit_kws,
                     out_dir,
@@ -661,7 +661,7 @@ def run_no_sub_hold_gsp(
     data,
     groups,
     lambda_,
-    l2_param,
+    alpha,
     mix_group,
     out_dir,
     num_repeat,
@@ -719,7 +719,7 @@ def run_no_sub_hold_gsp(
                     }
                 model = train_modal(
                     lambda_,
-                    l2_param,
+                    alpha,
                     x_train,
                     fit_kws,
                     out_dir,

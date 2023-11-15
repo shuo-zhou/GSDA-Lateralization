@@ -20,7 +20,7 @@ HCP_LINK = {
     "REST2": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST2_Fisherz.hdf5",
 }
 GSP_LINK = (
-    "https://zenodo.org/records/10050234/files/GSP_BNA_intra_half_brain_Fisherz.mat"
+    "https://zenodo.org/records/10050234/files/gsp_BNA_intra_half_brain_Fisherz.mat"
 )
 
 
@@ -262,6 +262,43 @@ def load_half_brain(
         raise ValueError("Invalid dataset %s" % dataset)
 
     return data
+
+
+def fetch_weights(base_dir, group, lambda_, dataset, sessions, seed_=2023):
+    """
+
+    Args:
+        base_dir:
+        gender:
+        lambda_:
+
+    Returns:
+        a matrix of weights, shape (n_models, n_features)
+    """
+
+    sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
+    if lambda_ == "0_group_mix":
+        lambda_ = 0
+    weight = []
+    num_repeat = 5
+    halfs = [0, 1]
+    for session_i in sessions:
+        for half_i in halfs:
+            for i_split in range(num_repeat):
+                for seed in range(50):
+                    model_file = "%s_L%s_%s%s_%s_group_%s_%s.pt" % (
+                        dataset,
+                        lambda_,
+                        session_i,
+                        i_split,
+                        half_i,
+                        group,
+                        seed_ - seed,
+                    )
+                    if os.path.exists(os.path.join(sub_dir, model_file)):
+                        weight.append(get_coef(model_file, sub_dir).reshape((1, -1)))
+
+    return np.concatenate(weight, axis=0)
 
 
 def get_2nd_order_coef(file_name, file_dir):

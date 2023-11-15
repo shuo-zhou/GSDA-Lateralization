@@ -30,9 +30,9 @@ class GSLR(BaseEstimator, ClassifierMixin):
     max_iter : int, default=100
         Maximum number of iterations taken for the optimization algorithm to converge
 
-    penalty : None or 'l2', default='l2'.
+    # penalty : None or 'l2', default='l2'.
         Option to perform L2 regularization.
-    C : float, default=0.1
+    alpha : float, default=0.1
         Inverse of regularization strength; must be a positive float.
         Smaller values specify stronger regularization.
     tolerance : float, optional, default=1e-4
@@ -45,14 +45,14 @@ class GSLR(BaseEstimator, ClassifierMixin):
         learning_rate=0.1,
         max_iter=100,
         regularization="l2",
-        C=0.1,
+        alpha=0.1,
         tolerance=1e-4,
         lambda_=1.0,
     ):
         self.learning_rate = learning_rate
         self.max_iter = max_iter
         self.regularization = regularization
-        self.C = C
+        self.alpha = alpha
         self.tolerance = tolerance
         self.theta = None
         self.lambda_ = lambda_
@@ -108,7 +108,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
             if self.regularization is not None:
                 delta_grad = (
                     (x_tgt.T @ errors) / n_tgt
-                    + self.theta / self.C
+                    + self.theta / self.alpha
                     + self.lambda_ * grad_hsic
                 )
             else:
