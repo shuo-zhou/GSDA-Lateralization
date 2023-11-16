@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import io_
+from utils import io_
 
 
 def reduce_dim(data, pca):

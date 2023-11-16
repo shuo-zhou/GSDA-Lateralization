@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.io import loadmat
 
-from io_ import fetch_weights
+from utils.io_ import fetch_weights
 
 
 def savefig(fig, outfile, outfig_format):

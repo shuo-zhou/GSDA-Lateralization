@@ -6,7 +6,7 @@ import numpy as np
 from scipy.io import savemat
 
 sys.path.append("../")
-from io_ import fetch_weights_joblib
+from utils.io_ import fetch_weights_joblib
 
 
 def main():

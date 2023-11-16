@@ -1,7 +1,7 @@
 import argparse
 
-from default_cfg import get_cfg_defaults
-from experiment import run_experiment
+from configs.default_cfg import get_cfg_defaults
+from utils.experiment import run_experiment
 
 
 def arg_parse():

@@ -11,7 +11,7 @@ from sklearn.utils import shuffle
 
 # from skops.io import dump
 sys.path.append("../")
-from io_ import fetch_weights
+from utils.io_ import fetch_weights
 
 
 def get_coef(file_name, file_dir):

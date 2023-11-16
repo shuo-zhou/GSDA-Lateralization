@@ -7,7 +7,7 @@ import pandas as pd
 sys.path.append("../")
 from scipy.io import savemat
 
-from io_ import get_coef
+from utils.io_ import get_coef
 
 # for 100206 Dice
 # subj = 100206

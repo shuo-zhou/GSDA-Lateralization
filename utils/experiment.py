@@ -1,5 +1,6 @@
 import copy
 import os
+import sys
 
 # import pickle
 import numpy as np
@@ -9,16 +10,18 @@ from sklearn.metrics import accuracy_score  # , roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit
 from torch.hub import download_url_to_file
 
-import io_
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from semistats.estimator import GSLR
+from utils import io_
 
 BASE_RESULT_DICT: dict = {
     "pred_loss": [],
     "hsic_loss": [],
     "lambda": [],
+    "train_session": [],
     "split": [],
     "fold": [],
-    "train_gender": [],
+    "train_group": [],
     "time_used": [],
 }
 
@@ -61,7 +64,6 @@ def run_experiment(cfg):
     group_label = labels["gender"].values
 
     for lambda_ in lambda_list:
-        print("Training model with lambda = %s" % lambda_)
         if mix_group:
             out_folder = "lambda0_group_mix"
         else:
@@ -91,6 +93,7 @@ def run_experiment(cfg):
                     data_dir, atlas, session, run_, connection_type, download=download
                 )
             kwargs = {**{"data": data}, **kwargs}
+            print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
             if test_size == 0:
                 results = run_no_sub_hold_hcp(**kwargs)
             elif 0 < test_size < 1:
@@ -109,6 +112,7 @@ def run_experiment(cfg):
                 download=download,
             )
             kwargs = {**{"data": data}, **kwargs}
+            print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
             if 0 < test_size < 1:
                 results = run_sub_hold_gsp(**kwargs)
             elif test_size == 0:
@@ -177,7 +181,7 @@ def save_loop_results(
 
     # res['n_iter'].append(n_iter)
     # n_iter += 1
-    res_dict["train_gender"].append(train_group)
+    res_dict["train_group"].append(train_group)
     if train_session is not None:
         res_dict["train_session"].append(train_session)
     else:
@@ -227,7 +231,6 @@ def run_no_sub_hold_hcp(
             "acc_tgt_test_session": [],
             "acc_nt_train_session": [],
             "acc_nt_test_session": [],
-            "train_session": [],
         },
         **copy.deepcopy(BASE_RESULT_DICT),
     }
@@ -353,7 +356,6 @@ def run_sub_hold_hcp(
             "acc_nt_test_session": [],
             "acc_tgt_test_sub": [],
             "acc_nt_test_sub": [],
-            "train_session": [],
         },
         **copy.deepcopy(BASE_RESULT_DICT),
     }
