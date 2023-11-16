@@ -20,6 +20,7 @@ configs/*.yaml
 .idea/
 .vscode/
 data/
+pydale/
 output/
 __pycache__
 **/lightning_logs/

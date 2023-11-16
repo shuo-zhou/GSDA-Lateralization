@@ -32,13 +32,13 @@ LABEL_FILE_LINK = {
 }
 
 
-def run_experiment(cfg):
+def run_experiment(cfg, lambda_):
     atlas = cfg.DATASET.ATLAS
     download = cfg.DATASET.DOWNLOAD
     connection_type = cfg.DATASET.CONNECTION
     data_dir = cfg.DATASET.ROOT
     dataset = cfg.DATASET.DATASET.upper()
-    lambda_list = cfg.SOLVER.LAMBDA_
+    # lambda_list = cfg.SOLVER.LAMBDA_
     run_ = cfg.DATASET.RUN
     random_state = cfg.SOLVER.SEED
     test_size = cfg.DATASET.TEST_SIZE
@@ -50,92 +50,94 @@ def run_experiment(cfg):
     rest1_only = cfg.DATASET.REST1_ONLY
 
     if mix_group:
-        lambda_list = [0.0]
+        # lambda_list = [0.0]
+        lambda_ = 0.0
 
     label_file = "%s_%s_half_brain.csv" % (cfg.DATASET.DATASET, atlas)
     label_fpath = os.path.join(data_dir, label_file)
     if not os.path.exists(label_fpath):
         if download:
             os.makedirs(data_dir, exist_ok=True)
+            print("Downloading label file for %s dataset" % dataset)
             download_url_to_file(LABEL_FILE_LINK[dataset], label_fpath)
         else:
             raise ValueError("File %s does not exist" % label_file)
     labels = io_.read_table(label_fpath, index_col="ID")
     group_label = labels["gender"].values
 
-    for lambda_ in lambda_list:
-        if mix_group:
-            out_folder = "lambda0_group_mix"
-        else:
-            out_folder = "lambda%s" % int(lambda_)
-        out_dir = os.path.join(cfg.OUTPUT.ROOT, out_folder)
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
+    # for lambda_ in lambda_list:
+    if mix_group:
+        out_folder = "lambda0_group_mix"
+    else:
+        out_folder = "lambda%s" % int(lambda_)
+    out_dir = os.path.join(cfg.OUTPUT.ROOT, out_folder)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
-        kwargs = {
-            "groups": group_label,
-            "lambda_": lambda_,
-            "alpha": alpha,
-            "learning_rate": learning_rate,
-            "mix_group": mix_group,
-            "out_dir": out_dir,
-            "num_repeat": num_repeat,
-            "test_size": test_size,
-            "random_state": random_state,
-            "rest1_only": rest1_only,
-        }
+    kwargs = {
+        "groups": group_label,
+        "lambda_": lambda_,
+        "alpha": alpha,
+        "learning_rate": learning_rate,
+        "mix_group": mix_group,
+        "out_dir": out_dir,
+        "num_repeat": num_repeat,
+        "test_size": test_size,
+        "random_state": random_state,
+        "rest1_only": rest1_only,
+    }
 
-        if dataset == "HCP":
-            data = dict()
-            sessions = ["REST1", "REST2"]
-            for session in sessions:
-                data[session] = io_.load_half_brain(
-                    data_dir, atlas, session, run_, connection_type, download=download
-                )
-            kwargs = {**{"data": data}, **kwargs}
-            print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
-            if test_size == 0:
-                results = run_no_sub_hold_hcp(**kwargs)
-            elif 0 < test_size < 1:
-                results = run_sub_hold_hcp(**kwargs)
-            else:
-                raise ValueError("Invalid test_size %s" % test_size)
-
-        elif dataset == "GSP":
-            data = io_.load_half_brain(
-                data_dir,
-                atlas,
-                session=None,
-                run=run_,
-                connection_type=connection_type,
-                dataset=dataset,
-                download=download,
+    if dataset == "HCP":
+        data = dict()
+        sessions = ["REST1", "REST2"]
+        for session in sessions:
+            data[session] = io_.load_half_brain(
+                data_dir, atlas, session, run_, connection_type, download=download
             )
-            kwargs = {**{"data": data}, **kwargs}
-            print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
-            if 0 < test_size < 1:
-                results = run_sub_hold_gsp(**kwargs)
-            elif test_size == 0:
-                results = run_sub_hold_gsp(**kwargs)
-            else:
-                raise ValueError("Invalid test_size %s" % test_size)
+        kwargs = {**{"data": data}, **kwargs}
+        print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
+        if test_size == 0:
+            results = run_no_sub_hold_hcp(**kwargs)
+        elif 0 < test_size < 1:
+            results = run_sub_hold_hcp(**kwargs)
         else:
-            raise ValueError("Invalid dataset %s" % dataset)
+            raise ValueError("Invalid test_size %s" % test_size)
 
-        res_df = pd.DataFrame.from_dict(results)
-        out_filename = "results_%s_L%s_test_size0%s_%s_%s" % (
-            dataset,
-            int(lambda_),
-            str(int(test_size * 10)),
-            run_,
-            random_state,
+    elif dataset == "GSP":
+        data = io_.load_half_brain(
+            data_dir,
+            atlas,
+            session=None,
+            run=run_,
+            connection_type=connection_type,
+            dataset=dataset,
+            download=download,
         )
+        kwargs = {**{"data": data}, **kwargs}
+        print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
+        if 0 < test_size < 1:
+            results = run_sub_hold_gsp(**kwargs)
+        elif test_size == 0:
+            results = run_sub_hold_gsp(**kwargs)
+        else:
+            raise ValueError("Invalid test_size %s" % test_size)
+    else:
+        raise ValueError("Invalid dataset %s" % dataset)
 
-        if mix_group:
-            out_filename = out_filename + "_group_mix"
-        out_file = os.path.join(out_dir, "%s.csv" % out_filename)
+    res_df = pd.DataFrame.from_dict(results)
+    out_filename = "results_%s_L%s_test_size0%s_%s_%s" % (
+        dataset,
+        int(lambda_),
+        str(int(test_size * 10)),
+        run_,
+        random_state,
+    )
 
-        res_df.to_csv(out_file, index=False)
+    if mix_group:
+        out_filename = out_filename + "_group_mix"
+    out_file = os.path.join(out_dir, "%s.csv" % out_filename)
+
+    res_df.to_csv(out_file, index=False)
 
     # return res_df, out_file
 
@@ -523,7 +525,7 @@ def run_sub_hold_gsp(
     **kwargs,
 ):
     res = {
-        **{"acc_ic": [], "acc_oc": [], "acc_tgt_test_sub": [], "acc_nt_test_sub": []},
+        **{"acc_tgt": [], "acc_nt": [], "acc_tgt_test_sub": [], "acc_nt_test_sub": []},
         **copy.deepcopy(BASE_RESULT_DICT),
     }
 
@@ -577,8 +579,8 @@ def run_sub_hold_gsp(
                 if 0 < test_size < 1:
                     x_train = x_train_fold[train_sub]
                     xy_test = {
-                        "acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
-                        "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
+                        "acc_tgt": [x_train_fold_test_tgt, y_train_fold_test_tgt],
+                        "acc_nt": [x_train_fold_test_nt, y_train_fold_test_nt],
                         "acc_tgt_test_sub": [
                             np.concatenate(
                                 (
@@ -619,8 +621,8 @@ def run_sub_hold_gsp(
                 else:
                     x_train = x_train_fold
                     xy_test = {
-                        "acc_ic": [x_train_fold_test_tgt, y_train_fold_test_tgt],
-                        "acc_oc": [x_train_fold_test_nt, y_train_fold_test_nt],
+                        "acc_tgt": [x_train_fold_test_tgt, y_train_fold_test_tgt],
+                        "acc_nt": [x_train_fold_test_nt, y_train_fold_test_nt],
                     }
 
                 if mix_group:
@@ -671,7 +673,7 @@ def run_no_sub_hold_gsp(
     **kwargs,
 ):
     res = {
-        **{"acc_ic": [], "acc_oc": []},
+        **{"acc_tgt": [], "acc_nt": []},
         **copy.deepcopy(BASE_RESULT_DICT),
     }
     for i_split in range(num_repeat):
@@ -695,8 +697,8 @@ def run_no_sub_hold_gsp(
                         continue
 
                 xy_test = {
-                    "acc_ic": [x_all[1 - i_fold][tgt_idx], x_all[1 - i_fold][tgt_idx]],
-                    "acc_oc": [x_all[1 - i_fold][nt_idx], x_all[1 - i_fold][nt_idx]],
+                    "acc_tgt": [x_all[1 - i_fold][tgt_idx], x_all[1 - i_fold][tgt_idx]],
+                    "acc_nt": [x_all[1 - i_fold][nt_idx], x_all[1 - i_fold][nt_idx]],
                 }
 
                 fit_kws = {

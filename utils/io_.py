@@ -226,6 +226,11 @@ def load_half_brain(
             fpath = os.path.join(data_dir, fname)
             if not os.path.exists(fpath):
                 if download:
+                    os.makedirs(data_dir, exist_ok=True)
+                    print(
+                        "Downloading %s session %s data, it may take 1-2 mins"
+                        % (dataset, session)
+                    )
                     download_url_to_file(
                         HCP_LINK[session],
                         fpath,
@@ -251,6 +256,8 @@ def load_half_brain(
         if not os.path.exists(fpath):
             if download:
                 if dataset == "GSP":
+                    os.makedirs(data_dir, exist_ok=True)
+                    print("Downloading %s data, it may take 1-2 mins." % dataset)
                     download_url_to_file(GSP_LINK, fpath)
                 else:
                     raise ValueError("File %s does not exist" % fpath)
@@ -392,10 +399,12 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
                 test_size_str,
                 random_state,
             )
-            res_df = pd.read_csv(os.path.join(model_dir, res_fname))
-            res_df["seed"] = random_state
-            res_dict[lambda_].append(res_df)
-            res_list.append(res_df)
+            res_fpath = os.path.join(model_dir, res_fname)
+            if os.path.exists(res_fpath):
+                res_df = pd.read_csv(os.path.join(model_dir, res_fname))
+                res_df["seed"] = random_state
+                res_dict[lambda_].append(res_df)
+                res_list.append(res_df)
 
     for lambda_ in lambdas:
         res_dict[lambda_] = pd.concat(res_dict[lambda_])
@@ -437,7 +446,10 @@ def reformat_results(res_df, test_sets, male=0):
                 res_reformat["Train session"].append(subset_["train_session"])
             else:
                 res_reformat["Train session"].append(None)
-            _group = subset_["train_gender"]
+            if "train_group" not in subset_:  # for GSP dataset
+                _group = subset_["train_gender"]
+            else:
+                _group = subset_["train_group"]
             test_set_list = test_set.split("_")
             if _group == male:
                 res_reformat["Target group"].append("Male")
