@@ -25,11 +25,13 @@ BASE_RESULT_DICT: dict = {
     "time_used": [],
 }
 
-
 LABEL_FILE_LINK = {
     "HCP": "https://zenodo.org/records/10050233/files/HCP_half_brain.csv",
     "GSP": "https://zenodo.org/records/10050234/files/gsp_half_brain.csv",
 }
+
+GSDA_INIT_ARGS = ["learning_rate", "max_iter", "alpha", "lambda_", "solver"]
+GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
 
 
 def run_experiment(cfg, lambda_):
@@ -45,6 +47,7 @@ def run_experiment(cfg, lambda_):
 
     alpha = cfg.SOLVER.ALPHA
     learning_rate = cfg.SOLVER.LR
+    solver = cfg.SOLVER.SOLVER
     num_repeat = cfg.DATASET.NUM_REPEAT
     mix_group = cfg.DATASET.MIX_GROUP
     rest1_only = cfg.DATASET.REST1_ONLY
@@ -85,6 +88,7 @@ def run_experiment(cfg, lambda_):
         "test_size": test_size,
         "random_state": random_state,
         "rest1_only": rest1_only,
+        "solver": solver,
     }
 
     if dataset == "HCP":
@@ -143,16 +147,18 @@ def run_experiment(cfg, lambda_):
 
 
 def train_modal(
-    lambda_, alpha, x_train, fit_kws, out_dir, model_filename, learning_rate=0.1
+    x_train,
+    init_kws,
+    fit_kws,
+    out_dir,
+    model_filename,
 ):
     model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
     if os.path.exists(model_path):
         model = torch.load(model_path)
     else:
-        model = GSLR(
-            learning_rate=learning_rate, max_iter=5000, alpha=alpha, lambda_=lambda_
-        )
+        model = GSLR(**init_kws, max_iter=50)
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
 
@@ -315,14 +321,17 @@ def run_no_sub_hold_hcp(
                             "target_idx": None,
                         }
 
+                    init_kws = {"lambda_": lambda_, "alpha": alpha}
+                    for arg in GSDA_INIT_ARGS:
+                        if arg in kwargs:
+                            init_kws[arg] = kwargs[arg]
+
                     model = train_modal(
-                        lambda_,
-                        alpha,
                         x_train_fold,
+                        init_kws,
                         fit_kws,
                         out_dir,
                         model_filename,
-                        learning_rate=kwargs["learning_rate"],
                     )
                     res = save_loop_results(
                         model,
@@ -489,14 +498,17 @@ def run_sub_hold_hcp(
                             "target_idx": None,
                         }
 
+                    init_kws = {"lambda_": lambda_, "alpha": alpha}
+                    for arg in GSDA_INIT_ARGS:
+                        if arg in kwargs:
+                            init_kws[arg] = kwargs[arg]
+
                     model = train_modal(
-                        lambda_,
-                        alpha,
                         x_train,
+                        init_kws,
                         fit_kws,
                         out_dir,
                         model_filename,
-                        learning_rate=kwargs["learning_rate"],
                     )
                     res = save_loop_results(
                         model,
@@ -639,14 +651,17 @@ def run_sub_hold_gsp(
                             "group": groups,
                             "target_idx": None,
                         }
+                init_kws = {"lambda_": lambda_, "alpha": alpha}
+                for arg in GSDA_INIT_ARGS:
+                    if arg in kwargs:
+                        init_kws[arg] = kwargs[arg]
+
                 model = train_modal(
-                    lambda_,
-                    alpha,
                     x_train,
+                    init_kws,
                     fit_kws,
                     out_dir,
                     model_filename,
-                    learning_rate=kwargs["learning_rate"],
                 )
                 res = save_loop_results(
                     model,
@@ -721,14 +736,17 @@ def run_no_sub_hold_gsp(
                         "groups": groups,
                         "target_idx": None,
                     }
+                init_kws = {"lambda_": lambda_, "alpha": alpha}
+                for arg in GSDA_INIT_ARGS:
+                    if arg in kwargs:
+                        init_kws[arg] = kwargs[arg]
+
                 model = train_modal(
-                    lambda_,
-                    alpha,
                     x_train,
+                    init_kws,
                     fit_kws,
                     out_dir,
                     model_filename,
-                    learning_rate=kwargs["learning_rate"],
                 )
                 res = save_loop_results(
                     model,

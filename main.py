@@ -1,5 +1,7 @@
 import argparse
 
+from joblib import delayed, Parallel
+
 from configs.default_cfg import get_cfg_defaults
 from utils.experiment import run_experiment
 
@@ -24,7 +26,10 @@ def main():
     cfg.freeze()
     print(cfg)
 
-    run_experiment(cfg)
+    Parallel(n_jobs=2)(
+        delayed(run_experiment)(cfg, lambda_) for lambda_ in cfg.SOLVER.LAMBDA_
+    )
+    # run_experiment(cfg, cfg.SOLVER.LAMBDA_[0])
 
 
 if __name__ == "__main__":

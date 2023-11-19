@@ -34,6 +34,7 @@ _C.SOLVER = CN()
 _C.SOLVER.SEED = 2023
 _C.SOLVER.ALPHA = 10  # hyperparameter for the l2 regularization
 _C.SOLVER.LR = 0.04  # Initial learning rate
+_C.SOLVER.SOLVER = "lbfgs"
 _C.SOLVER.LAMBDA_ = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
 # ---------------------------------------------------------------------------- #
