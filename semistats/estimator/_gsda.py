@@ -6,27 +6,33 @@ from numpy.linalg import multi_dot
 from scipy.special import expit
 from sklearn.base import BaseEstimator, ClassifierMixin
 from torch import nn
+from torch.linalg import multi_dot as torch_multi_dot
 from torch.nn import functional as F
 
 
 def hsic(x, y):
-    kx = torch.mm(x, x.T)
-    ky = torch.mm(y, y.T)
-
+    # kx = torch.mm(x, x.T)
+    # ky = torch.mm(y, y.T)
+    y_ = y.view((-1, 1))
     n = x.shape[0]
     ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
 
-    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (
-        n**2
-    )
+    # return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (
+    #     n**2
+    # )
+    if x.shape[1] == 1:
+        return torch_multi_dot((x.T, ctr_mat, y_, y_.T, x))[0][0] / (n**2)
+    else:
+        return torch.trace(torch_multi_dot((x, x.T, ctr_mat, y_, y_.T, ctr_mat))) / (
+            n**2
+        )
 
 
 def simple_hsic(w, x, groups):
     n = x.shape[0]
-    kernel_c = np.dot(groups, groups.T)
     ctr_mat = np.diag(np.ones(n)) - 1 / n
 
-    return multi_dot((x.T, ctr_mat, kernel_c, ctr_mat, x, w))
+    return multi_dot((x.T, ctr_mat, groups, groups.T, ctr_mat, x, w))
 
 
 def gsda_nll(w, x, y, groups, tgt_idx=None, alpha=1.0, lambda_=1.0):
@@ -65,7 +71,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
     Logistic Regression Classifier
     Parameters
     ----------
-    learning_rate : int or float, default=0.1
+    lr : int or float, default=0.1
         The tuning parameter for the optimization algorithm (here, Gradient Descent)
         that determines the step size at each iteration while moving toward a minimum
         of the cost function.
@@ -74,34 +80,39 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
     regularization : None or 'l2', default='l2'.
         Option to perform L2 regularization.
-    alpha : float, default=1.0
+    l2_hparam : float, default=1.0
         Inverse of regularization strength; must be a positive float.
         Smaller values specify stronger regularization.
-    tolerance : float, optional, default=1e-4
+    tolerance_grad : float, optional, default=1e-7
         Value indicating the weight change between epochs in which
+        gradient descent should be terminated.
+    tolerance_change : float, optional, default=1e-8
+        Value indicating the change in loss function between epochs in which
         gradient descent should be terminated.
     """
 
     def __init__(
         self,
-        learning_rate=0.1,
+        lr=0.1,
         max_iter=100,
         regularization="l2",
-        alpha=1.0,
-        tolerance=1e-4,
+        l2_hparam=1.0,
+        tolerance_grad=1e-07,
+        tolerance_change=1e-9,
         lambda_=1.0,
-        solver="gd",
+        optimizer="gd",
         memory_size=10,
     ):
-        self.learning_rate = learning_rate
+        self.lr = lr
         self.max_iter = max_iter
         self.regularization = regularization
-        self.alpha = alpha
-        self.tolerance = tolerance
+        self.alpha = l2_hparam
+        self.tolerance_grad = tolerance_grad
+        self.tolerance_change = tolerance_change
         self.theta = None
         self.lambda_ = lambda_
         self.losses = {"ovr": [], "pred": [], "hsic": [], "time": []}
-        self.solver = solver
+        self.optimizer = optimizer
         self.memory_size = memory_size
 
     def fit(self, x, y, groups, target_idx=None):
@@ -135,8 +146,8 @@ class GSLR(BaseEstimator, ClassifierMixin):
         #     x_tgt = x[target_idx]
 
         start_time = time()
-        if self.solver == "lbfgs":
-            self.lbfgs(x, y, groups, target_idx)
+        if self.optimizer == "lbfgs":
+            self._lbfgs_solver(x, y, groups, target_idx)
             # impltmentations of L-BFGS
             # res = minimize(
             #     gsda_nll,
@@ -159,51 +170,9 @@ class GSLR(BaseEstimator, ClassifierMixin):
             # self.losses["hsic"].append(hsic_log_loss)
             # self.losses["time"].append(time_used)
         else:
-            for _ in range(self.max_iter):
-                # y_hat = self.__sigmoid(x_tgt @ self.theta)
-                # errors = y_hat - y
-                # n_feature = x.shape[1]
-                # _simple_hsic = simple_hsic(self.theta, x, groups)
-                # hsic_proba = self._compute_hsic_proba(_simple_hsic, n_sample)
-                # hsic_log_loss = -1 * np.log(hsic_proba)
-                # grad_hsic = (hsic_proba - 1) * _simple_hsic / np.square(n_sample - 1)
-                #
-                # if self.regularization is not None:
-                #     delta_grad = (
-                #         (x_tgt.T @ errors) / n_tgt
-                #         + self.theta / self.alpha
-                #         + self.lambda_ * grad_hsic
-                #     )
-                # else:
-                #     delta_grad = x_tgt.T @ errors
-                # pred_log_loss = _compute_pred_loss(y, y_hat)
-                delta_grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
-                    x, y, groups, target_idx
-                )
-                if _ % 10 == 0:
-                    time_used = time() - start_time
-                    self.losses["ovr"].append(pred_log_loss + hsic_log_loss)
-                    self.losses["pred"].append(pred_log_loss)
-                    self.losses["hsic"].append(hsic_log_loss)
-                    self.losses["time"].append(time_used)
-                    # if np.abs(self.losses["ovr"][-1] - self.losses["ovr"][-2]) < self.tolerance:
-                    #     break
-                    if len(self.losses["ovr"]) > 10:
-                        if (
-                            self.losses["ovr"][-1] > self.losses["ovr"][-2]
-                            or self.losses["ovr"][-2] - self.losses["ovr"][-1]
-                            < self.tolerance
-                        ):
-                            break
-
-                if _ % 50 == 0 and self.learning_rate > 0.001:
-                    self.learning_rate *= 0.8
-
-                # self.theta -= self.learning_rate * delta_grad
-                if not np.all(abs(delta_grad) <= self.tolerance):
-                    self.theta -= self.learning_rate * delta_grad
-                else:
-                    break
+            self._gd_solver(x, y, groups, target_idx)
+        time_used = time() - start_time
+        self.losses["time"].append(time_used)
 
         return self
 
@@ -220,7 +189,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         probs : array-like of shape (n_samples,)
             Returns the probability of each sample.
         """
-        return self.__sigmoid((x @ self.theta[1:]) + self.theta[0])
+        return expit((x @ self.theta[1:]) + self.theta[0])
 
     def predict(self, x):
         """
@@ -240,20 +209,20 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
         return y_pred
 
-    @staticmethod
-    def __sigmoid(z):
-        """
-        The sigmoid function.
-        Parameters
-        ------------
-        z : float
-            linear combinations of weights and sample features
-            z = w_0 + w_1*x_1 + ... + w_n*x_n
-        Returns
-        ---------
-        Value of logistic function at z
-        """
-        return 1 / (1 + np.exp(-z))
+    # @staticmethod
+    # def __sigmoid(z):
+    #     """
+    #     The sigmoid function.
+    #     Parameters
+    #     ------------
+    #     z : float
+    #         linear combinations of weights and sample features
+    #         z = w_0 + w_1*x_1 + ... + w_n*x_n
+    #     Returns
+    #     ---------
+    #     Value of logistic function at z
+    #     """
+    #     return 1 / (1 + np.exp(-z))
 
     def get_params(self, **kwargs):
         """
@@ -270,52 +239,108 @@ class GSLR(BaseEstimator, ClassifierMixin):
         except self.theta is None:
             raise Exception("Fit the model first!")
 
-    def _compute_hsic_proba(self, simple_hsic_, n_sample):
-        hsic_score = multi_dot((self.theta, simple_hsic_)) / np.square(n_sample - 1)
-        return self.__sigmoid(hsic_score)
+    # def _compute_hsic_proba(self, simple_hsic_, n_sample):
+    #     hsic_score =
+    #     return expit(hsic_score)
 
-    def lbfgs(self, x, y, groups, target_idx=None):
-        old_dirs = []  # Δx
-        old_stps = []  # Δgrad
-        H0 = np.eye(self.theta.shape[0])  # Initial approximation of the inverse Hessian
+    def _lbfgs_solver(self, x, y, groups, target_idx=None):
+        delta_theta = []  # Δx
+        delta_grads = []  # Δgrad
+        # hessian_approx = np.eye(self.theta.shape[0])  # Initial approximation of the inverse Hessian
         grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
             x, y, groups, target_idx
         )
+        theta_old = self.theta.copy()
+        grad_old = grad.copy()
 
         for _ in range(self.max_iter):
-            q = grad
-            alphas = []
-
-            theta_old = self.theta.copy()
-
+            q = grad.copy()
             # Compute the search direction
-            for i in reversed(range(len(old_dirs))):
-                alpha = old_dirs[i].dot(q) / old_stps[i].dot(old_dirs[i])
-                alphas.append(alpha)
-                q = q - alpha * old_stps[i]
+            if _ > 0:
+                alphas = []
+                for i in reversed(range(len(delta_theta))):
+                    alpha = delta_theta[i].dot(q) / delta_grads[i].dot(delta_theta[i])
+                    alphas.append(alpha)
+                    q -= alpha * delta_grads[i]
 
-            r = H0.dot(q)
+                gamma_k = delta_theta[-1].dot(delta_grads[-1]) / delta_grads[-1].dot(
+                    delta_grads[-1]
+                )
 
-            for i in range(len(old_dirs)):
-                beta = old_stps[i].dot(r) / old_stps[i].dot(old_dirs[i])
-                r = r + old_dirs[i] * (alphas[len(alphas) - 1 - i] - beta)
+                z = (gamma_k * np.eye(self.theta.shape[0])) @ q
 
+                for i in range(len(delta_theta)):
+                    beta_i = delta_grads[i].dot(z) / delta_grads[i].dot(delta_theta[i])
+                    z += delta_theta[i] * (alphas[i] - beta_i)
+            else:
+                z = np.eye(self.theta.shape[0]) @ q
             # Line search and update x
             # Implement a line search algorithm to find an appropriate step size
-            step_size = 1  # Placeholder
-            self.theta = theta_old + step_size * r
-
+            # step_size = 1  # Placeholder
             # Update memory
-            if len(old_dirs) == self.memory_size:
-                old_dirs.pop(0)
-                old_stps.pop(0)
+            if len(delta_theta) == self.memory_size:
+                delta_theta.pop(0)
+                delta_grads.pop(0)
 
-            old_dirs.append(self.theta - theta_old)
-            grad_new, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
+            self.theta = theta_old - z
+            delta_theta.append(self.theta - theta_old)
+            theta_old = self.theta.copy()
+
+            # Update gradient
+            grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
                 x, y, groups, target_idx
             )
-            old_stps.append(grad_new - grad)
-            grad = np.copy(grad_new)
+            delta_grads.append(grad - grad_old)
+            grad_old = grad.copy()
+
+            self.losses["ovr"].append(pred_log_loss + hsic_log_loss)
+            self.losses["pred"].append(pred_log_loss)
+            self.losses["hsic"].append(hsic_log_loss)
+
+    def _gd_solver(self, x, y, groups, target_idx=None):
+        for _ in range(self.max_iter):
+            # y_hat = self.__sigmoid(x_tgt @ self.theta)
+            # errors = y_hat - y
+            # n_feature = x.shape[1]
+            # _simple_hsic = simple_hsic(self.theta, x, groups)
+            # hsic_proba = self._compute_hsic_proba(_simple_hsic, n_sample)
+            # hsic_log_loss = -1 * np.log(hsic_proba)
+            # grad_hsic = (hsic_proba - 1) * _simple_hsic / np.square(n_sample - 1)
+            #
+            # if self.regularization is not None:
+            #     delta_grad = (
+            #         (x_tgt.T @ errors) / n_tgt
+            #         + self.theta / self.alpha
+            #         + self.lambda_ * grad_hsic
+            #     )
+            # else:
+            #     delta_grad = x_tgt.T @ errors
+            # pred_log_loss = _compute_pred_loss(y, y_hat)
+            delta_grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
+                x, y, groups, target_idx
+            )
+            if _ % 10 == 0:
+                self.losses["ovr"].append(pred_log_loss + hsic_log_loss)
+                self.losses["pred"].append(pred_log_loss)
+                self.losses["hsic"].append(hsic_log_loss)
+                # if np.abs(self.losses["ovr"][-1] - self.losses["ovr"][-2]) < self.tolerance:
+                #     break
+                if len(self.losses["ovr"]) > 10:
+                    if (
+                        self.losses["ovr"][-1] > self.losses["ovr"][-2]
+                        or self.losses["ovr"][-2] - self.losses["ovr"][-1]
+                        < self.tolerance_change
+                    ):
+                        break
+
+            if _ % 50 == 0 and self.lr > 0.001:
+                self.lr *= 0.8
+
+            # self.theta -= self.lr * delta_grad
+            if not np.all(abs(delta_grad) <= self.tolerance_grad):
+                self.theta -= self.lr * delta_grad
+            else:
+                break
 
             # Check for convergence (implement convergence criteria)
 
@@ -327,17 +352,18 @@ class GSLR(BaseEstimator, ClassifierMixin):
         else:
             x_tgt = x[target_idx]
 
-        y_hat = self.__sigmoid(x_tgt @ self.theta)
+        # y_hat = self.__sigmoid(x_tgt @ self.theta)
+        y_hat = expit(x_tgt @ self.theta)
         errors = y_hat - y
         # n_feature = x.shape[1]
         _simple_hsic = simple_hsic(self.theta, x, groups)
-        hsic_proba = self._compute_hsic_proba(_simple_hsic, n_sample)
+        hsic_proba = multi_dot((self.theta, _simple_hsic)) / np.square(n_sample - 1)
         grad_hsic = (hsic_proba - 1) * _simple_hsic / np.square(n_sample - 1)
 
         if self.regularization is not None:
             delta_grad = (
                 (x_tgt.T @ errors) / n_tgt
-                + self.theta / self.alpha
+                + self.theta * self.alpha
                 + self.lambda_ * grad_hsic
             )
         else:
@@ -359,9 +385,16 @@ class GSLR(BaseEstimator, ClassifierMixin):
     #     )
 
 
-class GSLR_Torch(nn.Module):
+class GSLRTorch(nn.Module):
     def __init__(
-        self, lr=0.001, l1_hparam=0.0, l2_hparam=1.0, lambda_=1.0, n_epochs=500
+        self,
+        lr=0.001,
+        l1_hparam=0.0,
+        l2_hparam=1.0,
+        lambda_=1.0,
+        n_epochs=50,
+        max_iter=100,
+        optimizer="lbfgs",
     ):
         super().__init__()
         self.lr = lr
@@ -370,12 +403,21 @@ class GSLR_Torch(nn.Module):
         self.lambda_ = lambda_
         self.n_epochs = n_epochs
         self.model = None
-        self.optimizer = None
+        self.optimizer = optimizer
+        self.max_iter = max_iter
         self.fit_time = 0
-        self.losses = {"ovr": [], "pred": [], "code": [], "time": []}
+        self.losses = {"ovr": [], "pred": [], "hsic": [], "time": []}
         # self.linear = nn.Linear(n_features, n_classes)
 
-    def fit(self, x, y, c, target_idx=None):
+    def fit(self, x, y, groups, target_idx=None):
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x).float()
+        if isinstance(y, np.ndarray):
+            y = torch.from_numpy(y).float()
+        if isinstance(groups, np.ndarray):
+            groups = torch.from_numpy(groups).float()
+        if isinstance(target_idx, np.ndarray):
+            target_idx = torch.from_numpy(target_idx).long()
         n_features = x.shape[1]
         # n_classes = torch.unique(y).shape[0]
         # self.model = nn.Linear(n_features, n_classes)
@@ -383,31 +425,37 @@ class GSLR_Torch(nn.Module):
         n_train = y.shape[0]
         if target_idx is None:
             target_idx = torch.arange(n_train)
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.lr, weight_decay=self.l2_hparam
+        self.optimizer = torch.optim.LBFGS(
+            self.model.parameters(),
+            lr=self.lr,
+            max_iter=self.max_iter,  # weight_decay=self.l2_hparam
         )
         # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+
+        def closure():
+            self.optimizer.zero_grad()
+            pred_loss = self._compute_pred_loss(out[target_idx], y.view(-1))
+            l2_norm = torch.linalg.norm(list(self.model.parameters())[0], ord=2)
+            hsic_loss = self._compute_hsic_loss(out, groups)
+            loss = pred_loss + self.lambda_ * hsic_loss + self.l2_hparam * l2_norm
+            self.losses["ovr"].append(loss.item())
+            self.losses["pred"].append(pred_loss.item())
+            self.losses["hsic"].append(hsic_loss.item())
+
+            return loss
 
         start_time = time()
         for epoch in range(self.n_epochs):
             out = self.model(x)
-            pred_loss = self._compute_pred_loss(out[target_idx], y.view(-1))
-            # l2_norm = torch.linalg.norm()
-            code_loss = self._compute_code_loss(out, c)
-            loss = pred_loss + self.lambda_ * code_loss
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
 
-            if (epoch + 1) % 10 == 0:
-                time_used = time() - start_time
-                self.losses["ovr"].append(loss.item())
-                self.losses["pred"].append(pred_loss.item())
-                self.losses["code"].append(code_loss.item())
-                self.losses["time"].append(time_used)
-                # print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, self.n_epochs, loss.item()))
-                # print('Pred Loss: {:.4f}'.format(pred_loss.item()))
-                # print('CoDe Loss: {:.4f}'.format(code_loss.item()))
+            self.optimizer.step(closure)
+
+            # if (epoch + 1) % 10 == 0:
+            time_used = time() - start_time
+            self.losses["time"].append(time_used)
+            # print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch + 1, self.n_epochs, loss.item()))
+            # print('Pred Loss: {:.4f}'.format(pred_loss.item()))
+            # print('CoDe Loss: {:.4f}'.format(code_loss.item()))
 
         # print('Time used: {:.4f}'.format(time_used))
 
@@ -417,8 +465,8 @@ class GSLR_Torch(nn.Module):
         return F.binary_cross_entropy(torch.sigmoid(input_), y.view((-1, 1)).float())
 
     @staticmethod
-    def _compute_code_loss(input_, c):
-        return 1 - torch.sigmoid(hsic(input_, c.float()))
+    def _compute_hsic_loss(input_, c):
+        return -1 * torch.log(torch.sigmoid(hsic(input_, c.float())))
 
     def forward(self, x):
         return self.model(x)
@@ -426,8 +474,8 @@ class GSLR_Torch(nn.Module):
     def predict(self, x):
         output = self.forward(x)
         # _, y_pred = torch.max(output, 1)
-        y_prob = torch.sigmoid(output)
+        y_proba = torch.sigmoid(output)
         y_pred = torch.zeros(output.shape)
-        y_pred[torch.where(y_prob > 0.5)] = 1
+        y_pred[y_proba > 0.5] = 1
 
         return y_pred

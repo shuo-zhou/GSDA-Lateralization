@@ -11,7 +11,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from torch.hub import download_url_to_file
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from semistats.estimator import GSLR
+from semistats.estimator import GSLR  # , GSLRTorch
 from utils import io_
 
 BASE_RESULT_DICT: dict = {
@@ -30,7 +30,7 @@ LABEL_FILE_LINK = {
     "GSP": "https://zenodo.org/records/10050234/files/gsp_half_brain.csv",
 }
 
-GSDA_INIT_ARGS = ["learning_rate", "max_iter", "alpha", "lambda_", "solver"]
+GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer"]
 GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
 
 
@@ -43,11 +43,11 @@ def run_experiment(cfg, lambda_):
     # lambda_list = cfg.SOLVER.LAMBDA_
     run_ = cfg.DATASET.RUN
     random_state = cfg.SOLVER.SEED
-    test_size = cfg.DATASET.TEST_SIZE
+    test_size = cfg.DATASET.TEST_RATIO
 
-    alpha = cfg.SOLVER.ALPHA
-    learning_rate = cfg.SOLVER.LR
-    solver = cfg.SOLVER.SOLVER
+    l2_hparam = cfg.SOLVER.L2_HPARAM
+    lr = cfg.SOLVER.LR
+    optimizer = cfg.SOLVER.OPTIMIZER
     num_repeat = cfg.DATASET.NUM_REPEAT
     mix_group = cfg.DATASET.MIX_GROUP
     rest1_only = cfg.DATASET.REST1_ONLY
@@ -80,15 +80,15 @@ def run_experiment(cfg, lambda_):
     kwargs = {
         "groups": group_label,
         "lambda_": lambda_,
-        "alpha": alpha,
-        "learning_rate": learning_rate,
+        "l2_hparam": l2_hparam,
+        "lr": lr,
         "mix_group": mix_group,
         "out_dir": out_dir,
         "num_repeat": num_repeat,
         "test_size": test_size,
         "random_state": random_state,
         "rest1_only": rest1_only,
-        "solver": solver,
+        "optimizer": optimizer,
     }
 
     if dataset == "HCP":
@@ -158,7 +158,8 @@ def train_modal(
     if os.path.exists(model_path):
         model = torch.load(model_path)
     else:
-        model = GSLR(**init_kws, max_iter=50)
+        # model = GSLR(**init_kws, max_iter=50)
+        model = GSLR(**init_kws, max_iter=5000)
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
 
@@ -225,7 +226,7 @@ def run_no_sub_hold_hcp(
     data,
     groups,
     lambda_,
-    alpha,
+    l2_hparam,
     mix_group,
     out_dir,
     num_repeat,
@@ -321,7 +322,7 @@ def run_no_sub_hold_hcp(
                             "target_idx": None,
                         }
 
-                    init_kws = {"lambda_": lambda_, "alpha": alpha}
+                    init_kws = {"lambda_": lambda_, "l2_hparam": l2_hparam}
                     for arg in GSDA_INIT_ARGS:
                         if arg in kwargs:
                             init_kws[arg] = kwargs[arg]
@@ -351,7 +352,7 @@ def run_sub_hold_hcp(
     data,
     groups,
     lambda_,
-    alpha,
+    l2_hparam,
     mix_group,
     out_dir,
     num_repeat,
@@ -498,7 +499,7 @@ def run_sub_hold_hcp(
                             "target_idx": None,
                         }
 
-                    init_kws = {"lambda_": lambda_, "alpha": alpha}
+                    init_kws = {"lambda_": lambda_, "l2_hparam": l2_hparam}
                     for arg in GSDA_INIT_ARGS:
                         if arg in kwargs:
                             init_kws[arg] = kwargs[arg]
@@ -528,7 +529,7 @@ def run_sub_hold_gsp(
     data,
     groups,
     lambda_,
-    alpha,
+    l2_hparam,
     mix_group,
     out_dir,
     num_repeat,
@@ -651,7 +652,7 @@ def run_sub_hold_gsp(
                             "group": groups,
                             "target_idx": None,
                         }
-                init_kws = {"lambda_": lambda_, "alpha": alpha}
+                init_kws = {"lambda_": lambda_, "l2_hparam": l2_hparam}
                 for arg in GSDA_INIT_ARGS:
                     if arg in kwargs:
                         init_kws[arg] = kwargs[arg]
@@ -680,7 +681,7 @@ def run_no_sub_hold_gsp(
     data,
     groups,
     lambda_,
-    alpha,
+    l2_hparam,
     mix_group,
     out_dir,
     num_repeat,
@@ -736,7 +737,7 @@ def run_no_sub_hold_gsp(
                         "groups": groups,
                         "target_idx": None,
                     }
-                init_kws = {"lambda_": lambda_, "alpha": alpha}
+                init_kws = {"lambda_": lambda_, "l2_hparam": l2_hparam}
                 for arg in GSDA_INIT_ARGS:
                     if arg in kwargs:
                         init_kws[arg] = kwargs[arg]

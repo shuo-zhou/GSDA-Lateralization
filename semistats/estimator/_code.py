@@ -7,17 +7,7 @@ from numpy.linalg import multi_dot
 from sklearn.base import BaseEstimator, ClassifierMixin
 from torch.nn import functional as F
 
-
-def hsic(x, y):
-    kx = torch.mm(x, x.T)
-    ky = torch.mm(y, y.T)
-
-    n = x.shape[0]
-    ctr_mat = torch.eye(n) - torch.ones((n, n)) / n
-
-    return torch.trace(torch.mm(torch.mm(torch.mm(kx, ctr_mat), ky), ctr_mat)) / (
-        n**2
-    )
+from semistats.estimator import hsic
 
 
 class CoDeLR_Torch(nn.Module):

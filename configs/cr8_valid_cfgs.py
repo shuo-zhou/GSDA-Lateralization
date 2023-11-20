@@ -44,7 +44,7 @@ def main():
             cfg_file.write("DATASET:\n")
             cfg_file.write("  DATASET: %s\n" % dataset)
             cfg_file.write("  ROOT: %s\n" % data_dir)
-            cfg_file.write("  TEST_SIZE: %s\n" % test_size)
+            cfg_file.write("  TEST_RATIO: %s\n" % test_size)
             cfg_file.write("SOLVER:\n")
             cfg_file.write("  SEED: %s\n" % seed)
             cfg_file.write("  LAMBDA_: [%s]\n" % lambda_)

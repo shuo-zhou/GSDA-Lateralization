@@ -19,7 +19,7 @@ _C.DATASET.DOWNLOAD = True
 _C.DATASET.ROOT = "data"
 _C.DATASET.ATLAS = "BNA"
 _C.DATASET.FEATURE = "correlation"
-_C.DATASET.TEST_SIZE = 0.2
+_C.DATASET.TEST_RATIO = 0.0
 _C.DATASET.TYPE = "functional"
 _C.DATASET.SESSIONS = [None]
 _C.DATASET.RUN = "Fisherz"
@@ -32,9 +32,9 @@ _C.DATASET.REST1_ONLY = True  # only use rest1 data for training, HCP dataset on
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.SEED = 2023
-_C.SOLVER.ALPHA = 10  # hyperparameter for the l2 regularization
+_C.SOLVER.L2_HPARAM = 0.1  # hyperparameter for the l2 regularization
 _C.SOLVER.LR = 0.04  # Initial learning rate
-_C.SOLVER.SOLVER = "lbfgs"
+_C.SOLVER.OPTIMIZER = "lbfgs"
 _C.SOLVER.LAMBDA_ = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
 # ---------------------------------------------------------------------------- #
