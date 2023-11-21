@@ -213,21 +213,6 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
         return y_pred
 
-    # @staticmethod
-    # def __sigmoid(z):
-    #     """
-    #     The sigmoid function.
-    #     Parameters
-    #     ------------
-    #     z : float
-    #         linear combinations of weights and sample features
-    #         z = w_0 + w_1*x_1 + ... + w_n*x_n
-    #     Returns
-    #     ---------
-    #     Value of logistic function at z
-    #     """
-    #     return 1 / (1 + np.exp(-z))
-
     def get_params(self, **kwargs):
         """
         Get method for models coefficients and intercept.
@@ -242,10 +227,6 @@ class GSLR(BaseEstimator, ClassifierMixin):
             return params
         except self.theta is None:
             raise Exception("Fit the model first!")
-
-    # def _compute_hsic_proba(self, simple_hsic_, n_sample):
-    #     hsic_score =
-    #     return expit(hsic_score)
 
     def _lbfgs_solver(self, x, y, groups, target_idx=None):
         delta_theta = []  # Δx
@@ -306,27 +287,15 @@ class GSLR(BaseEstimator, ClassifierMixin):
             delta_grads.append(grad - grad_old)
             grad_old = grad.copy()
 
+            if self._terminate_grad(delta_grads[-1]) or (
+                _ > 2 and self._terminate_change()
+            ):
+                break
+
         return self
 
     def _gd_solver(self, x, y, groups, target_idx=None):
         for _ in range(self.max_iter):
-            # y_hat = self.__sigmoid(x_tgt @ self.theta)
-            # errors = y_hat - y
-            # n_feature = x.shape[1]
-            # _simple_hsic = simple_hsic(self.theta, x, groups)
-            # hsic_proba = self._compute_hsic_proba(_simple_hsic, n_sample)
-            # hsic_log_loss = -1 * np.log(hsic_proba)
-            # grad_hsic = (hsic_proba - 1) * _simple_hsic / np.square(n_sample - 1)
-            #
-            # if self.regularization is not None:
-            #     delta_grad = (
-            #         (x_tgt.T @ errors) / n_tgt
-            #         + self.theta / self.alpha
-            #         + self.lambda_ * grad_hsic
-            #     )
-            # else:
-            #     delta_grad = x_tgt.T @ errors
-            # pred_log_loss = _compute_pred_loss(y, y_hat)
             delta_grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
                 x, y, groups, target_idx
             )
@@ -336,19 +305,13 @@ class GSLR(BaseEstimator, ClassifierMixin):
                 self.losses["hsic"].append(hsic_log_loss)
                 # if np.abs(self.losses["ovr"][-1] - self.losses["ovr"][-2]) < self.tolerance:
                 #     break
-                if len(self.losses["ovr"]) > 10:
-                    if (
-                        self.losses["ovr"][-1] > self.losses["ovr"][-2]
-                        or self.losses["ovr"][-2] - self.losses["ovr"][-1]
-                        < self.tolerance_change
-                    ):
-                        break
+                if len(self.losses["ovr"]) > 10 and self._terminate_change():
+                    break
 
             if _ % 50 == 0 and self.lr > 0.001:
                 self.lr *= 0.8
 
-            # self.theta -= self.lr * delta_grad
-            if not np.all(abs(delta_grad) <= self.tolerance_grad):
+            if not self._terminate_grad(delta_grad):
                 self.theta -= self.lr * delta_grad
             else:
                 break
@@ -363,7 +326,6 @@ class GSLR(BaseEstimator, ClassifierMixin):
         else:
             x_tgt = x[target_idx]
 
-        # y_hat = self.__sigmoid(x_tgt @ self.theta)
         y_hat = expit(x_tgt @ self.theta)
         # n_feature = x.shape[1]
         _simple_hsic = simple_hsic(self.theta, x, groups)
@@ -385,6 +347,18 @@ class GSLR(BaseEstimator, ClassifierMixin):
         pred_log_loss = _compute_pred_loss(y, y_hat)
 
         return delta_grad, pred_log_loss, hsic_log_loss
+
+    def _terminate_change(self):
+        if (
+            self.losses["ovr"][-1] > self.losses["ovr"][-2]
+            or self.losses["ovr"][-2] - self.losses["ovr"][-1] < self.tolerance_change
+        ):
+            return True
+        else:
+            return False
+
+    def _terminate_grad(self, delta_grad):
+        return np.all(abs(delta_grad) <= self.tolerance_grad)
 
     # @staticmethod
     # def _hsic_score(w, x, groups):
