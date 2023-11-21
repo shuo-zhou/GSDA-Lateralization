@@ -30,7 +30,7 @@ LABEL_FILE_LINK = {
     "GSP": "https://zenodo.org/records/10050234/files/gsp_half_brain.csv",
 }
 
-GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer"]
+GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer", "max_iter"]
 GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
 
 
@@ -49,6 +49,7 @@ def run_experiment(cfg, lambda_):
     lr = cfg.SOLVER.LR
     optimizer = cfg.SOLVER.OPTIMIZER
     num_repeat = cfg.DATASET.NUM_REPEAT
+    max_iter = cfg.SOLVER.MAX_ITER
     mix_group = cfg.DATASET.MIX_GROUP
     rest1_only = cfg.DATASET.REST1_ONLY
 
@@ -89,6 +90,7 @@ def run_experiment(cfg, lambda_):
         "random_state": random_state,
         "rest1_only": rest1_only,
         "optimizer": optimizer,
+        "max_iter": max_iter,
     }
 
     if dataset == "HCP":
@@ -158,10 +160,10 @@ def train_modal(
     if os.path.exists(model_path):
         model = torch.load(model_path)
     else:
-        # model = GSLR(**init_kws, max_iter=50)
-        model = GSLR(**init_kws, max_iter=5000)
+        model = GSLR(**init_kws)
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
+        print("Model saved to %s" % model_path)
 
     return model
 

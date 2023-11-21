@@ -102,6 +102,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         lambda_=1.0,
         optimizer="gd",
         memory_size=10,
+        random_state=None,
     ):
         self.lr = lr
         self.max_iter = max_iter
@@ -114,6 +115,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
         self.losses = {"ovr": [], "pred": [], "hsic": [], "time": []}
         self.optimizer = optimizer
         self.memory_size = memory_size
+        self.random_state = random_state
 
     def fit(self, x, y, groups, target_idx=None):
         """
@@ -136,7 +138,9 @@ class GSLR(BaseEstimator, ClassifierMixin):
         groups = np.asarray(groups)
         if groups.ndim == 1:
             groups = groups.reshape((-1, 1))
-        self.theta = np.random.random((x.shape[1] + 1))
+        self.theta = np.random.random(
+            (x.shape[1] + 1),
+        )
         x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
         # n_tgt = y.shape[0]
         # n_sample = x.shape[0]
@@ -271,7 +275,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
                 for i in range(len(delta_theta)):
                     beta_i = delta_grads[i].dot(z) / delta_grads[i].dot(delta_theta[i])
-                    z += delta_theta[i] * (alphas[i] - beta_i)
+                    z += delta_theta[i] * (alphas[len(alphas) - 1 - i] - beta_i)
             else:
                 z = np.eye(self.theta.shape[0]) @ q
             # Line search and update x
@@ -282,7 +286,11 @@ class GSLR(BaseEstimator, ClassifierMixin):
                 delta_theta.pop(0)
                 delta_grads.pop(0)
 
-            self.theta = theta_old - z
+            if _ > 0 and _ % 10 == 0 and self.lr > 0.001:
+                self.lr *= 0.8
+
+            self.theta = theta_old - z * self.lr
+
             delta_theta.append(self.theta - theta_old)
             theta_old = self.theta.copy()
 
@@ -290,12 +298,15 @@ class GSLR(BaseEstimator, ClassifierMixin):
             grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
                 x, y, groups, target_idx
             )
-            delta_grads.append(grad - grad_old)
-            grad_old = grad.copy()
 
             self.losses["ovr"].append(pred_log_loss + hsic_log_loss)
             self.losses["pred"].append(pred_log_loss)
             self.losses["hsic"].append(hsic_log_loss)
+
+            delta_grads.append(grad - grad_old)
+            grad_old = grad.copy()
+
+        return self
 
     def _gd_solver(self, x, y, groups, target_idx=None):
         for _ in range(self.max_iter):
@@ -342,7 +353,7 @@ class GSLR(BaseEstimator, ClassifierMixin):
             else:
                 break
 
-            # Check for convergence (implement convergence criteria)
+        return self
 
     def compute_gsda_gradient(self, x, y, groups, target_idx=None):
         n_sample = x.shape[0]
@@ -354,20 +365,21 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
         # y_hat = self.__sigmoid(x_tgt @ self.theta)
         y_hat = expit(x_tgt @ self.theta)
-        errors = y_hat - y
         # n_feature = x.shape[1]
         _simple_hsic = simple_hsic(self.theta, x, groups)
-        hsic_proba = multi_dot((self.theta, _simple_hsic)) / np.square(n_sample - 1)
+        hsic_proba = expit(
+            multi_dot((self.theta, _simple_hsic)) / np.square(n_sample - 1)
+        )
         grad_hsic = (hsic_proba - 1) * _simple_hsic / np.square(n_sample - 1)
 
         if self.regularization is not None:
             delta_grad = (
-                (x_tgt.T @ errors) / n_tgt
+                (x_tgt.T @ (y_hat - y)) / n_tgt
                 + self.theta * self.alpha
                 + self.lambda_ * grad_hsic
             )
         else:
-            delta_grad = x_tgt.T @ errors
+            delta_grad = x_tgt.T @ (y_hat - y)
 
         hsic_log_loss = -1 * np.log(hsic_proba)
         pred_log_loss = _compute_pred_loss(y, y_hat)

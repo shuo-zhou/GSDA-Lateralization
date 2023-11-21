@@ -26,7 +26,7 @@ _C.DATASET.RUN = "Fisherz"
 _C.DATASET.CONNECTION = "intra"
 _C.DATASET.NUM_REPEAT = 1
 _C.DATASET.MIX_GROUP = False
-_C.DATASET.REST1_ONLY = True  # only use rest1 data for training, HCP dataset only
+_C.DATASET.REST1_ONLY = False  # only use rest1 data for training, HCP dataset only
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -35,6 +35,7 @@ _C.SOLVER.SEED = 2023
 _C.SOLVER.L2_HPARAM = 0.1  # hyperparameter for the l2 regularization
 _C.SOLVER.LR = 0.04  # Initial learning rate
 _C.SOLVER.OPTIMIZER = "lbfgs"
+_C.SOLVER.MAX_ITER = 100
 _C.SOLVER.LAMBDA_ = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
 # ---------------------------------------------------------------------------- #
