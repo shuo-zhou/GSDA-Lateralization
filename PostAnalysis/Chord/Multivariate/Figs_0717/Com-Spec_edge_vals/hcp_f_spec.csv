@@ -1,8 +1,0 @@
-node1_name,node2_name,edge_name,edge_value
-Frontal_MFG-7,Frontal_OrG-25,Frontal_MFG-7-Frontal_OrG-25,0.07775006189097461
-Occipital_LOcC-99,Occipital_LOcC-103,Occipital_LOcC-99-Occipital_LOcC-103,0.07957850187583375
-Frontal_PrG-28,Frontal_PCL-33,Frontal_PrG-28-Frontal_PCL-33,0.08282122495285647
-Frontal_PrG-28,Parietal_PoG-80,Frontal_PrG-28-Parietal_PoG-80,0.08694546894716929
-Frontal_IFG-15,Temporal_ITG-49,Frontal_IFG-15-Temporal_ITG-49,0.08929399758504758
-Frontal_MFG-12,Frontal_IFG-15,Frontal_MFG-12-Frontal_IFG-15,0.09624865729226138
-Frontal_PrG-28,Frontal_PrG-29,Frontal_PrG-28-Frontal_PrG-29,0.09755353516441902

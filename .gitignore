@@ -19,8 +19,14 @@ configs/*.yaml
 
 .idea/
 .vscode/
-
+data/
+pydale/
+output/
 __pycache__
 **/lightning_logs/
 **.ipynb_checkpoints/
 nilearn_cache/
+.pytest_cache
+model_analysis/figures
+model_analysis/first-order
+model_analysis/second-order

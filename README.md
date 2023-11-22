@@ -1,2 +1,1 @@
-# Brain_LR_BNU
-Machine Learning for Studying Human Brain Differences/Similarities in Left and Right Hemispheres
+# Group-Specific Discriminant Analysis for Functional Sex-specific Human Brain Lateralization
