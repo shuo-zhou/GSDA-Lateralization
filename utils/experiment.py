@@ -21,7 +21,7 @@ BASE_RESULT_DICT: dict = {
     "train_session": [],
     "split": [],
     "fold": [],
-    "train_group": [],
+    "target_group": [],
     "time_used": [],
 }
 
@@ -32,6 +32,8 @@ LABEL_FILE_LINK = {
 
 GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer", "max_iter"]
 GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
+
+GROUP_DICT = {"Male": 0, "Female": 1}
 
 
 def run_experiment(cfg, lambda_):
@@ -172,7 +174,7 @@ def save_loop_results(
     model,
     res_dict,
     xy_test,
-    train_group,
+    target_group,
     train_session=None,
     lambda_=0.0,
     i_split=0,
@@ -192,7 +194,7 @@ def save_loop_results(
 
     # res['n_iter'].append(n_iter)
     # n_iter += 1
-    res_dict["train_group"].append(train_group)
+    res_dict["target_group"].append(GROUP_DICT[target_group])
     if train_session is not None:
         res_dict["train_session"].append(train_session)
     else:
@@ -569,9 +571,9 @@ def run_sub_hold_gsp(
                 ) = _idx
 
                 if mix_group:
-                    tgt_group = "mix"
                     if tgt_group == 1:
                         continue
+                    tgt_group = "mix"
 
                 x_train_fold_test_tgt = x_test_fold[train_sub][train_sub_tgt_idx]
                 y_train_fold_test_tgt = y_test_fold[train_sub][train_sub_tgt_idx]
@@ -705,14 +707,14 @@ def run_no_sub_hold_gsp(
 
             # scaler = StandardScaler()
             # scaler.fit(x_train)
-            for train_group in [0, 1]:
-                tgt_idx = np.where(groups == train_group)[0]
-                nt_idx = np.where(groups == 1 - train_group)[0]
+            for tgt_group in [0, 1]:
+                tgt_idx = np.where(groups == tgt_group)[0]
+                nt_idx = np.where(groups == 1 - tgt_group)[0]
 
                 if mix_group:
-                    train_group = "mix"
-                    if train_group == 1:
+                    if tgt_group == 1:
                         continue
+                    tgt_group = "mix"
 
                 xy_test = {
                     "acc_tgt": [x_all[1 - i_fold][tgt_idx], x_all[1 - i_fold][tgt_idx]],
@@ -728,7 +730,7 @@ def run_no_sub_hold_gsp(
                     int(lambda_),
                     i_split,
                     i_fold,
-                    train_group,
+                    tgt_group,
                     random_state,
                 )
 
@@ -755,7 +757,7 @@ def run_no_sub_hold_gsp(
                     model,
                     res,
                     xy_test,
-                    train_group,
+                    tgt_group,
                     lambda_=lambda_,
                     i_split=i_split,
                     train_fold=i_fold,
