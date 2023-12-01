@@ -8,7 +8,7 @@
 *.npy
 *.pdf
 *.pkl
-*.png
+# *.png
 *.pt
 *.pyc
 *.sh
