@@ -16,8 +16,37 @@ This repository contains the implementation of Group-Specific Discriminant Analy
 
 ## Datasets
 
+The datasets used in this study are available at HCP: [https://www.humanconnectome.org](https://www. humanconnectome.org) and GSP:[https://www.neuroinfo.org/gsp/](https://www.neuroinfo.org/gsp/). Code for data preprocessing is available at `/preprocess`. Processed data is available at [https://doi.org/10.5281/zenodo.10050233](https://doi.org/10.5281/zenodo.10050233) for HCP and [https://doi.org/10.5281/zenodo.10050234](https://doi.org/10.5281/zenodo.10050234) for GSP.
+
 ## System Requirements
+
+```(text)
+numpy>=1.24.3
+pandas>=1.5.3
+scipy>=1.10.1
+scikit-learn>=1.2.2
+pytorch>=2.0.0
+yacs
+```
 
 ## Installation Guide
 
+```(bash)
+pip install -r requirements.txt
+```
+
+## Instructions for Use to Reproduce Results
+
+```(bash)
+python main.py --cfg configs/demo-hcp.yaml
+```
+
 ## Demo
+
+We provide GSDA running demo through a cloud Jupyter notebook on [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/shuo-zhou/GSDA-Lateralization/blob/main/gsda_demo.ipynb). Note the number of repetition is limited for faster demonstrations. This demo takes 10-20 minutes to complete the training and testing process.
+
+## References
+
+[1] Smith, S. M. et al. Resting-state fMRI in the human connectome project. _NeuroImage_ 80, 144–168 (2013)
+
+[2] Holmes, A. J. et al. Brain genomics superstruct project initial data release with structural, functional, and behavioral measures. _Sci. Data_ 2, 1–16 (2015)

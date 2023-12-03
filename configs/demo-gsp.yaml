@@ -1,5 +1,5 @@
 DATASET:
-  DATASET: "HCP"
+  DATASET: "GSP"
   ROOT: "data"
   MIX_GROUP: False
   TEST_RATIO: 0.2

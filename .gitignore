@@ -14,7 +14,7 @@
 *.sh
 # *.svg
 *.xml
-configs/*.yaml
+# configs/*.yaml
 *.zip
 
 .idea/
