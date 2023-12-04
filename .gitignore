@@ -30,3 +30,4 @@ nilearn_cache/
 model_analysis/figures
 model_analysis/first-order
 model_analysis/second-order
+semistats/estimator/_code.py

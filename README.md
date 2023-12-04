@@ -16,7 +16,7 @@ This repository contains the implementation of Group-Specific Discriminant Analy
 
 ## Datasets
 
-The datasets used in this study are available at HCP: [https://www.humanconnectome.org](https://www. humanconnectome.org) and GSP:[https://www.neuroinfo.org/gsp/](https://www.neuroinfo.org/gsp/). Code for data preprocessing is available at `/preprocess`. Processed data is available at [https://doi.org/10.5281/zenodo.10050233](https://doi.org/10.5281/zenodo.10050233) for HCP and [https://doi.org/10.5281/zenodo.10050234](https://doi.org/10.5281/zenodo.10050234) for GSP.
+The resting-state fMRI data from [HCP](https://www.humanconnectome.org) [[1](#references)] and [GSP](https://www.neuroinfo.org/gsp/) [[2](#references)] is used in this study. Code for data preprocessing is available at `/preprocess`. Processed data is available at Zenodo: [[HCP](https://doi.org/10.5281/zenodo.10050233)], [[GSP](https://doi.org/10.5281/zenodo.10050234)].
 
 ## System Requirements
 
@@ -35,11 +35,17 @@ yacs
 pip install -r requirements.txt
 ```
 
-## Instructions for Use to Reproduce Results
+## Instructions for Use
+
+Basic usage:
+
+```(bash)
 
 ```(bash)
 python main.py --cfg configs/demo-hcp.yaml
 ```
+
+Please create more .yaml files for different random seeds and datasets.
 
 ## Demo
 

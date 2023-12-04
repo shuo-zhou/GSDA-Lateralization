@@ -4,7 +4,7 @@
 
 Author: Yaya Jiang
 
-Contact: 201831061043@mail.bnu.edu.cn
+Contact: <201831061043@mail.bnu.edu.cn>
 
 Please run the code according to the steps outlined in the .m file names.
 
@@ -12,6 +12,6 @@ Please run the code according to the steps outlined in the .m file names.
 
 Author: [Shuo Zhou](https://github.com/shuo-zhou)
 
-Contact: shuo.zhou@sheffield.ac.uk
+Contact: <shuo.zhou@sheffield.ac.uk>
 
 Please run the code following the order indicated by the initial numbers in the .py file names.
