@@ -40,8 +40,6 @@ pip install -r requirements.txt
 Basic usage:
 
 ```(bash)
-
-```(bash)
 python main.py --cfg configs/demo-hcp.yaml
 ```
 
