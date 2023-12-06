@@ -142,37 +142,10 @@ class GSLR(BaseEstimator, ClassifierMixin):
             (x.shape[1] + 1),
         )
         x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
-        # n_tgt = y.shape[0]
-        # n_sample = x.shape[0]
-        # if target_idx is None:
-        #     x_tgt = x[:n_tgt]
-        # else:
-        #     x_tgt = x[target_idx]
 
         start_time = time()
         if self.optimizer == "lbfgs":
             self._lbfgs_solver(x, y, groups, target_idx)
-            # impltmentations of L-BFGS
-            # res = minimize(
-            #     gsda_nll,
-            #     self.theta,
-            #     args=(x, y, groups, target_idx, self.alpha, self.lambda_),
-            #     method="L-BFGS-B",
-            #     jac=False,
-            #     options={"maxiter": self.max_iter, "disp": True},
-            # )
-            # self.theta = res.x
-            #
-            # time_used = time() - start_time
-            # _simple_hsic = simple_hsic(self.theta, x, groups)
-            # hsic_proba = self._compute_hsic_proba(_simple_hsic, n_sample)
-            # hsic_log_loss = -1 * np.log(hsic_proba)
-            # y_hat = expit(x_tgt @ self.theta)
-            # pred_log_loss = _compute_pred_loss(y, y_hat)
-            # self.losses["ovr"].append(pred_log_loss + hsic_log_loss)
-            # self.losses["pred"].append(pred_log_loss)
-            # self.losses["hsic"].append(hsic_log_loss)
-            # self.losses["time"].append(time_used)
         else:
             self._gd_solver(x, y, groups, target_idx)
         time_used = time() - start_time
@@ -229,9 +202,20 @@ class GSLR(BaseEstimator, ClassifierMixin):
             raise Exception("Fit the model first!")
 
     def _lbfgs_solver(self, x, y, groups, target_idx=None):
+        """optimization using L-BFGS
+
+        Args:
+            x (_type_): _description_
+            y (_type_): _description_
+            groups (_type_): _description_
+            target_idx (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
         delta_theta = []  # Δx
         delta_grads = []  # Δgrad
-        # hessian_approx = np.eye(self.theta.shape[0])  # Initial approximation of the inverse Hessian
+
         grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
             x, y, groups, target_idx
         )
@@ -295,6 +279,17 @@ class GSLR(BaseEstimator, ClassifierMixin):
         return self
 
     def _gd_solver(self, x, y, groups, target_idx=None):
+        """optimization using gradient descent
+
+        Args:
+            x (array-like): _description_
+            y (array-like): _description_
+            groups (array-like): _description_
+            target_idx (array-like, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
         for _ in range(self.max_iter):
             delta_grad, pred_log_loss, hsic_log_loss = self.compute_gsda_gradient(
                 x, y, groups, target_idx
@@ -359,16 +354,6 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
     def _terminate_grad(self, delta_grad):
         return np.all(abs(delta_grad) <= self.tolerance_grad)
-
-    # @staticmethod
-    # def _hsic_score(w, x, groups):
-    #     n = x.shape[0]
-    #     kernel_c = np.dot(groups, groups.T)
-    #     ctr_mat = np.diag(np.ones(n)) - 1 / n
-    #
-    #     return multi_dot((w, x.T, ctr_mat, kernel_c, ctr_mat, x, w.T)) / np.square(  # type: ignore
-    #         n - 1
-    #     )
 
 
 class GSLRTorch(nn.Module):
