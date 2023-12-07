@@ -33,7 +33,7 @@ LABEL_FILE_LINK = {
 GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer", "max_iter"]
 GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
 
-GROUP_DICT = {"Male": 0, "Female": 1}
+GROUP_DICT = {0: "Male", 1: "Female"}
 
 
 def run_experiment(cfg, lambda_):
