@@ -23,7 +23,7 @@ def main():
     connection_type = "intra"
 
     info_file = "HCP_%s_half_brain.csv" % atlas
-    info = io_.read_table(os.path.join(data_dir, info_file), index_col="ID")
+    info = io_.read_tabular(os.path.join(data_dir, info_file), index_col="ID")
 
     for session in sessions:
         data[session] = io_.load_half_brain(

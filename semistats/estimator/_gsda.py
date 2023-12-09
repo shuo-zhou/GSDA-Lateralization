@@ -271,8 +271,8 @@ class GSLR(BaseEstimator, ClassifierMixin):
             delta_grads.append(grad - grad_old)
             grad_old = grad.copy()
 
-            if self._terminate_grad(delta_grads[-1]) or (
-                _ > 2 and self._terminate_change()
+            if _ > self.memory_size * 2 and (
+                self._terminate_grad(delta_grads[-1]) or self._terminate_change()
             ):
                 break
 
@@ -357,6 +357,10 @@ class GSLR(BaseEstimator, ClassifierMixin):
 
 
 class GSLRTorch(nn.Module):
+    """
+    Under development
+    """
+
     def __init__(
         self,
         lr=0.001,

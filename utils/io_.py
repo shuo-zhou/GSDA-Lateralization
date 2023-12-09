@@ -66,7 +66,7 @@ def load_hdf5(fpath):
     return data
 
 
-def read_table(fname, **kwargs):
+def read_tabular(fname, **kwargs):
     """Read a table from a .xlsx or .csv file
 
     Parameters
