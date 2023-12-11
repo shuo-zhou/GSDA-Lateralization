@@ -12,7 +12,7 @@ from torch.hub import download_url_to_file
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from semistats.estimator import GSLR  # , GSLRTorch
-from utils import io_
+from utils.io_ import load_half_brain, pick_half, read_tabular
 
 BASE_RESULT_DICT: dict = {
     "pred_loss": [],
@@ -33,7 +33,7 @@ LABEL_FILE_LINK = {
 GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer", "max_iter"]
 GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
 
-GROUP_DICT = {"Male": 0, "Female": 1}
+GROUP_DICT = {0: "Male", 1: "Female"}
 
 
 def run_experiment(cfg, lambda_):
@@ -64,11 +64,11 @@ def run_experiment(cfg, lambda_):
     if not os.path.exists(label_fpath):
         if download:
             os.makedirs(data_dir, exist_ok=True)
-            print("Downloading label file for %s dataset" % dataset)
+            print("Downloading label file for %s dataset. \n" % dataset)
             download_url_to_file(LABEL_FILE_LINK[dataset], label_fpath)
         else:
             raise ValueError("File %s does not exist" % label_file)
-    labels = io_.read_table(label_fpath, index_col="ID")
+    labels = read_tabular(label_fpath, index_col="ID")
     group_label = labels["gender"].values
 
     # for lambda_ in lambda_list:
@@ -99,11 +99,11 @@ def run_experiment(cfg, lambda_):
         data = dict()
         sessions = ["REST1", "REST2"]
         for session in sessions:
-            data[session] = io_.load_half_brain(
+            data[session] = load_half_brain(
                 data_dir, atlas, session, run_, connection_type, download=download
             )
         kwargs = {**{"data": data}, **kwargs}
-        print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
+        print("Training model with lambda = %s on %s dataset. \n" % (lambda_, dataset))
         if test_size == 0:
             results = run_no_sub_hold_hcp(**kwargs)
         elif 0 < test_size < 1:
@@ -112,7 +112,7 @@ def run_experiment(cfg, lambda_):
             raise ValueError("Invalid test_size %s" % test_size)
 
     elif dataset == "GSP":
-        data = io_.load_half_brain(
+        data = load_half_brain(
             data_dir,
             atlas,
             session=None,
@@ -122,15 +122,15 @@ def run_experiment(cfg, lambda_):
             download=download,
         )
         kwargs = {**{"data": data}, **kwargs}
-        print("Training model with lambda = %s on %s dataset" % (lambda_, dataset))
+        print("Training model with lambda = %s on %s dataset. \n" % (lambda_, dataset))
         if 0 < test_size < 1:
             results = run_sub_hold_gsp(**kwargs)
         elif test_size == 0:
             results = run_sub_hold_gsp(**kwargs)
         else:
-            raise ValueError("Invalid test_size %s" % test_size)
+            raise ValueError("Invalid test_size %s." % test_size)
     else:
-        raise ValueError("Invalid dataset %s" % dataset)
+        raise ValueError("Invalid dataset %s." % dataset)
 
     res_df = pd.DataFrame.from_dict(results)
     out_filename = "results_%s_L%s_test_size0%s_%s_%s" % (
@@ -144,7 +144,7 @@ def run_experiment(cfg, lambda_):
     if mix_group:
         out_filename = out_filename + "_group_mix"
     out_file = os.path.join(out_dir, "%s.csv" % out_filename)
-
+    print("Saving classification results to %s. \n" % out_file)
     res_df.to_csv(out_file, index=False)
 
     # return res_df, out_file
@@ -165,7 +165,7 @@ def train_modal(
         model = GSLR(**init_kws)
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
-        print("Model saved to %s" % model_path)
+        print("Saving trained model to %s. \n" % model_path)
 
     return model
 
@@ -255,7 +255,7 @@ def run_no_sub_hold_hcp(
             x_all = dict()
             y_all = dict()
             for session in [train_session, test_session]:
-                x, y, x1, y1 = io_.pick_half(
+                x, y, x1, y1 = pick_half(
                     data[session], random_state=random_state * (i_split + 1)
                 )
                 # x, y = _pick_half_subs(data[run_])
@@ -379,7 +379,7 @@ def run_sub_hold_hcp(
     y_all = dict()
 
     for session in ["REST1", "REST2"]:
-        x, y, x1, y1 = io_.pick_half(data[session], random_state=random_state)
+        x, y, x1, y1 = pick_half(data[session], random_state=random_state)
 
         x_all[session] = [x, x1]
         y_all[session] = [y, y1]
@@ -546,7 +546,7 @@ def run_sub_hold_gsp(
         **copy.deepcopy(BASE_RESULT_DICT),
     }
 
-    x, y, x1, y1 = io_.pick_half(data, random_state=random_state)
+    x, y, x1, y1 = pick_half(data, random_state=random_state)
 
     x_all = [x, x1]
     y_all = [y, y1]
@@ -697,7 +697,7 @@ def run_no_sub_hold_gsp(
         **copy.deepcopy(BASE_RESULT_DICT),
     }
     for i_split in range(num_repeat):
-        x, y, x1, y1 = io_.pick_half(data, random_state=random_state * (i_split + 1))
+        x, y, x1, y1 = pick_half(data, random_state=random_state * (i_split + 1))
         x_all = [x, x1]
         y_all = [y, y1]
 

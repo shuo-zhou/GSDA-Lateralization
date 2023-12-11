@@ -29,7 +29,6 @@ def main():
     Parallel(n_jobs=2)(
         delayed(run_experiment)(cfg, lambda_) for lambda_ in cfg.SOLVER.LAMBDA_
     )
-    # run_experiment(cfg, cfg.SOLVER.LAMBDA_[0])
 
 
 if __name__ == "__main__":

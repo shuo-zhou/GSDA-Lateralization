@@ -17,7 +17,7 @@ if strfind(LabMask,'AICHA')
 else strfind(LabMask,'BNA')
     MaskLabel='BNA';
 end
-ScrubbingMethod=1;FDTrd=0.5;PreNum=1;PostNum=2;
+ScrubbingMethod='cut';FDTrd=0.5;PreNum=1;PostNum=2;
 for i = 1:Num
     [a,b,~]=fileparts(InputFiles{i});
     [aa,ID,~]=fileparts(a);
@@ -71,7 +71,7 @@ if strfind(LabMask,'AICHA')
 else strfind(LabMask,'BNA')
     MaskLabel='BNA';
 end
-ScrubbingMethod=1;FDTrd=0.5;PreNum=1;PostNum=2;
+ScrubbingMethod='cut';FDTrd=0.5;PreNum=1;PostNum=2;
 for i = 1:Num
     [a,b,~]=fileparts(InputFiles{i});
     [aa,ID,~]=fileparts(a);

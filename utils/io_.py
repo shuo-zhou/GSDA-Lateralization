@@ -66,7 +66,7 @@ def load_hdf5(fpath):
     return data
 
 
-def read_table(fname, **kwargs):
+def read_tabular(fname, **kwargs):
     """Read a table from a .xlsx or .csv file
 
     Parameters
@@ -415,7 +415,7 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
     return res_df_all
 
 
-def reformat_results(res_df, test_sets, male=0):
+def reformat_results(res_df, test_sets, male_label=0):
     """reformat results dataframe to one accuracy per row
 
     Args:
@@ -446,12 +446,12 @@ def reformat_results(res_df, test_sets, male=0):
                 res_reformat["Train session"].append(subset_["train_session"])
             else:
                 res_reformat["Train session"].append(None)
-            if "train_group" not in subset_:  # for GSP dataset
+            if "target_group" not in subset_:  # for GSP dataset
                 _group = subset_["train_gender"]
             else:
-                _group = subset_["train_group"]
+                _group = subset_["target_group"]
             test_set_list = test_set.split("_")
-            if _group == male:
+            if _group == "Male" or _group == male_label:
                 res_reformat["Target group"].append("Male")
                 if "oc" in test_set_list or "tgt" in test_set_list:
                     res_reformat["Test set"].append("Female")

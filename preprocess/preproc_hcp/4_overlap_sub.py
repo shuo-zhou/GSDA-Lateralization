@@ -28,7 +28,7 @@ def main():
 
     for session in sessions:
         info_file = "HCP_%s_half_brain_%s.csv" % (atlas, session)
-        info[session] = io_.read_table(
+        info[session] = io_.read_tabular(
             os.path.join(data_dir, info_file), index_col="ID"
         )
         data[session] = io_.load_half_brain(

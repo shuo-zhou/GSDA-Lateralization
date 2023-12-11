@@ -15,10 +15,9 @@ sessions = ["REST1", "REST2"]
 # sessions = ['REST2']
 # out_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
 connection_type = "intra"  # inter & intra
-# n_comps = [50, 10, 150, 200, 250]
 
 # sub_info = io_.read_table(os.path.join(basedir, sub_info_fname), index_col=0)
-sub_info = io_.read_table(sub_info_fpath, index_col=0)
+sub_info = io_.read_tabular(sub_info_fpath, index_col=0)
 sub_idx = sub_info.index
 
 for session in sessions:
