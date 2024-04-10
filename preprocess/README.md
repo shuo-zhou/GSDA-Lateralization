@@ -4,7 +4,7 @@
 
 Author: Yaya Jiang
 
-Contact: <201831061043@mail.bnu.edu.cn>
+Contact: <yayajiang@mail.bnu.edu.cn>
 
 Please run the code according to the steps outlined in the .m file names.
 

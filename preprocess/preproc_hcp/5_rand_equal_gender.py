@@ -10,11 +10,8 @@ from utils import io_
 
 def main():
     atlas = "BNA"
-    # atlas = 'AICHA'
-    # data_dir = "/media/shuo/MyDrive/data/HCP/%s/Proc" % atlas
-    # out_dir = '/media/shuo/MyDrive/data/HCP/%s/Results/Rand_Half/' % atlas
-    data_dir = "D:/ShareFolder/%s/Proc" % atlas
-    out_dir = "D:/ShareFolder/%s/Result" % atlas
+    data_dir = "../%s/Proc" % atlas
+    out_dir = "../Result" % atlas
 
     sessions = ["REST1", "REST2"]
 

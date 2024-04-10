@@ -8,18 +8,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import io_
 
-# basedir = 'D:/ShareFolder/AICHA_VolFC'  # 'D:\ShareFolder\AICHA_VolFC\REST2\LR\FC_R'
 atlas = "BNA"
-basedir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/"  # 'C:/Data/brain/validation/ukbio/'
-sub_info_fpath = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/participants.tsv"  # 'C:/Data/brain/validation/ukbio/infoYLY.mat'
+basedir = ""
+sub_info_fpath = ""
 out_dir = os.path.join(basedir, "proc")
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
-connection_type = "intra"  # inter & intra
-# n_comps = [50, 10, 150, 200, 250]
+connection_type = "intra"
 
-# sub_info = io_.read_table(os.path.join(basedir, sub_info_fname), index_col=0)
 sub_info_df = pd.read_csv(sub_info_fpath, sep="\t")
 sub_idx = sub_info_df["participant_id"]
 

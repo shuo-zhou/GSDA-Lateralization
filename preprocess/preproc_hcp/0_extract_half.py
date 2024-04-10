@@ -5,18 +5,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils import io_
 
-# basedir = 'D:/ShareFolder/AICHA_VolFC'  # 'D:\ShareFolder\AICHA_VolFC\REST2\LR\FC_R'
 atlas = "BNA"
-basedir = "D:/ShareFolder/BNA"
-sub_info_fpath = "D:/ShareFolder/AICHA_VolFC/AtlasInfo/HCP_basic_information.xlsx"
-out_dir = "D:/ShareFolder/BNA/Proc"
+basedir = ""
+sub_info_fpath = ""
+out_dir = ""
 runs = ["LR", "RL"]
 sessions = ["REST1", "REST2"]
-# sessions = ['REST2']
-# out_dir = 'D:/ShareFolder/AICHA_VolFC/Proc'
+
 connection_type = "intra"  # inter & intra
 
-# sub_info = io_.read_table(os.path.join(basedir, sub_info_fname), index_col=0)
 sub_info = io_.read_tabular(sub_info_fpath, index_col=0)
 sub_idx = sub_info.index
 

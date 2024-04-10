@@ -10,11 +10,9 @@ from utils import io_
 
 def main():
     atlas = "BNA"
-    # data_dir = "/media/shuo/MyDrive/data/HCP/%s/Proc" % atlas
-    # out_dir = '/media/shuo/MyDrive/data/HCP/%s/Proc/fisherz' % atlas
 
-    data_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
-    out_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc/fisherz" % atlas
+    data_dir = "../%s/Proc" % atlas
+    out_dir = "../Proc/fisherz" % atlas
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)

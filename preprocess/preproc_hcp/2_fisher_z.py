@@ -10,11 +10,9 @@ from utils import io_
 
 def main():
     atlas = "BNA"
-    # data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
-    # out_dir = '/media/shuo/MyDrive/HCP/%s/Proc' % atlas
 
-    data_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
-    out_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
+    data_dir = "../%s/Proc" % atlas
+    out_dir = "../%s/Proc" % atlas
 
     session = "REST2"
 

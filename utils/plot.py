@@ -33,7 +33,7 @@ def plot_gsi(
     sns.boxplot(data=data, x=x, y=y, hue=hue, showmeans=True)
     plt.legend(title="Target group")
     plt.rcParams["text.usetex"] = True
-    plt.xlabel(r"$\lambda$")
+    plt.xlabel(r"$\lambda$: group (sex) dependence")
     plt.rcParams["text.usetex"] = False
     plt.ylabel("Group Specificity Index (GSI)")
     if outfile is not None:
@@ -52,11 +52,10 @@ def plot_accuracy(
     height=4,
     fontsize=14,
     outfile=None,
-    outfig_format=None,
+    outfig_format="svg",
 ):
-    fig = plt.figure()
     plt.rcParams.update({"font.size": fontsize})
-    g = sns.relplot(
+    fig = sns.relplot(
         data=data,
         x=x,
         y=y,
@@ -68,8 +67,8 @@ def plot_accuracy(
         height=height,
     )
     (
-        g.map(plt.axhline, y=0.9, color=".7", dashes=(2, 1), zorder=0)
-        .set_axis_labels(r"$\lambda$", "Test Accuracy")
+        fig.map(plt.axhline, y=0.9, color=".7", dashes=(2, 1), zorder=0)
+        .set_axis_labels(r"$\lambda$: group (sex) dependence", "Test Accuracy")
         .set_titles("Target group: {col_name}")
         .tight_layout(w_pad=0)
     )
@@ -137,12 +136,11 @@ def load_weight_plot_corr(dataset, base_dir, sessions, seed_start, fontsize=14):
     ax[1].set_ylabel("Correlation")
     ax[1].legend(loc="upper right")
     plt.rcParams["text.usetex"] = True
-    plt.xlabel(r"$\lambda$", fontsize=fontsize)
+    plt.xlabel(r"$\lambda$: group (sex) dependence", fontsize=fontsize)
     plt.rcParams["text.usetex"] = False
 
     plt.savefig("figures/%s_corr.svg" % dataset, format="svg", bbox_inches="tight")
-    # plt.savefig('figures/%s_corr.pdf' % dataset, format='pdf', bbox_inches='tight')
-    # plt.savefig('figures/%s_corr.png' % dataset, format='png', bbox_inches='tight')
+
     plt.show()
 
 
@@ -198,13 +196,11 @@ def load_coef_plot_corr(dataset, sex_label, fontsize=14):
     ax.set_yticklabels(
         list(weight_df.columns.values), rotation=45, ha="right", fontsize=fontsize + 2
     )
-    # plt.savefig('corr.pdf', format='pdf', bbox_inches='tight')
-    # plt.savefig('corr.png', format='png', bbox_inches='tight')
+
     plt.savefig(
         "figures/corr_annot_%s_%s.svg" % (dataset, sex_dict[sex_label]),
         format="svg",
         bbox_inches="tight",
     )
-    # plt.savefig('figures/corr_annot_%s_%s.pdf' % (dataset, sex_dict[sex_label]), format='pdf', bbox_inches='tight')
-    # plt.savefig('figures/corr_annot_%s_%s.png' % (dataset, sex_dict[sex_label]), format='png', bbox_inches='tight')
+
     plt.show()

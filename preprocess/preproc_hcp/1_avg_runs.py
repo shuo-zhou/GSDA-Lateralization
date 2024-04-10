@@ -10,11 +10,9 @@ from utils import io_
 
 def main():
     atlas = "BNA"
-    # data_dir = "/media/shuo/MyDrive/HCP/%s/Proc" % atlas
-    # out_dir = '/media/shuo/MyDrive/HCP/%s/Proc' % atlas
 
-    data_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
-    out_dir = "/media/shuo/MyDrive/data/HCP/hcp-Retest/%s/Proc" % atlas
+    data_dir = "../%s/Proc" % atlas
+    out_dir = "../%s/Proc" % atlas
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
@@ -48,7 +46,6 @@ def main():
     data_left = (data["LR"]["Left"] + data["RL"]["Left"]) / 2
     data_right = (data["LR"]["Right"] + data["RL"]["Right"]) / 2
 
-    # data_left, data_right = io_.load_txt(fpaths, connection_type=connection_type)
     out_fname = "HCP_%s_%s_half_brain_%s_AVG.hdf5" % (atlas, connection_type, session)
     io_.save_half_brain(out_dir, out_fname, data_left, data_right)
     info["LR"].to_csv(
