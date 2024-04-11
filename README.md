@@ -1,4 +1,4 @@
-# Group-Specific Discriminant Analysis for Sex Differences in Human Brain Lateralization
+# Group-specific discriminant analysis for modelling sex differences in lateralization of brain functional network
 
 <div align="left">
 
@@ -8,7 +8,7 @@
 
 ## Introduction
 
-This repository contains the implementation of Group-Specific Discriminant Analysis (GSDA) with application for investigating sex differences in human brain lateralization.
+This repository contains the implementation of Group-Specific Discriminant Analysis (GSDA) for reproducing the results in article: [Group-specific discriminant analysis reveals statistically validated sex differences in lateralization of brain functional network](https://arxiv.org/abs/2404.05781).
 
 ## Framework
 
