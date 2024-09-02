@@ -4,6 +4,7 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/shuo-zhou/GSDA-Lateralization/blob/main/gsda_demo.ipynb)
 [![GitHub license](https://badgen.net/github/license/Naereen/Strapdown.js)](https://github.com/shuo-zhou/GSDA-Lateralization/blob/main/README.md)
+[![DOI](https://zenodo.org/badge/325192453.svg)](https://zenodo.org/doi/10.5281/zenodo.13626594)
 </div>
 
 ## Introduction
