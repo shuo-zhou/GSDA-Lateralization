@@ -30,11 +30,8 @@ def main():
     model1 = {"lambda": 2, "gender": 0}
     model2 = {"lambda": 2, "gender": 1}
 
-    # base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
-    # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models"
-    # dataset = "gsp"
-    base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/ukbio/Models"
-    dataset = "ukb"
+    base_dir = "../output"
+    dataset = "HCP"
     sessions = [""]
     seed_ = 2023
 
