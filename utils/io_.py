@@ -293,7 +293,7 @@ def fetch_weights(base_dir, group, lambda_, dataset, sessions, seed_=2023):
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(50):
-                    model_file = "%s_L%s_%s%s_%s_group_%s_%s.pt" % (
+                    model_file = "%s_L%s_test_size00_%s%s_%s_group_%s_%s.pt" % (
                         dataset,
                         lambda_,
                         session_i,

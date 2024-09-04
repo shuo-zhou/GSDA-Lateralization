@@ -2,21 +2,13 @@ import os
 
 import numpy as np
 from scipy.io import savemat
+from scipy.stats import normaltest
 from second_order_clf import fetch_weights
 
 
 def main():
-    # dataset = "GSP"
-    # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models"
-    # output_dir = "first-order/GSP"
-    # seed_ = 2023
-    # sessions = [""]
-
-    # dataset = "ukb"
-    # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/ukbio/Models"
-
     dataset = "HCP"
-    base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models/"
+    base_dir = "./output"
     output_dir = "first-order/HCP"
     seed_ = 2022
     sessions = ["REST1_", "REST2_"]
@@ -30,6 +22,9 @@ def main():
             weight = fetch_weights(
                 base_dir, gender, lambda_, dataset, sessions=sessions, seed_=seed_
             )
+            p_vals = []
+            for _ in range(weight.shape[0]):
+                p_vals.append(normaltest(weight[_])[1])
             w_mean = np.mean(weight, axis=0)
             w_std = np.std(weight, axis=0)
             midc = {"mean": w_mean, "std": w_std}
