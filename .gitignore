@@ -28,7 +28,8 @@ __pycache__
 nilearn_cache/
 .pytest_cache
 #model_analysis/figures/
-model_analysis/first-order/
-model_analysis/second-order/
+model_analysis/cls_results/
+model_analysis/first-order-models/
+model_analysis/second-order-models/
 semistats/estimator/_code.py
 configs/cr8*.py

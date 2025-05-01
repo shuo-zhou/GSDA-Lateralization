@@ -271,21 +271,28 @@ def load_half_brain(
     return data
 
 
-def fetch_weights(base_dir, group, lambda_, dataset, sessions, seed_=2023):
+def fetch_weights(base_dir, group, lambda_, dataset, sessions, test_size="00", seed_=2023):
     """
 
     Args:
         base_dir:
-        gender:
-        lambda_:
+        group: int, 0 or 1
+        lambda_: str, "0_group_mix" or "0", "1", "2", "5", "8", "10"
+        dataset: str, "HCP" or "GSP"
+        sessions: list of session names, ["REST1_", "REST2_"] for HCP and ["_"] for GSP
+        test_size: str, "00" or "02", optional, default="00"
+        seed_: int, optional, default=2023
 
     Returns:
         a matrix of weights, shape (n_models, n_features)
     """
 
     sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
+    if not os.path.exists(sub_dir):
+        return None
     if lambda_ == "0_group_mix":
         lambda_ = 0
+        group = "mix"
     weight = []
     num_repeat = 5
     halfs = [0, 1]
@@ -293,17 +300,18 @@ def fetch_weights(base_dir, group, lambda_, dataset, sessions, seed_=2023):
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(50):
-                    model_file = "%s_L%s_test_size00_%s%s_%s_group_%s_%s.pt" % (
+                    model_file_name = "%s_L%s_test_size%s_%s%s_%s_group_%s_%s.pt" % (
                         dataset,
                         lambda_,
+                        test_size,
                         session_i,
                         i_split,
                         half_i,
                         group,
                         seed_ - seed,
                     )
-                    if os.path.exists(os.path.join(sub_dir, model_file)):
-                        weight.append(get_coef(model_file, sub_dir).reshape((1, -1)))
+                    if os.path.exists(os.path.join(sub_dir, model_file_name)):
+                        weight.append(get_coef(model_file_name, sub_dir).reshape((1, -1)))
 
     return np.concatenate(weight, axis=0)
 
@@ -391,7 +399,7 @@ def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
         else:
             lambda_str = lambda_
         model_dir = os.path.join(root_dir, "lambda%s" % lambda_str)
-        for seed_iter in range(50):
+        for seed_iter in range(51):
             random_state = seed_start - seed_iter
             res_fname = "results_%s_L%s_test_size0%s_Fisherz_%s.csv" % (
                 dataset,
@@ -421,7 +429,7 @@ def reformat_results(res_df, test_sets, male_label=0):
     Args:
         res_df (_type_): _description_
         test_sets (_type_): _description_
-        male (int, optional): _description_. Defaults to 0.
+        male_label (int, optional): _description_. Defaults to 0.
 
     Returns:
         _type_: _description_
@@ -498,7 +506,7 @@ def read_file(file):
 def select_data_subj(df, subj_id, df_column_name):
     data = df[df_column_name][df["subject"] == subj_id]
     return (
-        data  # series datatype with dim of (1,),for the ndarray contents,data = data[0]
+        data  # series datatype with dim of (1,),for the ndarray contents, data = data[0]
     )
 
 
@@ -587,7 +595,7 @@ def creat_shape_gii(shape_gii_base, array_write, savepath):
 def creat_fs_lr32k_atlas(shape_gii_base, array_write, atlas_file, hemi, savepath):
     # cdata = np.zeros((32492,))
     f_atlas = nib.load(atlas_file)
-    f_data = f_atlas.get_fdata()  # 0 mean medial wall, label start from 1
+    f_data = f_atlas.get_fdata()  # 0 mean medial wall, label starts from 1
     f_data = f_data[0, :]
 
     if hemi == "L":
@@ -612,7 +620,7 @@ def Corr(x, y):
 
 
 # ************************************************ Join plot ***************************************************** #
-# x,y should not be object data type, if so, convert it to np.double data type.
+# x,y should not be the object data type, if so, convert it to np.double data type.
 def jointplot_fitlinear(x, y):
     plt.figure(figsize=(20, 16))
     sns.jointplot(x=x, y=y, kind="reg", scatter_kws={"s": 8})
