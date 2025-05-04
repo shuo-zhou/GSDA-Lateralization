@@ -27,9 +27,10 @@ __pycache__
 **.ipynb_checkpoints/
 nilearn_cache/
 .pytest_cache
-#model_analysis/figures/
-model_analysis/cls_results/
-model_analysis/first-order-models/
-model_analysis/second-order-models/
+model_analysis/**/*.pdf
+model_analysis/**/*.svg
+model_analysis/**/*.csv
+model_analysis/**/*.npz
+model_analysis/**/*.mat
 semistats/estimator/_code.py
 configs/cr8*.py
