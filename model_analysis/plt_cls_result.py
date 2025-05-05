@@ -1,15 +1,82 @@
 import os
-import sys
 
+import matplotlib.pylab as plt
 import pandas as pd
-
-sys.path.insert(0, "..")
-
-from utils import plot
-
-# from utils.io_ import load_result, reformat_results
+import seaborn as sns
 
 PLOT_FORMATS = ["svg", "pdf"]
+
+
+def savefig(fig, outfile, outfig_format):
+    if isinstance(outfig_format, list):
+        for fmt in outfig_format:
+            fig.savefig("%s.%s" % (outfile, fmt), format=fmt, bbox_inches="tight")
+    else:
+        fig.savefig(
+            "%s.%s" % (outfile, outfig_format),
+            format=outfig_format,
+            bbox_inches="tight",
+        )
+
+
+def plot_gsi(
+    data,
+    x="lambda",
+    y="GSI",
+    hue="train_gender",
+    fontsize=14,
+    outfile=None,
+    outfig_format=None,
+):
+    fig = plt.figure()
+    plt.rcParams.update({"font.size": fontsize})
+    sns.boxplot(data=data, x=x, y=y, hue=hue, showmeans=True)
+    plt.legend(title="Target group")
+    plt.rcParams["text.usetex"] = True
+    plt.xlabel(r"$\lambda$")
+    plt.rcParams["text.usetex"] = False
+    plt.ylabel("Group Specificity Index (GSI)")
+    if outfile is not None:
+        savefig(fig, outfile, outfig_format)
+    plt.show()
+
+
+def plot_accuracy(
+    data,
+    x="Lambda",
+    y="Accuracy",
+    col="Target group",
+    hue="Test set",
+    style="Test set",
+    kind="line",
+    height=4,
+    fontsize=14,
+    outfile=None,
+    outfig_format=None,
+):
+    fig = plt.figure()
+    plt.rcParams.update({"font.size": fontsize})
+    g = sns.relplot(
+        data=data,
+        x=x,
+        y=y,
+        col=col,
+        hue=hue,
+        style=style,
+        kind=kind,
+        errorbar=("sd", 1),
+        height=height,
+    )
+    (
+        g.map(plt.axhline, y=0.9, color=".7", dashes=(2, 1), zorder=0)
+        .set_axis_labels(r"$\lambda$", "Test Accuracy")
+        .set_titles("Target group: {col_name}")
+        .tight_layout(w_pad=0)
+    )
+    if outfile is not None:
+        savefig(fig, outfile, outfig_format)
+
+    plt.show()
 
 
 def load_result(dataset, root_dir, lambdas, seed_start, test_size=0.0):
@@ -132,14 +199,10 @@ def plot_hcp(res_df_all, test_size, out_dir="figures"):
 
     res_df_all = label_gender(res_df_all)
 
-    plot.plot_accuracy(
-        res_df_is, outfile=f"{out_dir}/Fig_2A", outfig_format=PLOT_FORMATS
-    )
-    plot.plot_accuracy(
-        res_df_os, outfile=f"{out_dir}/Fig_S1A", outfig_format=PLOT_FORMATS
-    )
+    plot_accuracy(res_df_is, outfile=f"{out_dir}/Fig_2A", outfig_format=PLOT_FORMATS)
+    plot_accuracy(res_df_os, outfile=f"{out_dir}/Fig_S1A", outfig_format=PLOT_FORMATS)
 
-    plot.plot_gsi(
+    plot_gsi(
         res_df_all,
         x="lambda",
         y="GSI_is",
@@ -147,7 +210,7 @@ def plot_hcp(res_df_all, test_size, out_dir="figures"):
         outfile=f"{out_dir}/Fig_2B",
         outfig_format=PLOT_FORMATS,
     )
-    plot.plot_gsi(
+    plot_gsi(
         res_df_all,
         x="lambda",
         y="GSI_os",
@@ -160,14 +223,14 @@ def plot_hcp(res_df_all, test_size, out_dir="figures"):
         res_df_test_sub = reformat_results(
             res_df_all, ["acc_tgt_test_sub", "acc_nt_test_sub"]
         )
-        plot.plot_accuracy(
+        plot_accuracy(
             res_df_test_sub, outfile=f"{out_dir}/Fig_S1C", outfig_format=PLOT_FORMATS
         )
         res_df_all["GSI_test_sub"] = 2 * (
             res_df_all["acc_tgt_test_sub"]
             * (res_df_all["acc_tgt_test_sub"] - res_df_all["acc_nt_test_sub"])
         )
-        plot.plot_gsi(
+        plot_gsi(
             res_df_all,
             x="lambda",
             y="GSI_test_sub",
@@ -190,10 +253,10 @@ def plot_gsp(res_df_all, test_size, out_dir="figures"):
     suffix = {0.0: "S2A", 0.2: "S2C"}.get(test_size, "S2X")  # fallback suffix
     suffix_gsi = {0.0: "S2B", 0.2: "S2D"}.get(test_size, "S2Y")
 
-    plot.plot_accuracy(
+    plot_accuracy(
         res_df_reformat, outfile=f"{out_dir}/Fig_{suffix}", outfig_format=PLOT_FORMATS
     )
-    plot.plot_gsi(
+    plot_gsi(
         res_df_all,
         x="lambda",
         y="GSI",
