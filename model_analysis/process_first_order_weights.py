@@ -18,7 +18,7 @@ from second_order_clf import fetch_weights
 
 def main():
     # base_dir = "./output"
-    output_dir = "first-order_weights"
+    output_dir = "model_weights/first_order"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     seed_ = 2023

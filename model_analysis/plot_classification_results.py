@@ -8,6 +8,12 @@ PLOT_FORMATS = ["svg", "pdf"]
 
 
 def savefig(fig, outfile, outfig_format):
+    """save figures to file
+    Args:
+        fig (matplotlib.figure.Figure): figure to save
+        outfile (str): output file name without extension
+        outfig_format (str or list): output file format(s), e.g., 'pdf', 'svg', or ['pdf', 'svg']
+    """
     if isinstance(outfig_format, list):
         for fmt in outfig_format:
             fig.savefig("%s.%s" % (outfile, fmt), format=fmt, bbox_inches="tight")
@@ -28,6 +34,16 @@ def plot_gsi(
     outfile=None,
     outfig_format=None,
 ):
+    """plot GSI boxplot
+    Args:
+        data (pd.DataFrame): data to plot
+        x (str): x-axis variable
+        y (str): y-axis variable
+        hue (str): hue variable
+        fontsize (int): font size
+        outfile (str): output file name without extension
+        outfig_format (str or list): output file format(s), e.g., 'pdf', 'svg', or ['pdf', 'svg']
+    """
     fig = plt.figure()
     plt.rcParams.update({"font.size": fontsize})
     sns.boxplot(data=data, x=x, y=y, hue=hue, showmeans=True)
@@ -54,6 +70,20 @@ def plot_accuracy(
     outfile=None,
     outfig_format=None,
 ):
+    """plot accuracy line plot
+    Args:
+        data (pd.DataFrame): data to plot
+        x (str): x-axis variable
+        y (str): y-axis variable
+        col (str): column variable
+        hue (str): hue variable
+        style (str): style variable
+        kind (str): kind of plot
+        height (int): height of the plot
+        fontsize (int): font size
+        outfile (str): output file name without extension
+        outfig_format (str or list): output file format(s), e.g., 'pdf', 'svg', or ['pdf', 'svg']
+    """
     fig = plt.figure()
     plt.rcParams.update({"font.size": fontsize})
     g = sns.relplot(
@@ -267,16 +297,16 @@ def plot_gsp(res_df_all, test_size, out_dir="figures"):
 
 
 def main():
-    model_root_dir = "cls_results"
+    classification_results_dir = "cls_results"
     seed_start = 2023
     datasets = {"gsp": [0.0, 0.2], "HCP": [0.0, 0.2]}
-    out_dir = "cls_figures"
+    out_dir = "gigasci_figures"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
 
     for dataset in datasets.keys():
-        result_dir = f"{model_root_dir}/{dataset}/"
+        result_dir = f"{classification_results_dir}/{dataset}/"
         for test_size in datasets[dataset]:
             res_df_all = load_result(
                 dataset=dataset,
