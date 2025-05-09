@@ -146,16 +146,16 @@ def load_weight_plot_corr(dataset, base_dir, sessions, seed_start, fontsize=14):
     plt.show()
 
 
-def load_coef_plot_corr(dataset, sex_label, fontsize=14):
+def load_coef_plot_corr(dataset, group_label, fontsize=14):
     weights_dirs = dict()
     lambdas = [0.0, 1.0, 2.0, 5.0, 8.0, 10.0]
-    sex_dict = {0: "Male", 1: "Female"}
+    group_dict = {0: "Male", 1: "Female"}
     for lambda_ in lambdas:
         weights_dirs[r"$\lambda=%s$" % (int(lambda_))] = "%s/%s_L%sG%s.mat" % (
             dataset,
             dataset,
             int(lambda_),
-            sex_label,
+            group_label,
         )
 
     weights = dict()
@@ -194,17 +194,17 @@ def load_coef_plot_corr(dataset, sex_label, fontsize=14):
     )
     # cbar_kws={"shrink": .5, "use_gridspec": False, "location": "top"})  #, annot_kws={"rotation": 45})
     plt.rcParams["text.usetex"] = False
-    ax.set_xticklabels(list(weight_df.columns.values), fontsize=fontsize + 2)
+    ax.set_xticklabels(weight_df.columns.to_list(), fontsize=fontsize + 2)
     ax.set_yticklabels(
-        list(weight_df.columns.values), rotation=45, ha="right", fontsize=fontsize + 2
+        weight_df.columns.to_list(), rotation=45, ha="right", fontsize=fontsize + 2
     )
     # plt.savefig('corr.pdf', format='pdf', bbox_inches='tight')
     # plt.savefig('corr.png', format='png', bbox_inches='tight')
     plt.savefig(
-        "figures/corr_annot_%s_%s.svg" % (dataset, sex_dict[sex_label]),
+        "figures/corr_annot_%s_%s.svg" % (dataset, group_dict[group_label]),
         format="svg",
         bbox_inches="tight",
     )
-    # plt.savefig('figures/corr_annot_%s_%s.pdf' % (dataset, sex_dict[sex_label]), format='pdf', bbox_inches='tight')
-    # plt.savefig('figures/corr_annot_%s_%s.png' % (dataset, sex_dict[sex_label]), format='png', bbox_inches='tight')
+    # plt.savefig('figures/corr_annot_%s_%s.pdf' % (dataset, group_dict[sex_label]), format='pdf', bbox_inches='tight')
+    # plt.savefig('figures/corr_annot_%s_%s.png' % (dataset, group_dict[sex_label]), format='png', bbox_inches='tight')
     plt.show()
