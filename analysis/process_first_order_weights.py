@@ -11,9 +11,64 @@ them in .mat format.
 import os
 
 import numpy as np
+import torch
 from scipy.io import savemat
 from scipy.stats import normaltest
-from second_order_clf import fetch_weights
+
+
+def get_coef(file_name, file_dir):
+    file_path = os.path.join(file_dir, file_name)
+    model = torch.load(file_path)
+    return model.theta
+
+
+def fetch_weights(
+    base_dir, group, lambda_, dataset, sessions, test_size="00", seed_=2023
+):
+    """
+
+    Args:
+        base_dir:
+        group: int, 0 or 1
+        lambda_: str, "0_group_mix" or "0", "1", "2", "5", "8", "10"
+        dataset: str, "HCP" or "GSP"
+        sessions: list of session names, ["REST1_", "REST2_"] for HCP and ["_"] for GSP
+        test_size: str, "00" or "02", optional, default="00"
+        seed_: int, optional, default=2023
+
+    Returns:
+        a matrix of weights, shape (n_models, n_features)
+    """
+
+    sub_dir = os.path.join(base_dir, "lambda%s" % lambda_)
+    if not os.path.exists(sub_dir):
+        return None
+    if lambda_ == "0_group_mix":
+        lambda_ = 0
+        group = "mix"
+    weight = []
+    num_repeat = 5
+    halfs = [0, 1]
+    for session_i in sessions:
+        for half_i in halfs:
+            for i_split in range(num_repeat):
+                for seed in range(52):
+                    model_file_name = "%s_L%s_test_size%s_%s%s_%s_group_%s_%s.pt" % (
+                        dataset,
+                        lambda_,
+                        test_size,
+                        session_i,
+                        i_split,
+                        half_i,
+                        group,
+                        seed_ - seed,
+                    )
+                    if os.path.exists(os.path.join(sub_dir, model_file_name)):
+                        weight.append(
+                            get_coef(model_file_name, sub_dir).reshape((1, -1))
+                        )
+
+    return np.concatenate(weight, axis=0)
 
 
 def main():

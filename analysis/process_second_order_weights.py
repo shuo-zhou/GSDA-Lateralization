@@ -1,12 +1,46 @@
 import copy
 import os
-import sys
 
 import numpy as np
+from joblib import load
 from scipy.io import savemat
 
-sys.path.append("../")
-from utils.io_ import fetch_weights_joblib
+
+def get_2nd_order_coef(file_name, file_dir):
+    file_path = os.path.join(file_dir, file_name)
+    model = load(file_path)
+    return model.coef_
+
+
+def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
+    """
+
+    Args:
+        base_dir:
+        task:
+        num_repeat:
+        permutation:
+
+    Returns:
+
+    """
+
+    sub_dir = os.path.join(base_dir, task)
+    file_name = copy.copy(task)
+
+    if permutation:
+        sub_dir = sub_dir + "_permut"
+        file_name = file_name + "_permut"
+
+    weight = []
+
+    for i in range(num_repeat):
+        # model_file = '%s_%s.skops' % (file_name, i)
+        model_file = "%s_%s.joblib" % (file_name, i)
+        if os.path.exists(os.path.join(sub_dir, model_file)):
+            weight.append(get_2nd_order_coef(model_file, sub_dir).reshape((1, -1)))
+
+    return np.concatenate(weight, axis=0)
 
 
 def main():
@@ -21,20 +55,32 @@ def main():
     ]
     # base_dir = "/media/shuo/MyDrive/data/HCP/BNA/Models"
     # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/ukbio/Models"
-    base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models"
+    # base_dir = "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models"
+    base_dirs = {
+        "HCP": "/media/shuo/MyDrive/data/HCP/BNA/Models",
+        "gsp": "/media/shuo/MyDrive/data/brain/brain_networks/gsp/Models",
+    }
+    output_dir = "model_weights/second_order"
     n_repeats = 1000
 
-    for task in tasks:
-        # for permutation in [False, True]:
-        for permutation in [False]:
-            weight = fetch_weights_joblib(base_dir, task, n_repeats, permutation)
-            w_mean = np.mean(weight, axis=0)
-            w_std = np.std(weight, axis=0)
-            midc = {"mean": w_mean, "std": w_std}
-            fname = copy.copy(task)
-            if permutation:
-                fname = fname + "_permut"
-            savemat(os.path.join(base_dir, fname + ".mat"), midc)
+    for dataset in base_dirs.keys():
+        base_dir = base_dirs[dataset]
+        for task in tasks:
+            for permutation in [False, True]:
+                # for permutation in [False]:
+                weight = fetch_weights_joblib(base_dir, task, n_repeats, permutation)
+                if weight is not None:
+                    weight_out = weight.astype(np.float32)
+                    w_mean = np.mean(weight, axis=0)
+                    w_std = np.std(weight, axis=0)
+                    midc = {"mean": w_mean, "std": w_std}
+                    fname = "%s_%s" % (dataset, copy.copy(task))
+                    if permutation:
+                        fname = fname + "_permut"
+                    np.savez_compressed(
+                        os.path.join(output_dir, fname + ".npz"), weight_out
+                    )
+                    savemat(os.path.join(output_dir, fname + ".mat"), midc)
 
 
 if __name__ == "__main__":
