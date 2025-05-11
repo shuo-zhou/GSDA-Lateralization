@@ -1,12 +1,10 @@
 import os
-import sys
 
 import numpy as np
 import pandas as pd
-
 from scipy.io import savemat
 
-from process_first_order_weights import get_torch_model_weight
+from ..process_first_order_weights import get_torch_model_weight
 
 # for 100206 Dice
 # subj = 100206
@@ -106,8 +104,12 @@ def main():
                     )
                     model_file_m = "%s0_%s.pt" % (model_prefix, seed_init - i)
                     model_file_f = "%s1_%s.pt" % (model_prefix, seed_init - i)
-                    coef_m = get_torch_model_weight(model_file_m, model_path).reshape((1, -1))[0, 1:]
-                    coef_f = get_torch_model_weight(model_file_f, model_path).reshape((1, -1))[0, 1:]
+                    coef_m = get_torch_model_weight(model_file_m, model_path).reshape(
+                        (1, -1)
+                    )[0, 1:]
+                    coef_f = get_torch_model_weight(model_file_f, model_path).reshape(
+                        (1, -1)
+                    )[0, 1:]
 
                     # add spec_rate
                     DiceAuc, Dices = subj_dice_auc(coef_m, coef_f, thrs)
