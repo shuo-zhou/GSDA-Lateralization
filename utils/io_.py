@@ -1,4 +1,3 @@
-import copy
 import os
 
 import h5py
@@ -8,7 +7,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import torch
-from joblib import load
 from scipy.io import loadmat, savemat
 from scipy.stats import pearsonr
 from sklearn.model_selection import train_test_split
@@ -320,48 +318,10 @@ def fetch_weights(
     return np.concatenate(weight, axis=0)
 
 
-def get_2nd_order_coef(file_name, file_dir):
-    file_path = os.path.join(file_dir, file_name)
-    # model = torch.load(file_path)
-    model = load(file_path)
-    return model.coef_
-
-
 def get_coef(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
     model = torch.load(file_path)
     return model.theta
-
-
-def fetch_weights_joblib(base_dir, task, num_repeat=1000, permutation=False):
-    """
-
-    Args:
-        base_dir:
-        task:
-        num_repeat:
-        permutation:
-
-    Returns:
-
-    """
-
-    sub_dir = os.path.join(base_dir, task)
-    file_name = copy.copy(task)
-
-    if permutation:
-        sub_dir = sub_dir + "_permut"
-        file_name = file_name + "_permut"
-
-    weight = []
-
-    for i in range(num_repeat):
-        # model_file = '%s_%s.skops' % (file_name, i)
-        model_file = "%s_%s.joblib" % (file_name, i)
-        if os.path.exists(os.path.join(sub_dir, model_file)):
-            weight.append(get_2nd_order_coef(model_file, sub_dir).reshape((1, -1)))
-
-    return np.concatenate(weight, axis=0)
 
 
 def save_results(res_dict, out_filename, output_dir, mix_group=False):

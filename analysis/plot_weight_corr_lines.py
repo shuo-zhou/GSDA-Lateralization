@@ -90,7 +90,7 @@ def load_weight_plot_corr(
 
 def main():
     datasets = ["HCP", "gsp"]
-    base_dir = "model_weights/first_order"
+    base_dir = "./model_weights/first_order"
     out_fig_dir = "gigasci_figures"
     for dataset in datasets:
         load_weight_plot_corr(dataset, base_dir, outdir=out_fig_dir)

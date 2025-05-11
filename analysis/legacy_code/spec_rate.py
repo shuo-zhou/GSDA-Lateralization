@@ -4,10 +4,9 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.append("../")
 from scipy.io import savemat
 
-from utils.io_ import get_coef
+from process_first_order_weights import get_torch_model_weight
 
 # for 100206 Dice
 # subj = 100206
@@ -107,8 +106,8 @@ def main():
                     )
                     model_file_m = "%s0_%s.pt" % (model_prefix, seed_init - i)
                     model_file_f = "%s1_%s.pt" % (model_prefix, seed_init - i)
-                    coef_m = get_coef(model_file_m, model_path).reshape((1, -1))[0, 1:]
-                    coef_f = get_coef(model_file_f, model_path).reshape((1, -1))[0, 1:]
+                    coef_m = get_torch_model_weight(model_file_m, model_path).reshape((1, -1))[0, 1:]
+                    coef_f = get_torch_model_weight(model_file_f, model_path).reshape((1, -1))[0, 1:]
 
                     # add spec_rate
                     DiceAuc, Dices = subj_dice_auc(coef_m, coef_f, thrs)
@@ -120,7 +119,7 @@ def main():
                     #         for split_f in splits:
                     #             for session_f in session:
                     #                 model_file_f = 'lambda_%s_%s_%s_%s_gender_0_%s.pt' % (lambda_, session_f, split_f, half_f, seed_init - j)
-                    #                 coef_f = get_coef(model_file_f, model_path).reshape((1, -1))[0, 1:]
+                    #                 coef_f = get_torch_model_weight(model_file_f, model_path).reshape((1, -1))[0, 1:]
                     #                 thrs = np.arange(0.0001, 1, 0.01)
                     #                 DiceAuc, Dices = subj_dice_auc(coef_m, coef_f, thrs)
                     #

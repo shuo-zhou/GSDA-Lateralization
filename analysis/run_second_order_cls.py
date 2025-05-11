@@ -1,67 +1,43 @@
 import os
-import sys
 
 import numpy as np
-import torch
 from joblib import dump
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.utils import shuffle
 
-# from skops.io import dump
-sys.path.append("../")
-from utils.io_ import fetch_weights
-
-
-def get_coef(file_name, file_dir):
-    file_path = os.path.join(file_dir, file_name)
-    model = torch.load(file_path)
-    return model.theta
-
-
-# def get_model_weight(file_name, file_dir):
-#     file_path = os.path.join(file_dir, file_name)
-#     model = torch.load(file_path)
-#     return model.model.weight.data.numpy().T
-
 
 def main():
     model1 = {"lambda": 2, "gender": 0}
     model2 = {"lambda": 2, "gender": 1}
 
-    base_dir = "../output"
+    base_dir = "./model_weights/first_order"
     dataset = "HCP"
-    sessions = [""]
-    seed_ = 2023
-
+    test_size = "00"
     permutation = False
     num_splits = 1000
     random_state = 2023
 
-    weights1 = fetch_weights(
+    weight1_file = os.path.join(
         base_dir,
-        model1["gender"],
-        model1["lambda"],
-        dataset,
-        sessions=sessions,
-        seed_=seed_,
+        "%s_L%dG%d_test_size%s.npz"
+        % (dataset, model1["lambda"], model1["gender"], test_size),
     )
-    weights2 = fetch_weights(
+    weight2_file = os.path.join(
         base_dir,
-        model2["gender"],
-        model2["lambda"],
-        dataset,
-        sessions=sessions,
-        seed_=seed_,
+        "%s_L%dG%d_test_size%s.npz"
+        % (dataset, model2["lambda"], model2["gender"], test_size),
     )
+    weights1 = np.load(weight1_file)["arr_0"]
+    weights2 = np.load(weight2_file)["arr_0"]
 
     weights = np.concatenate((weights1, weights2), axis=0)
     labels = np.zeros(weights.shape[0])
     labels[: weights1.shape[0]] = 1
 
     res = {"accuracy": []}
-    # acc = []
+
     i_iter = 0
 
     task = "L%sG%s_vs_L%sG%s" % (
@@ -88,7 +64,7 @@ def main():
         res["accuracy"].append(acc)
 
         model_fname = "%s_%s.joblib" % (task, i_iter)
-        # model_fname = "%s_%s.skops" % (task, i_iter)
+
         i_iter += 1
         dump(clf, os.path.join(out_dir, model_fname))
 

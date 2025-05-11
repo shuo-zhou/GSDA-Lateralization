@@ -16,7 +16,7 @@ from scipy.io import savemat
 from scipy.stats import normaltest
 
 
-def get_coef(file_name, file_dir):
+def get_torch_model_weight(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
     model = torch.load(file_path)
     return model.theta
@@ -65,7 +65,9 @@ def fetch_weights(
                     )
                     if os.path.exists(os.path.join(sub_dir, model_file_name)):
                         weight.append(
-                            get_coef(model_file_name, sub_dir).reshape((1, -1))
+                            get_torch_model_weight(model_file_name, sub_dir).reshape(
+                                (1, -1)
+                            )
                         )
 
     return np.concatenate(weight, axis=0)
