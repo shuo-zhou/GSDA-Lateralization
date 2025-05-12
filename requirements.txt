@@ -8,3 +8,8 @@ matplotlib
 nibabel
 seaborn
 yacs
+mne
+mne-connectivity
+openpyxl
+osqp
+cvxopt

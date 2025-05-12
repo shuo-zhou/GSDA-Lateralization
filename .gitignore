@@ -12,7 +12,7 @@
 *.pt
 *.pyc
 *.sh
-#*.svg
+*.svg
 *.xml
 configs/*.yaml
 *.zip
@@ -27,8 +27,10 @@ __pycache__
 **.ipynb_checkpoints/
 nilearn_cache/
 .pytest_cache
-#model_analysis/figures/
-model_analysis/first-order/
-model_analysis/second-order/
+analysis/**/*.pdf
+analysis/**/*.svg
+analysis/**/*.csv
+analysis/**/*.npz
+analysis/**/*.mat
 semistats/estimator/_code.py
 configs/cr8*.py
