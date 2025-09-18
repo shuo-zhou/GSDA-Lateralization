@@ -58,11 +58,16 @@ We provide GSDA running demo through a cloud Jupyter notebook on [![Open In Cola
 If you use this code in your research, please cite the following paper:
 
 ```(text)
-@article{zhou2025group,
-  title={Group-specific discriminant analysis enhances detection of sex differences in brain functional network lateralization},
-  author={Zhou, Shuo and Luo, Junhao and Jiang, Yaya and Wang, Haolin and Lu, Haiping and Gaolang, Gong},
-  journal={GigaScience},
-  year={2025},
-  publisher={Oxford University Press}
+@article{10.1093/gigascience/giaf082,
+    author = {Zhou, Shuo and Luo, Junhao and Jiang, Yaya and Wang, Haolin and Lu, Haiping and Gong, Gaolang},
+    title = {Group-specific discriminant analysis enhances detection of sex differences in brain functional network lateralization},
+    journal = {GigaScience},
+    volume = {14},
+    pages = {giaf082},
+    year = {2025},
+    month = {08},
+    issn = {2047-217X},
+    doi = {10.1093/gigascience/giaf082},
+    publisher={Oxford University Press}
 }
 ```
