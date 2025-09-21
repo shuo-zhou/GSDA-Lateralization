@@ -2,11 +2,12 @@
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/shuo-zhou/GSDA-Lateralization/blob/main/gsda_demo.ipynb)
 [![GitHub license](https://badgen.net/github/license/Naereen/Strapdown.js)](https://github.com/shuo-zhou/GSDA-Lateralization/blob/main/README.md)
+[![DOI](https://img.shields.io/badge/DOI-10.1093%2Fgigascience%2Fgiaf082-blue)](https://doi.org/10.1093/gigascience/giaf082)
 [![DOI](https://zenodo.org/badge/325192453.svg)](https://zenodo.org/doi/10.5281/zenodo.13626594)
 
 ## Introduction
 
-This repository contains the implementation of Group-Specific Discriminant Analysis (GSDA) and experiments from the GigaScience paper “Group-specific discriminant analysis enhances detection of sex differences in brain functional network lateralization” by Zhou et al. (2025).
+This repository contains the implementation of Group-Specific Discriminant Analysis (GSDA) and experiments from the GigaScience paper [Group-specific discriminant analysis enhances detection of sex differences in brain functional network lateralization](https://doi.org/10.1093/gigascience/giaf082) by Zhou et al. (2025).
 
 ## Framework
 
@@ -49,9 +50,9 @@ We provide GSDA running demo through a cloud Jupyter notebook on [![Open In Cola
 
 ## References
 
-[1] Smith, S. M. et al. Resting-state fMRI in the human connectome project. _NeuroImage_ 80, 144–168 (2013)
+[1] Smith, S. M. et al. [Resting-state fMRI in the human connectome project](https://www.sciencedirect.com/science/article/abs/pii/S1053811913005338). _NeuroImage_ 80, 144–168 (2013)
 
-[2] Holmes, A. J. et al. Brain genomics superstruct project initial data release with structural, functional, and behavioral measures. _Sci. Data_ 2, 1–16 (2015)
+[2] Holmes, A. J. et al. [Brain genomics superstruct project initial data release with structural, functional, and behavioral measures](https://www.nature.com/articles/sdata201531). _Sci. Data_ 2, 1–16 (2015)
 
 ## Citation
 
