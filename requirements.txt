@@ -13,3 +13,4 @@ mne-connectivity
 openpyxl
 osqp
 cvxopt
+kalelinear>=0.1.0b1

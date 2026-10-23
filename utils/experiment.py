@@ -1,17 +1,15 @@
 import copy
 import os
-import sys
 
 # import pickle
 import numpy as np
 import pandas as pd
 import torch
+from kalelinear.estimator import GSDA
 from sklearn.metrics import accuracy_score  # , roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit
 from torch.hub import download_url_to_file
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from semistats.estimator import GSLR  # , GSLRTorch
 from utils.io_ import load_half_brain, pick_half, read_tabular
 
 BASE_RESULT_DICT: dict = {
@@ -162,7 +160,7 @@ def train_modal(
     if os.path.exists(model_path):
         model = torch.load(model_path)
     else:
-        model = GSLR(**init_kws)
+        model = GSDA(**init_kws)
         model.fit(x_train, **fit_kws)
         torch.save(model, model_path)
         print("Saving trained model to %s. \n" % model_path)
