@@ -28,8 +28,7 @@ LABEL_FILE_LINK = {
     "GSP": "https://zenodo.org/records/10050234/files/gsp_half_brain.csv",
 }
 
-GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer", "max_iter"]
-GSDA_FIT_ARGS = ["y", "groups", "target_idx"]
+GSDA_INIT_ARGS = ["lr", "max_iter", "l2_hparam", "lambda_", "optimizer"]
 
 GROUP_DICT = {0: "Male", 1: "Female"}
 
@@ -158,7 +157,7 @@ def train_modal(
     model_path = os.path.join(out_dir, "%s.pt" % model_filename)
 
     if os.path.exists(model_path):
-        model = torch.load(model_path)
+        model = torch.load(model_path, weights_only=False)
     else:
         model = GSDA(**init_kws)
         model.fit(x_train, **fit_kws)

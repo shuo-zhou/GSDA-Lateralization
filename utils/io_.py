@@ -320,7 +320,7 @@ def fetch_weights(
 
 def get_coef(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
-    model = torch.load(file_path)
+    model = torch.load(file_path, weights_only=False)
     return model.theta_
 
 

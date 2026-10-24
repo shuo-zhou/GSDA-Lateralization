@@ -26,6 +26,7 @@ scipy>=1.10.1
 scikit-learn>=1.2.2
 pytorch>=2.0.0
 yacs
+kalelinear>=0.1.0b1
 ```
 
 ## Installation Guide
@@ -33,6 +34,8 @@ yacs
 ```(bash)
 pip install -r requirements.txt
 ```
+
+The GSDA implementation comes from [kalelinear](https://pypi.org/project/kalelinear/), which is currently a pre-release and is installed by the command above. To install it on its own, use `pip install --pre kalelinear`.
 
 ## Instructions for Use
 
