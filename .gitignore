@@ -32,5 +32,4 @@ analysis/**/*.svg
 analysis/**/*.csv
 analysis/**/*.npz
 analysis/**/*.mat
-semistats/estimator/_code.py
 configs/cr8*.py

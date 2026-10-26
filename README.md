@@ -7,7 +7,9 @@
 
 ## Introduction
 
-This repository contains the implementation of Group-Specific Discriminant Analysis (GSDA) and experiments from the GigaScience paper [Group-specific discriminant analysis enhances detection of sex differences in brain functional network lateralization](https://doi.org/10.1093/gigascience/giaf082) by Zhou et al. (2025).
+This repository contains the experiments from the GigaScience paper [Group-specific discriminant analysis enhances detection of sex differences in brain functional network lateralization](https://doi.org/10.1093/gigascience/giaf082) by Zhou et al. (2025).
+
+The Group-specific discriminant analysis (GSDA) algorithm is implemented in the [kalelinear](https://github.com/pykale/linear) package. The code used here is [`kalelinear.estimator.GSDA`](https://github.com/pykale/linear/blob/0.1.0b1/kalelinear/estimator/_gsda.py) (`kalelinear==0.1.0b1`).
 
 ## Framework
 
@@ -26,6 +28,7 @@ scipy>=1.10.1
 scikit-learn>=1.2.2
 pytorch>=2.0.0
 yacs
+kalelinear==0.1.0b1
 ```
 
 ## Installation Guide
@@ -33,6 +36,25 @@ yacs
 ```(bash)
 pip install -r requirements.txt
 ```
+
+The GSDA implementation comes from [kalelinear](https://pypi.org/project/kalelinear/), which is currently a pre-release and is installed by the command above. To install it on its own, use `pip install --pre kalelinear==0.1.0b1`.
+
+## Implementation
+
+GSDA lives in [`kalelinear/estimator/_gsda.py`](https://github.com/pykale/linear/blob/0.1.0b1/kalelinear/estimator/_gsda.py), and this repository calls it from `utils/experiment.py`:
+
+```(python)
+from kalelinear.estimator import GSDA
+
+model = GSDA(lr=..., max_iter=..., l2_hparam=..., lambda_=..., optimizer=...)
+model.fit(x_train, y=y, groups=groups, target_idx=target_idx)
+```
+
+`lambda_` weights the HSIC term that controls the impact of group (sex) information on the learned weights, and `lambda_=0` gives the plain logistic regression baseline used in the paper.
+
+### Reproducing the paper results
+
+The results in the paper were produced with the original in-repository implementation (`semistats`), which was moved to `kalelinear` after publication. To run that exact code, use the [v1.0.0 release](https://github.com/shuo-zhou/GSDA-Lateralization/releases/tag/v1.0.0).
 
 ## Instructions for Use
 
