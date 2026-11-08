@@ -193,13 +193,13 @@ def reformat_results(res_df, test_sets, male_label=0):
             test_set_list = test_set.split("_")
             if _group == "Male" or _group == male_label:
                 res_reformat["Target group"].append("Male")
-                if "oc" in test_set_list or "tgt" in test_set_list:
+                if "nt" in test_set_list:
                     res_reformat["Test set"].append("Female")
                 else:
                     res_reformat["Test set"].append("Male")
             else:
                 res_reformat["Target group"].append("Female")
-                if "oc" in test_set_list or "tgt" in test_set_list:
+                if "nt" in test_set_list:
                     res_reformat["Test set"].append("Male")
                 else:
                     res_reformat["Test set"].append("Female")
@@ -217,15 +217,21 @@ def label_gender(df):
 
 
 def plot_hcp(res_df_all, test_size, out_dir="figures"):
-    res_df_all["GSI_is"] = 2 * (
-        res_df_all["acc_ic_is"] * (res_df_all["acc_ic_is"] - res_df_all["acc_oc_is"])
+    res_df_all["GSI_train_session"] = 2 * (
+        res_df_all["acc_tgt_train_session"]
+        * (res_df_all["acc_tgt_train_session"] - res_df_all["acc_nt_train_session"])
     )
-    res_df_all["GSI_os"] = 2 * (
-        res_df_all["acc_ic_os"] * (res_df_all["acc_ic_os"] - res_df_all["acc_oc_os"])
+    res_df_all["GSI_test_session"] = 2 * (
+        res_df_all["acc_tgt_test_session"]
+        * (res_df_all["acc_tgt_test_session"] - res_df_all["acc_nt_test_session"])
     )
 
-    res_df_is = reformat_results(res_df_all, ["acc_ic_is", "acc_oc_is"])
-    res_df_os = reformat_results(res_df_all, ["acc_ic_os", "acc_oc_os"])
+    res_df_is = reformat_results(
+        res_df_all, ["acc_tgt_train_session", "acc_nt_train_session"]
+    )
+    res_df_os = reformat_results(
+        res_df_all, ["acc_tgt_test_session", "acc_nt_test_session"]
+    )
 
     res_df_all = label_gender(res_df_all)
 
@@ -235,7 +241,7 @@ def plot_hcp(res_df_all, test_size, out_dir="figures"):
     plot_gsi(
         res_df_all,
         x="lambda",
-        y="GSI_is",
+        y="GSI_train_session",
         hue="train_gender",
         outfile=f"{out_dir}/Fig_2B",
         outfig_format=PLOT_FORMATS,
@@ -243,7 +249,7 @@ def plot_hcp(res_df_all, test_size, out_dir="figures"):
     plot_gsi(
         res_df_all,
         x="lambda",
-        y="GSI_os",
+        y="GSI_test_session",
         hue="train_gender",
         outfile=f"{out_dir}/Fig_S1B",
         outfig_format=PLOT_FORMATS,
@@ -271,12 +277,12 @@ def plot_hcp(res_df_all, test_size, out_dir="figures"):
 
 
 def plot_gsp(res_df_all, test_size, out_dir="figures"):
-    res_df_all["gap"] = res_df_all["acc_ic"] - res_df_all["acc_oc"]
+    res_df_all["gap"] = res_df_all["acc_tgt"] - res_df_all["acc_nt"]
     res_df_all["GSI"] = 2 * (
-        res_df_all["acc_ic"] * (res_df_all["acc_ic"] - res_df_all["acc_oc"])
+        res_df_all["acc_tgt"] * (res_df_all["acc_tgt"] - res_df_all["acc_nt"])
     )
 
-    res_df_reformat = reformat_results(res_df_all, ["acc_ic", "acc_oc"])
+    res_df_reformat = reformat_results(res_df_all, ["acc_tgt", "acc_nt"])
 
     res_df_all = label_gender(res_df_all)
 
