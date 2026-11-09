@@ -211,8 +211,13 @@ def reformat_results(res_df, test_sets, male_label=0):
 
 def label_gender(df):
     df = df.copy()
-    gender_map = {"0": "Male", "1": "Female"}
-    df["train_gender"] = df["train_gender"].astype(str).map(gender_map)
+    if "target_group" in df.columns:
+        # New results store Male/Female directly in target_group
+        df["train_gender"] = df["target_group"]
+    else:
+        # Legacy results store numeric codes in train_gender
+        gender_map = {"0": "Male", "1": "Female"}
+        df["train_gender"] = df["train_gender"].astype(str).map(gender_map)
     return df
 
 
