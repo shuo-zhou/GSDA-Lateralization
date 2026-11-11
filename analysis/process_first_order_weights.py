@@ -18,8 +18,8 @@ from scipy.stats import normaltest
 
 def get_torch_model_weight(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
-    model = torch.load(file_path)
-    return model.theta
+    model = torch.load(file_path, weights_only=False)
+    return model.theta_
 
 
 def fetch_weights(

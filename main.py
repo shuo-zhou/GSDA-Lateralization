@@ -12,8 +12,6 @@ def arg_parse():
         description="GSDA brain hemispheres classification"
     )
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
-    # parser.add_argument("--gpus", default=None, help="gpu id(s) to use", type=str)
-    parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
     return args
 
