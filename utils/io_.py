@@ -1,4 +1,5 @@
 import os
+from urllib.request import urlretrieve
 
 import h5py
 import matplotlib.pyplot as plt
@@ -6,12 +7,11 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import torch
+from joblib import load
 from scipy.io import loadmat, savemat
 from scipy.stats import pearsonr
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
-from torch.hub import download_url_to_file
 
 HCP_LINK = {
     "REST1": "https://zenodo.org/records/10050233/files/HCP_BNA_intra_half_brain_REST1_Fisherz.hdf5",
@@ -300,15 +300,18 @@ def fetch_weights(
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(52):
-                    model_file_name = "%s_L%s_test_size%s_%s%s_%s_group_%s_%s.pt" % (
-                        dataset,
-                        lambda_,
-                        test_size,
-                        session_i,
-                        i_split,
-                        half_i,
-                        group,
-                        seed_ - seed,
+                    model_file_name = (
+                        "%s_L%s_test_size%s_%s%s_%s_group_%s_%s.joblib"
+                        % (
+                            dataset,
+                            lambda_,
+                            test_size,
+                            session_i,
+                            i_split,
+                            half_i,
+                            group,
+                            seed_ - seed,
+                        )
                     )
                     if os.path.exists(os.path.join(sub_dir, model_file_name)):
                         weight.append(
@@ -318,9 +321,21 @@ def fetch_weights(
     return np.concatenate(weight, axis=0)
 
 
+def download_url_to_file(url, dst):
+    """download a file from url to a local path
+
+    Args:
+        url (str): url of the file to download
+        dst (str): local file path to save the downloaded file
+    """
+    tmp_dst = dst + ".part"
+    urlretrieve(url, tmp_dst)
+    os.replace(tmp_dst, dst)
+
+
 def get_coef(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
-    model = torch.load(file_path, weights_only=False)
+    model = load(file_path)
     return model.theta_
 
 

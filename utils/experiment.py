@@ -4,13 +4,12 @@ import os
 # import pickle
 import numpy as np
 import pandas as pd
-import torch
+from joblib import dump, load
 from kalelinear.estimator import GSDA
 from sklearn.metrics import accuracy_score  # , roc_auc_score
 from sklearn.model_selection import StratifiedShuffleSplit
-from torch.hub import download_url_to_file
 
-from utils.io_ import load_half_brain, pick_half, read_tabular
+from utils.io_ import download_url_to_file, load_half_brain, pick_half, read_tabular
 
 BASE_RESULT_DICT: dict = {
     "pred_loss": [],
@@ -154,14 +153,14 @@ def train_modal(
     out_dir,
     model_filename,
 ):
-    model_path = os.path.join(out_dir, "%s.pt" % model_filename)
+    model_path = os.path.join(out_dir, "%s.joblib" % model_filename)
 
     if os.path.exists(model_path):
-        model = torch.load(model_path, weights_only=False)
+        model = load(model_path)
     else:
         model = GSDA(**init_kws)
         model.fit(x_train, **fit_kws)
-        torch.save(model, model_path)
+        dump(model, model_path)
         print("Saving trained model to %s. \n" % model_path)
 
     return model
