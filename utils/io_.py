@@ -1,4 +1,5 @@
 import os
+import tempfile
 from urllib.request import urlretrieve
 
 import h5py
@@ -328,9 +329,19 @@ def download_url_to_file(url, dst):
         url (str): url of the file to download
         dst (str): local file path to save the downloaded file
     """
-    tmp_dst = dst + ".part"
-    urlretrieve(url, tmp_dst)
-    os.replace(tmp_dst, dst)
+    # use a unique temporary file so parallel jobs downloading the same file do not collide
+    with tempfile.NamedTemporaryFile(
+        dir=os.path.dirname(dst) or ".", delete=False
+    ) as tmp:
+        tmp_dst = tmp.name
+    try:
+        urlretrieve(url, tmp_dst)
+        # another job may have finished the same download first, keep its file
+        if not os.path.exists(dst):
+            os.replace(tmp_dst, dst)
+    finally:
+        if os.path.exists(tmp_dst):
+            os.remove(tmp_dst)
 
 
 def get_coef(file_name, file_dir):
