@@ -1,6 +1,6 @@
 # Analysis of 1st, 2nd-order, and univariate test models and results with visualisation
 
-Sample first-order (.pt) and second-order (.joblib) model files are available on Hugging Face Model Hub: [https://huggingface.co/shuo-zhou/brain_network_lateralization](https://huggingface.co/shuo-zhou/brain_network_lateralization), DOI: [10.57967/hf/2996](https://doi.org/10.57967/hf/2996).
+Sample first-order (.pt) and second-order (.joblib) model files are available on Hugging Face Model Hub: [https://huggingface.co/shuo-zhou/brain_network_lateralization](https://huggingface.co/shuo-zhou/brain_network_lateralization), DOI: [10.57967/hf/2996](https://doi.org/10.57967/hf/2996). The sample first-order `.pt` files were saved with the [v1.0.0 release](https://github.com/shuo-zhou/GSDA-Lateralization/releases/tag/v1.0.0) and need that release to load; first-order models trained with the current code are saved as `.joblib` files.
 
 The Brainnetome atlas (BNA) is available at [http://atlas.brainnetome.org/](http://atlas.brainnetome.org/). [BNA_subregions.xlsx](BNA_subregions.xlsx) for the information about the lobes and gyrus is provided by the author and originally available at [https://pan.cstcloud.cn/web/share.html?hash=6eRCJ0zDTFk](https://pan.cstcloud.cn/web/share.html?hash=6eRCJ0zDTFk).
 
@@ -10,7 +10,7 @@ The Brainnetome atlas (BNA) is available at [http://atlas.brainnetome.org/](http
 
 First-order models were trained to classify right (labelled as 1) and left (labelled as 0) brain hemispheres.
 
-`process_first_order_weights.py` processes first-order model weight (.pt) files by:
+`process_first_order_weights.py` processes first-order model weight (.joblib) files by:
 
 1. Loading weight vectors learned from multiple random splits (seeds).
 2. Combining all weights into a single .npz file for archival and future use.

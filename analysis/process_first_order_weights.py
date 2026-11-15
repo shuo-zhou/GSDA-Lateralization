@@ -11,14 +11,14 @@ them in .mat format.
 import os
 
 import numpy as np
-import torch
+from joblib import load
 from scipy.io import savemat
 from scipy.stats import normaltest
 
 
-def get_torch_model_weight(file_name, file_dir):
+def get_model_weight(file_name, file_dir):
     file_path = os.path.join(file_dir, file_name)
-    model = torch.load(file_path, weights_only=False)
+    model = load(file_path)
     return model.theta_
 
 
@@ -53,21 +53,22 @@ def fetch_weights(
         for half_i in halfs:
             for i_split in range(num_repeat):
                 for seed in range(52):
-                    model_file_name = "%s_L%s_test_size%s_%s%s_%s_group_%s_%s.pt" % (
-                        dataset,
-                        lambda_,
-                        test_size,
-                        session_i,
-                        i_split,
-                        half_i,
-                        group,
-                        seed_ - seed,
+                    model_file_name = (
+                        "%s_L%s_test_size%s_%s%s_%s_group_%s_%s.joblib"
+                        % (
+                            dataset,
+                            lambda_,
+                            test_size,
+                            session_i,
+                            i_split,
+                            half_i,
+                            group,
+                            seed_ - seed,
+                        )
                     )
                     if os.path.exists(os.path.join(sub_dir, model_file_name)):
                         weight.append(
-                            get_torch_model_weight(model_file_name, sub_dir).reshape(
-                                (1, -1)
-                            )
+                            get_model_weight(model_file_name, sub_dir).reshape((1, -1))
                         )
 
     return np.concatenate(weight, axis=0)

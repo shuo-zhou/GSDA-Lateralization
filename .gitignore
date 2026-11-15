@@ -2,6 +2,7 @@
 *.dcm
 # *.edge
 *.iml
+*.joblib
 *.json
 *.log
 *.mat
